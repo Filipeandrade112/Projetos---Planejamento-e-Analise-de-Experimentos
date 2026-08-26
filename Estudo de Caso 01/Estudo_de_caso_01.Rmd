@@ -1,0 +1,113 @@
+---
+title: 'Estudo de Caso 01: Comparação do IMC médio de alunos do PPGEE-UFMG ao longo de dois semestres'
+author: "Beatriz S. Campagnaro, Isabela C. S. Barbosa, Filipe C. Andrade e Stephanie F. Lemos"
+date: "28 de Agosto de 2026"
+output:
+  pdf_document:
+    fig_caption: yes
+  html_document:
+    df_print: paged
+---
+
+```{r setup, results='hide', warning=FALSE, echo=FALSE}
+# Definindo o mirror do CRAN
+options(repos = c(CRAN = "[https://cloud.r-project.org](https://cloud.r-project.org)"))
+
+# Instalando/carregando ggplot2
+if (!require(ggplot2, quietly = TRUE)){
+      install.packages("ggplot2")
+      library(ggplot2)
+}
+
+# Instalando/carregando broom DIRETO DO CRAN
+if (!require(broom, quietly = TRUE)){
+      install.packages("broom")
+      library(broom)
+}
+
+# Instalando/carregando GGally
+if (!require(GGally, quietly = TRUE)){
+      install.packages("GGally")
+      library(GGally)
+}
+```
+
+## Introdução
+
+Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudante, sendo estas compostas por alunos de pós graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
+
+### 1. Coleta e Tratamento de Dados
+
+```{r sep_circular, out.width="100%"}
+
+# 1. Coletando Dados do CSV disponibilizado 
+dados_2016 <- read.csv("Dados/imc_20162.csv")
+dados_2017 <- read.csv("Dados/imc_20172.csv")
+
+# 2. Convertendo os dados em matrizes separadas
+matriz_2016 <- as.matrix(dados_2016)
+matriz_2017 <- as.matrix(dados_2017)
+```
+
+## Experimental design
+
+A section detailing the experimental setup. This is the place where you will define your test hypotheses, e.g.: $$\begin{cases} H_0: \mu = 10&\\H_1: \mu<10\end{cases}$$
+
+including the reasons behind your choices of the value for $H_0$ and the directionality (or not) of $H_1$.
+
+This is also the place where you should discuss (whenever necessary) your definitions of minimally relevant effects ($\delta^*$), sample size calculations, choice of power and significance levels, and any other relevant information about specificities in your data collection procedures.
+
+### Description of the data collection
+
+Whenever needed, you can also include an (optional) subsection describing the actual data collection, how it was performed, any adaptations or unexpected events that may have occurred, etc. Subsections like this can also be used for the sample size calculations or any other aspect that requires a longer discussion.
+
+## Exploratory Data Analysis
+
+The first step is to load and preprocess the data. For instance,
+
+```{r loaddata}
+data(mtcars)
+fc<-c(2,8:11)
+for (i in 1:length(fc)){mtcars[,fc[i]]<-as.factor(mtcars[,fc[i]])}
+levels(mtcars$am) <- c("Automatic","Manual")
+```
+
+To get an initial feel for the relationships between the relevant variables of your experiment it is frequently interesting to perform some preliminary (exploratory) analysis. This is frequently referred to as *getting a feel* of your data, and can suggest procedures (such as outlier investigation or data transformations) to experienced experimenters.
+
+```{r pairs,fig.width=8,echo=TRUE,message=FALSE,fig.cap="Exploring the effect of car transmission on mpg values"}
+library(GGally,quietly = T, warn.conflicts = F) # This is just me getting fancy.
+                                                # There are much simpler ways ;-)
+ggpairs(data=mtcars,columns=c(1,9),title="MPG by transmission type",
+        upper=list(combo="box"),lower=list(combo="facethist"),
+        diag=list(continuous="densityDiag",discrete="barDiag"))
+```
+
+Your preliminary analysis should be described together with the plots. In this example, two facts are immediately clear from the plots: first, **mpg** tends to correlate well with many of the other variables, most intensely with **drat** (positively) and **wt** (negatively). It is also clear that many of the variables are highly correlated (e.g., **wt** and **disp**). Second, it seems like manual transmission models present larger values of **mpg** than the automatic ones. In the next section a linear model will be fit to the data in order to investigate the significance and magnitude of this possible effect.
+
+## Statistical Analysis
+
+Your statistical analysis should come here. This is the place where you should fit your statistical model, get the results of your significance test, your effect size estimates and confidence intervals.
+
+```{r fitmodel,results='hold'}
+model<-aov(mpg~am*disp,data=mtcars)
+summary(model)
+```
+
+### Checking Model Assumptions
+
+The assumptions of your test should also be validated, and possible effects of violations should also be explored.
+
+```{r resplots,fig.width=8,echo=TRUE,message=FALSE, fig.cap = "Residual plots for the anova model"}
+par(mfrow=c(2,2), mai=.3*c(1,1,1,1))
+plot(model,pch=16,lty=1,lwd=2)
+```
+
+### Conclusions and Recommendations
+
+The discussion of your results, and the scientific/technical meaning of the effects detected, should be placed here. Always be sure to tie your results back to the original question of interest!
+
+### Declaration of generative AI and AI-assisted technologies in the report preparation process.
+
+
+
+During the preparation of this work the author(s) used [NAME OF TOOL / SERVICE] in order to [REASON]. After using this tool/service, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the published article.
