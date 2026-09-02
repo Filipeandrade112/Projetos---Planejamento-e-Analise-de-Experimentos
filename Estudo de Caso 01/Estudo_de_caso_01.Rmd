@@ -9,7 +9,8 @@ output:
     df_print: paged
 ---
 
-```{r setup, results='hide', warning=FALSE, echo=FALSE}
+```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
+
 # Definindo o mirror do CRAN
 options(repos = c(CRAN = "[https://cloud.r-project.org](https://cloud.r-project.org)"))
 
@@ -30,24 +31,77 @@ if (!require(GGally, quietly = TRUE)){
       install.packages("GGally")
       library(GGally)
 }
+
+# Instalando/carregando dplyr
+if (!require(dplyr, quietly = TRUE)){
+      install.packages("dplyr")
+      library(dplyr)
+}
 ```
 
-## Introdução
+## Introdução TESTE TESTE
 
-Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudante, sendo estas compostas por alunos de pós graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
+Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudantes, sendo estas compostas por alunos de pós graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
 
 ### 1. Coleta e Tratamento de Dados
 
-```{r sep_circular, out.width="100%"}
+O prmeiro passo empregado foi a coletada de dados, na qual são coletados os dados disponibilizados por meio dos aquivos .CSV, em seguida esses dados foram tratados para ficarem no mesmo formato, deixando suas colunas da seguinte forma
 
-# 1. Coletando Dados do CSV disponibilizado 
+ID, Peso, Altura, Genero, Curso, Peso e Idade
+
+```{r coleta_e_conversao_dados}
+
+# 1. Coletando Dados do CSV disponibilizado
 dados_2016 <- read.csv("Dados/imc_20162.csv")
-dados_2017 <- read.csv("Dados/imc_20172.csv")
+dados_2017 <- read.csv("Dados/imc_20172.csv", sep = ";")
 
-# 2. Convertendo os dados em matrizes separadas
-matriz_2016 <- as.matrix(dados_2016)
-matriz_2017 <- as.matrix(dados_2017)
+# 2. Ajustando e padronizando dados_2016
+dados_2016 <- dados_2016 %>%
+  mutate(Idade = NA) %>%
+  rename(
+    ID = ID,
+    Curso = Course,
+    Genero = Gender,
+    Altura = Height.m,
+    Peso = Weight.kg
+  ) %>%
+  select(ID, Peso, Altura, Genero, Curso, Idade) 
+
+# 3. Ajustando e padronizando dados_2017
+dados_2017 <- dados_2017 %>%
+  mutate(
+    ID = row_number(),
+    Curso = "PPGEE"
+  ) %>%
+  rename(
+    Peso = Weight.kg,
+    Altura = height.m, 
+    Genero = Sex,
+    Idade = Age.years
+  ) %>%
+  select(ID, Peso, Altura, Genero, Curso, Idade)
+
 ```
+
+Em seguida foi realizado o tratamento, que seria remover os estudantes de graduação, visto que esse estudo tem foco em estudantes de pós-graduação em enegnharia eletrica na UFMG, após essa etapa foi calculado o Indice de Massa Corporal (IMC) dos participantes por meio da equação:
+
+$$IMC = \frac{Peso}{Altura^2}$$ 
+
+Sendo o Peso dado em quilogramas(Kg) e a altura em metros(m), essa informação foi armazenada em uma nova coluna da tabela de dados, sendo vinculada a cada participante.
+
+```{r tratamento_IMC}
+
+# 4. Calculando o IMC
+dados_2016 <- dados_2016 %>%
+  mutate(IMC = Peso / (Altura^2)) %>%
+  filter(Curso == "PPGEE") # Remove os alunos da graduação
+
+# 5. Calculando o IMC
+dados_2017 <- dados_2017 %>%
+  mutate(IMC = Peso / (Altura^2))
+
+```
+
 
 ## Experimental design
 
@@ -107,7 +161,5 @@ plot(model,pch=16,lty=1,lwd=2)
 The discussion of your results, and the scientific/technical meaning of the effects detected, should be placed here. Always be sure to tie your results back to the original question of interest!
 
 ### Declaration of generative AI and AI-assisted technologies in the report preparation process.
-
-
 
 During the preparation of this work the author(s) used [NAME OF TOOL / SERVICE] in order to [REASON]. After using this tool/service, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the published article.
