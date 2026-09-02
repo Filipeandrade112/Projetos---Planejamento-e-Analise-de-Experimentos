@@ -1,6 +1,6 @@
 ---
 title: 'Estudo de Caso 01: Comparação do IMC médio de alunos do PPGEE-UFMG ao longo de dois semestres'
-author: "Beatriz S. Campagnaro, Isabela C. S. Barbosa, Filipe C. Andrade e Stephanie F. Lemos"
+author: "Beatriz S. Campagnaro, Izabela C. S. Barbosa, Filipe C. Andrade e Stephanie F. Lemos"
 date: "28 de Agosto de 2026"
 output:
   pdf_document:
@@ -49,60 +49,96 @@ O prmeiro passo empregado foi a coletada de dados, na qual são coletados os dad
 
 ID, Peso, Altura, Genero, Curso, Peso e Idade
 
-```{r coleta_e_conversao_dados}
+```{r configuracao_fontes}
 
-# 1. Coletando Dados do CSV disponibilizado
-dados_2016 <- read.csv("Dados/imc_20162.csv")
-dados_2017 <- read.csv("Dados/imc_20172.csv", sep = ";")
+# 1. Configuração dos arquivos e das colunas
+# Cada semestre é definido por: caminho do arquivo, separador,
+# mapeamento das colunas, filtro de curso e identificação do semestre.
 
-# 2. Ajustando e padronizando dados_2016
-dados_2016 <- dados_2016 %>%
-  mutate(Idade = NA) %>%
-  rename(
-    ID = ID,
-    Curso = Course,
-    Genero = Gender,
-    Altura = Height.m,
-    Peso = Weight.kg
-  ) %>%
-  select(ID, Peso, Altura, Genero, Curso, Idade) 
+config_2016 <- list(
+  caminho      = "Dados/imc_20162.csv",
+  separador    = ",",
+  mapa_colunas = c(ID = "ID", Curso = "Course", Genero = "Gender",
+                    Altura = "Height.m", Peso = "Weight.kg"),
+  filtro_curso = "PPGEE",   # 2016 vem misturado com a graduação
+  semestre     = "2016-2"
+)
 
-# 3. Ajustando e padronizando dados_2017
-dados_2017 <- dados_2017 %>%
-  mutate(
-    ID = row_number(),
-    Curso = "PPGEE"
-  ) %>%
-  rename(
-    Peso = Weight.kg,
-    Altura = height.m, 
-    Genero = Sex,
-    Idade = Age.years
-  ) %>%
-  select(ID, Peso, Altura, Genero, Curso, Idade)
-
+config_2017 <- list(
+  caminho      = "Dados/imc_20172.csv",
+  separador    = ";",
+  mapa_colunas = c(Peso = "Weight.kg", Altura = "height.m",
+                    Genero = "Sex", Idade = "Age.years"),
+  filtro_curso = NULL,      # 2017 já vem só com PPGEE
+  semestre     = "2017-2"
+)
 ```
 
-Em seguida foi realizado o tratamento, que seria remover os estudantes de graduação, visto que esse estudo tem foco em estudantes de pós-graduação em enegnharia eletrica na UFMG, após essa etapa foi calculado o Indice de Massa Corporal (IMC) dos participantes por meio da equação:
+```{r carregar_dados}
+# 2. Carregamento e padronização dos dados
 
-$$IMC = \frac{Peso}{Altura^2}$$ 
+carregar_dados <- function(config) {
+  bruto <- read.csv(config$caminho,
+    sep = config$separador,
+    stringsAsFactors = FALSE)
 
-Sendo o Peso dado em quilogramas(Kg) e a altura em metros(m), essa informação foi armazenada em uma nova coluna da tabela de dados, sendo vinculada a cada participante.
+  bruto <- rename(bruto, !!!config$mapa_colunas)
 
-```{r tratamento_IMC}
+  # Criação das colunas ausentes no arquivo original
+  if (!"Idade" %in% names(bruto)) bruto$Idade <- NA_real_
+  if (!"Curso" %in% names(bruto)) bruto$Curso <- "PPGEE"
+  if (!"ID" %in% names(bruto))    bruto$ID    <- seq_len(nrow(bruto))
 
-# 4. Calculando o IMC
-dados_2016 <- dados_2016 %>%
-  mutate(IMC = Peso / (Altura^2)) %>%
-  filter(Curso == "PPGEE") # Remove os alunos da graduação
+  # Aplicação do filtro de curso quando necessário
+  if (!is.null(config$filtro_curso)) {
+    bruto <- filter(bruto, Curso == config$filtro_curso)
+  }
 
-# 5. Calculando o IMC
-dados_2017 <- dados_2017 %>%
-  mutate(IMC = Peso / (Altura^2))
+  bruto$Semestre <- config$semestre
+  select(bruto, Semestre, ID, Curso, Genero, Idade, Altura, Peso)
+}
 
+dados_2016 <- carregar_dados(config_2016)
+dados_2017 <- carregar_dados(config_2017)
 ```
 
+O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso exige filtro adicional pelo curso PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação. 
 
+Em seguida foi calculado o Índice de Massa Corporal (IMC) de cada participante por meio da equação:
+
+$$IMC = \frac{Peso}{Altura^2}$$
+
+sendo o peso dado em quilogramas (kg) e a altura em metros (m).
+
+```{r calcular_imc}
+# 3. Cálculo do Índice de Massa Corporal (IMC)
+calcular_imc <- function(dados) {
+  mutate(dados, IMC = Peso / (Altura^2))
+}
+
+dados_2016 <- calcular_imc(dados_2016)
+dados_2017 <- calcular_imc(dados_2017)
+```
+
+Antes dos testes de hipótese, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de altura ou peso, a fim de evitar a exclusão de observações potencialmente legítimas. A base de 2016-2 continha 28 observações (21 homens e 7 mulheres) e a de 2017-2, 25 (21 homens e 4 mulheres). Não foram identificados valores ausentes ou duplicidades, portanto, nenhuma observação foi excluída.
+
+```{r checar_qualidade}
+checar_qualidade <- function(dados) {
+  # 4. Verificação da qualidade dos dados
+  dados %>%
+    group_by(Semestre) %>%
+    summarise(
+      n_total           = n(),
+      n_ausentes_peso   = sum(is.na(Peso)),
+      n_ausentes_altura = sum(is.na(Altura)),
+      n_id_duplicado    = sum(duplicated(ID)),
+      .groups = "drop"
+    )
+}
+# 5. Consolidação das bases
+dados <- bind_rows(dados_2016, dados_2017)
+checar_qualidade(dados)
+```
 ## Experimental design
 
 A section detailing the experimental setup. This is the place where you will define your test hypotheses, e.g.: $$\begin{cases} H_0: \mu = 10&\\H_1: \mu<10\end{cases}$$
