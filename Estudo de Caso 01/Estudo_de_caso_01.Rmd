@@ -12,7 +12,7 @@ output:
 ```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
 
 # Definindo o mirror do CRAN
-options(repos = c(CRAN = "[https://cloud.r-project.org](https://cloud.r-project.org)"))
+options(repos = c(CRAN = "https://cloud.r-project.org"))
 
 # Instalando/carregando ggplot2
 if (!require(ggplot2, quietly = TRUE)){
@@ -37,17 +37,19 @@ if (!require(dplyr, quietly = TRUE)){
       install.packages("dplyr")
       library(dplyr)
 }
+
+library(knitr)
 ```
 
-## Introdução TESTE TESTE
+## Introdução
 
-Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudantes, sendo estas compostas por alunos de pós graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
+Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudantes, sendo estas compostas por alunos de pós-graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
 
-### 1. Coleta e Tratamento de Dados
+## Coleta e Tratamento de Dados
 
-O prmeiro passo empregado foi a coletada de dados, na qual são coletados os dados disponibilizados por meio dos aquivos .CSV, em seguida esses dados foram tratados para ficarem no mesmo formato, deixando suas colunas da seguinte forma
+O primeiro passo foi a coleta dos dados disponibilizados nos arquivos .CSV; em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
 
-ID, Peso, Altura, Genero, Curso, Peso e Idade
+ID, Peso, Altura, Genero, Curso e Idade
 
 ```{r configuracao_fontes}
 
@@ -102,16 +104,16 @@ dados_2016 <- carregar_dados(config_2016)
 dados_2017 <- carregar_dados(config_2017)
 ```
 
-O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso exige filtro adicional pelo curso PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação. 
+O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso exige filtro adicional pelo curso PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
 
-Em seguida foi calculado o Índice de Massa Corporal (IMC) de cada participante por meio da equação:
+Em seguida foi calculado o IMC de cada participante por meio da equação:
 
 $$IMC = \frac{Peso}{Altura^2}$$
 
 sendo o peso dado em quilogramas (kg) e a altura em metros (m).
 
 ```{r calcular_imc}
-# 3. Cálculo do Índice de Massa Corporal (IMC)
+# 3. Cálculo do IMC
 calcular_imc <- function(dados) {
   mutate(dados, IMC = Peso / (Altura^2))
 }
@@ -139,62 +141,191 @@ checar_qualidade <- function(dados) {
 dados <- bind_rows(dados_2016, dados_2017)
 checar_qualidade(dados)
 ```
-## Experimental design
 
-A section detailing the experimental setup. This is the place where you will define your test hypotheses, e.g.: $$\begin{cases} H_0: \mu = 10&\\H_1: \mu<10\end{cases}$$
+## Desenho do Experimento
 
-including the reasons behind your choices of the value for $H_0$ and the directionality (or not) of $H_1$.
+Para cada gênero, compara-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar (*TOST*).
 
-This is also the place where you should discuss (whenever necessary) your definitions of minimally relevant effects ($\delta^*$), sample size calculations, choice of power and significance levels, and any other relevant information about specificities in your data collection procedures.
+$$H_0: \mu_1 = \mu_2 \qquad H_1: \mu_1 \neq \mu_2$$
 
-### Description of the data collection
+Teste de equivalência (*TOST*), decomposto em dois testes unilaterais:
 
-Whenever needed, you can also include an (optional) subsection describing the actual data collection, how it was performed, any adaptations or unexpected events that may have occurred, etc. Subsections like this can also be used for the sample size calculations or any other aspect that requires a longer discussion.
+$$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \quad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
 
-## Exploratory Data Analysis
+$\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde (WORLD HEALTH ORGANIZATION, 1995), calculada a seguir a partir da tabela de classificação.
 
-The first step is to load and preprocess the data. For instance,
+```{r classificacao_imc}
+# Tabela de classificação de IMC (OMS).
+classificacao_imc <- data.frame(
+  categoria       = c("Abaixo do peso", "Peso normal", "Sobrepeso", "Obesidade"),
+  limite_inferior = c(0,    18.5, 25,   30),
+  limite_superior = c(18.5, 25,   30,   Inf)
+)
 
-```{r loaddata}
-data(mtcars)
-fc<-c(2,8:11)
-for (i in 1:length(fc)){mtcars[,fc[i]]<-as.factor(mtcars[,fc[i]])}
-levels(mtcars$am) <- c("Automatic","Manual")
+faixa_normal   <- classificacao_imc[classificacao_imc$categoria == "Peso normal", ]
+imc_min_normal <- faixa_normal$limite_inferior
+imc_max_normal <- faixa_normal$limite_superior
+
+# margem de equivalência = metade da largura da faixa de peso normal
+delta <- (imc_max_normal - imc_min_normal) / 2
 ```
 
-To get an initial feel for the relationships between the relevant variables of your experiment it is frequently interesting to perform some preliminary (exploratory) analysis. This is frequently referred to as *getting a feel* of your data, and can suggest procedures (such as outlier investigation or data transformations) to experienced experimenters.
+```{r configuracao_comparacoes}
+# Comparações a rodar, uma entrada por gênero.
+comparacoes <- list(
+  list(genero = "M", semestre_1 = "2016-2", semestre_2 = "2017-2"),
+  list(genero = "F", semestre_1 = "2016-2", semestre_2 = "2017-2")
+)
 
-```{r pairs,fig.width=8,echo=TRUE,message=FALSE,fig.cap="Exploring the effect of car transmission on mpg values"}
-library(GGally,quietly = T, warn.conflicts = F) # This is just me getting fancy.
-                                                # There are much simpler ways ;-)
-ggpairs(data=mtcars,columns=c(1,9),title="MPG by transmission type",
-        upper=list(combo="box"),lower=list(combo="facethist"),
-        diag=list(continuous="densityDiag",discrete="barDiag"))
+alpha <- 0.05
+power_alvo <- 0.80
 ```
 
-Your preliminary analysis should be described together with the plots. In this example, two facts are immediately clear from the plots: first, **mpg** tends to correlate well with many of the other variables, most intensely with **drat** (positively) and **wt** (negatively). It is also clear that many of the variables are highly correlated (e.g., **wt** and **disp**). Second, it seems like manual transmission models present larger values of **mpg** than the automatic ones. In the next section a linear model will be fit to the data in order to investigate the significance and magnitude of this possible effect.
-
-## Statistical Analysis
-
-Your statistical analysis should come here. This is the place where you should fit your statistical model, get the results of your significance test, your effect size estimates and confidence intervals.
-
-```{r fitmodel,results='hold'}
-model<-aov(mpg~am*disp,data=mtcars)
-summary(model)
+```{r extrair_grupo}
+# Pega o vetor de IMC de um semestre+gênero específico
+extrair_grupo <- function(dados, semestre_alvo, genero_alvo) {
+  dados %>%
+    filter(Semestre == semestre_alvo, Genero == genero_alvo) %>%
+    pull(IMC)
+}
 ```
+
+```{r testar_diferenca}
+# Teste de diferença (principal). Shapiro-Wilk decide entre teste t
+# de Welch (os dois grupos passam em normalidade) ou Mann-Whitney
+# (algum dos dois falha)
+testar_diferenca <- function(x, y, alpha = 0.05) {
+  shapiro_x <- shapiro.test(x)$p.value
+  shapiro_y <- shapiro.test(y)$p.value
+  normal <- (shapiro_x > alpha) && (shapiro_y > alpha)
+
+  if (normal) {
+    teste <- t.test(x, y, var.equal = FALSE)
+    nome_teste <- "Teste t de Welch"
+  } else {
+    teste <- wilcox.test(x, y, conf.int = TRUE)
+    nome_teste <- "Teste de Mann-Whitney"
+  }
+
+  list(nome_teste = nome_teste, shapiro_x = shapiro_x, shapiro_y = shapiro_y,
+       p_valor = teste$p.value, estimativa = teste$estimate, ic = teste$conf.int)
+}
+```
+
+```{r testar_equivalencia}
+# TOST feito na mão com t.test() base (dois testes unilaterais).
+# p_tost é o maior dos dois p-valores; equivalência confirmada só
+# se p_tost < alpha.
+testar_equivalencia <- function(x, y, delta, alpha = 0.05) {
+  t1 <- t.test(x, y, mu = -delta, alternative = "greater")
+  t2 <- t.test(x, y, mu =  delta, alternative = "less")
+  p_tost <- max(t1$p.value, t2$p.value)
+  list(p1 = t1$p.value, p2 = t2$p.value, p_tost = p_tost, equivalente = p_tost < alpha)
+}
+```
+
+```{r calcular_n_ideal}
+# n ideal pro teste de diferença: fórmula pronta do R
+calcular_n_diferenca <- function(delta, sd, alpha = 0.05, power_alvo = 0.80) {
+  ceiling(power.t.test(delta = delta, sd = sd, sig.level = alpha,
+                        power = power_alvo, type = "two.sample")$n)
+}
+
+# n ideal pro TOST: não tem fórmula pronta simples pra isso. Estima
+# por simulação: gera dados sob diferença real = 0, testa
+# equivalência pra n crescente, e pega o primeiro n em que a fração
+# de "equivalente = TRUE" bate a potência alvo.
+calcular_n_equivalencia <- function(delta, sd, alpha = 0.05, power_alvo = 0.80,
+                                     n_max = 150, n_rep = 2000, semente = 42) {
+  set.seed(semente)
+  for (n in 4:n_max) {
+    acertos <- 0
+    for (i in 1:n_rep) {
+      x <- rnorm(n, mean = 0, sd = sd)
+      y <- rnorm(n, mean = 0, sd = sd)
+      if (testar_equivalencia(x, y, delta, alpha)$equivalente) acertos <- acertos + 1
+    }
+    if (acertos / n_rep >= power_alvo) return(n)
+  }
+  NA
+}
+```
+
+### Descrição da Coleta de Dados
+
+lorem lorem.
+
+## Análise Exploratória dos Dados
+
+Antes dos testes de hipótese já definidos, visualiza-se a distribuição do IMC por semestre e gênero.
+
+```{r histograma_imc, fig.width=7, fig.height=5, fig.cap="Distribuição do IMC por semestre e gênero"}
+ggplot(dados, aes(x = IMC)) +
+  geom_histogram(bins = 8, fill = "grey70", color = "black") +
+  facet_grid(Genero ~ Semestre) +
+  labs(x = "IMC", y = "Frequência",
+       title = "Distribuição do IMC por semestre e gênero") +
+  theme_minimal()
+```
+
+Nenhuma distribuição parece grosseiramente diferente da normal a olho, exceto talvez o grupo feminino de 2017 (só 4 pontos), consistente com o Shapiro-Wilk já calculado na seção de desenho do experimento.
+
+## Análise Estatística
+
+Os testes definidos na seção anterior são executados a seguir, para cada comparação.
+
+```{r executar_testes}
+resultados <- lapply(comparacoes, function(cmp) {
+  x <- extrair_grupo(dados, cmp$semestre_1, cmp$genero)
+  y <- extrair_grupo(dados, cmp$semestre_2, cmp$genero)
+  sd_pool <- sqrt((var(x) + var(y)) / 2)
+
+  list(
+    genero = cmp$genero,
+    n1 = length(x), n2 = length(y),
+    diferenca = testar_diferenca(x, y, alpha),
+    equivalencia = testar_equivalencia(x, y, delta, alpha),
+    n_ideal_diferenca = calcular_n_diferenca(delta, sd_pool, alpha, power_alvo),
+    n_ideal_equivalencia = calcular_n_equivalencia(delta, sd_pool, alpha, power_alvo),
+    sd_pool = sd_pool
+  )
+})
+
+names(resultados) <- sapply(comparacoes, function(c) c$genero)
+
+tabela_resultados <- do.call(rbind, lapply(resultados, function(r) {
+  data.frame(
+    Genero               = r$genero,
+    n1                   = r$n1,
+    n2                   = r$n2,
+    Teste                = r$diferenca$nome_teste,
+    p_diferenca          = round(r$diferenca$p_valor, 3),
+    p_tost                = round(r$equivalencia$p_tost, 3),
+    equivalente           = r$equivalencia$equivalente,
+    n_ideal_diferenca     = r$n_ideal_diferenca,
+    n_ideal_equivalencia  = r$n_ideal_equivalencia
+  )
+}))
+knitr::kable(tabela_resultados, row.names = FALSE)
+```
+
+
+Notas, meio que o que te falei no wpp: 
+
+- Masculino (n=21 nos dois semestres): diferença não significativa (p=0,59); *TOST* confirma equivalência (p_tost=0,019, menor que 0,05); n ideal na faixa de 24 a 26, próximo do que já temos.
+- Feminino (n=7 vs. n=4): diferença não significativa (p=0,073); *TOST* não confirma equivalência (p_tost=0,31); n ideal em torno de 8, o dobro do que temos hoje. Nem diferença nem equivalência são confirmadas, evidência direta de que falta potência, não de que os grupos são iguais.
 
 ### Checking Model Assumptions
 
-The assumptions of your test should also be validated, and possible effects of violations should also be explored.
+lorem lorem.
 
-```{r resplots,fig.width=8,echo=TRUE,message=FALSE, fig.cap = "Residual plots for the anova model"}
-par(mfrow=c(2,2), mai=.3*c(1,1,1,1))
-plot(model,pch=16,lty=1,lwd=2)
-```
+### Conclusões e Recomendações
 
-### Conclusions and Recommendations
+lorem lorem.
 
-The discussion of your results, and the scientific/technical meaning of the effects detected, should be placed here. Always be sure to tie your results back to the original question of interest!
+## Referências
+
+WORLD HEALTH ORGANIZATION. Physical status: the use and interpretation of anthropometry: report of a WHO Expert Committee. Geneva: WHO, 1995. (WHO Technical Report Series, 854). Disponível em: https://iris.who.int/handle/10665/37003. Acesso em: 3 set. 2026.
 
 ### Declaration of generative AI and AI-assisted technologies in the report preparation process.
 
