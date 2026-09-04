@@ -43,13 +43,23 @@ library(knitr)
 
 ## Introdução
 
-Nesse estudo será realizada a comparação do IMC (Índice de Massa Corporal) médio de duas populações de estudantes, sendo estas compostas por alunos de pós-graduação em Engenharia Elétrica na UFMG (Universidade Federal de Minas Gerais) nos semestres 2016-2 e 2017-2.
+\qquad Nesse estudo de caso, temos como objetivo comparar o IMC (Índice de Massa Corporal) médio de duas populações independentes de estudantes. O grupo amostral é composto por alunos do Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) da UFMG (Universidade Federal de Minas Gerais), referente aos semestres 2016-2 e 2017-2.
+
+\qquad O IMC é utilizado como um indicador indireto (variável proxy) para avaliar possíveis mudanças no estilo de vida dos estudantes entre esses dois períodos. As duas turmas são compostas por alunos diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como esse índice possui limitações conhecidas, é mais adequado analisar os dados separando-os por gênero. Portanto, os testes estatísticos serão realizados de forma independente para as populações masculina e feminina
+
+\qquad Para realizar essa comparação, o estudo fará uso de ferramentas de inferência estatística. Em resumo, serão aplicados testes de hipóteses para verificar se houve diferença significativa nas médias dos dois semestres, além da realização de testes de equivalência para avaliar a relevância prática dos resultados. As premissas matemáticas necessárias para os testes e a adequação do tamanho das amostras também serão avaliadas, sendo a justificativa de cada uma dessas etapas detalhada no decorrer deste estudo de caso.
 
 ## Coleta e Tratamento de Dados
 
-O primeiro passo foi a coleta dos dados disponibilizados nos arquivos .CSV; em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
+\qquad O primeiro passo foi a coleta dos dados disponibilizados nos arquivos .CSV. Em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
 
-ID, Peso, Altura, Genero, Curso e Idade
+| Semestre | ID | Curso | Genero | Idade | Altura (m) | Peso (kg) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| - | 1 | - | - | - | - | - |
+| - | 2 | - | - | - | - | - |
+| - | 3 | - | - | - | - | - |
+| $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ |
+| - | n | - | - | - | - | - |
 
 ```{r configuracao_fontes}
 
@@ -104,13 +114,15 @@ dados_2016 <- carregar_dados(config_2016)
 dados_2017 <- carregar_dados(config_2017)
 ```
 
-O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso exige filtro adicional pelo curso PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
+\qquad O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso foi aplicado um filtro para selcionar somente alunos do PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
 
 Em seguida foi calculado o IMC de cada participante por meio da equação:
 
 $$IMC = \frac{Peso}{Altura^2}$$
 
-sendo o peso dado em quilogramas (kg) e a altura em metros (m).
+sendo o peso dado em quilogramas (kg) e a altura em metros (m). O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada IMC, adicionada ao final do conjunto de dados.
+
+\vspace{0.5cm}
 
 ```{r calcular_imc}
 # 3. Cálculo do IMC
@@ -122,7 +134,9 @@ dados_2016 <- calcular_imc(dados_2016)
 dados_2017 <- calcular_imc(dados_2017)
 ```
 
-Antes dos testes de hipótese, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de altura ou peso, a fim de evitar a exclusão de observações potencialmente legítimas. A base de 2016-2 continha 28 observações (21 homens e 7 mulheres) e a de 2017-2, 25 (21 homens e 4 mulheres). Não foram identificados valores ausentes ou duplicidades, portanto, nenhuma observação foi excluída.
+\qquad Antes dos testes de hipótese, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de altura ou peso, a fim de evitar a exclusão de observações potencialmente legítimas. A base de 2016-2 continha 28 observações (21 homens e 7 mulheres) e a de 2017-2, 25 (21 homens e 4 mulheres). Não foram identificados valores ausentes ou duplicidades, portanto, nenhuma observação foi excluída.
+
+\vspace{0.5cm}
 
 ```{r checar_qualidade}
 checar_qualidade <- function(dados) {
@@ -144,15 +158,17 @@ checar_qualidade(dados)
 
 ## Desenho do Experimento
 
-Para cada gênero, compara-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar (*TOST*).
+\qquad Para cada gênero, compara-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar (*TOST*).
 
 $$H_0: \mu_1 = \mu_2 \qquad H_1: \mu_1 \neq \mu_2$$
 
 Teste de equivalência (*TOST*), decomposto em dois testes unilaterais:
 
-$$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \quad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
+$$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \qquad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
 
 $\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde (WORLD HEALTH ORGANIZATION, 1995), calculada a seguir a partir da tabela de classificação.
+
+\vspace{0.5cm}
 
 ```{r classificacao_imc}
 # Tabela de classificação de IMC (OMS).
@@ -253,7 +269,6 @@ calcular_n_equivalencia <- function(delta, sd, alpha = 0.05, power_alvo = 0.80,
 
 ### Descrição da Coleta de Dados
 
-lorem lorem.
 
 ## Análise Exploratória dos Dados
 
