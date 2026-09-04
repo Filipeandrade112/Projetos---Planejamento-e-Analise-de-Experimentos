@@ -166,7 +166,7 @@ Teste de equivalência (*TOST*), decomposto em dois testes unilaterais:
 
 $$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \qquad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
 
-$\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde (WORLD HEALTH ORGANIZATION, 1995), calculada a seguir a partir da tabela de classificação.
+$\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde \hyperlink{ref_oms}{(WORLD HEALTH ORGANIZATION, 1995)}, calculada a seguir a partir da tabela de classificação.
 
 \vspace{0.5cm}
 
@@ -340,7 +340,7 @@ lorem lorem.
 
 ## Referências
 
-WORLD HEALTH ORGANIZATION. Physical status: the use and interpretation of anthropometry: report of a WHO Expert Committee. Geneva: WHO, 1995. (WHO Technical Report Series, 854). Disponível em: https://iris.who.int/handle/10665/37003. Acesso em: 3 set. 2026.
+\hypertarget{ref_oms}{WORLD HEALTH ORGANIZATION. Physical status: the use and interpretation of anthropometry: report of a WHO Expert Committee. Geneva: WHO, 1995. (WHO Technical Report Series, 854). Disponível em: https://iris.who.int/handle/10665/37003. Acesso em: 3 set. 2026.}
 
 ### Declaration of generative AI and AI-assisted technologies in the report preparation process.
 
