@@ -7,6 +7,9 @@ output:
     fig_caption: yes
   html_document:
     df_print: paged
+header-includes:
+  - \usepackage{makecell}
+  - \usepackage{threeparttable}
 ---
 
 ```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
@@ -53,6 +56,12 @@ if (!require(knitr, quietly = TRUE)){
 if (!require(patchwork, quietly = TRUE)){
       install.packages("patchwork")
       library(patchwork)
+}
+
+# Instalando/carregando kableExtra (para notas nas tabelas)
+if (!require(kableExtra, quietly = TRUE)){
+      install.packages("kableExtra")
+      library(kableExtra)
 }
 ```
 
@@ -182,7 +191,7 @@ $$H_0: \mu_1 = \mu_2 \qquad H_1: \mu_1 \neq \mu_2$$
 Em que:
 
 *   **$H_0$ (Hipótese Nula):** Assume que não há diferença no IMC entre os dois períodos. Matematicamente, a média do primeiro período ($\mu_1$) é estritamente igual à média do segundo ($\mu_2$).
-*   **$H_1$ (Hipótese Alternativa):** É a hipótese que o teste procura evidências para aceitar. Indica que existe uma diferença estatisticamente significativa entre as médias dos dois períodos ($\mu_1 \neq \mu_2$).
+*   **$H_1$ (Hipótese Alternativa):** Assume que existe uma diferença estatisticamente significativa entre as médias dos dois períodos ($\mu_1 \neq \mu_2$).
 *   **$\mu_1$:** Média populacional do IMC referente ao período de 2016-2.
 *   **$\mu_2$:** Média populacional do IMC referente ao período de 2017-2.
 
@@ -233,7 +242,7 @@ extrair_grupo <- function(dados, semestre_alvo, genero_alvo) {
 ```
 
 
-\qquad Com todos os dados tratados e organizados, e com a premissa definida, será dado incio ao ao teste de Diferença e Premissa de Normalidade. Com o intuito de verificar o teste de Diferença implementou-se a função `testar_diferenca`, que aplica incialmente o teste de Shapiro-Wilk em ambos os grupos. Se a premissa de normalidade for atendida, utiliza-se o Teste t de Welch (que não exige que as variâncias sejam iguais). Caso a normalidade seja violada em pelo menos um dos grupos, o algoritmo adota automaticamente o teste não-paramétrico de Mann-Whitney.
+\qquad Com todos os dados tratados e organizados, e com a premissa definida, será dado início ao teste de Diferença e Premissa de Normalidade. Com o intuito de verificar o teste de Diferença implementou-se a função `testar_diferenca`, que aplica incialmente o teste de Shapiro-Wilk em ambos os grupos. Se a premissa de normalidade for atendida, utiliza-se o Teste t de Welch (que não exige que as variâncias sejam iguais). Caso a normalidade seja violada em pelo menos um dos grupos, o algoritmo adota automaticamente o teste não-paramétrico de Mann-Whitney.
 
 \vspace{0.5cm}
 
@@ -260,6 +269,8 @@ testar_diferenca <- function(x, y, alpha = 0.05) {
 ```
 
 \qquad Quanto ao teste de equivalencia para verificar se a ausência de diferença estatística significa que os grupos são realmente iguais na prática, construiu-se a função testar_equivalencia. Ela executa os dois testes *t* unilaterais, comparando a diferença das médias com os limites inferior ($-\delta^*$) e superior ($\delta^*$). A equivalência estatística só é confirmada se o maior *p-valor* obtido entre os dois testes for inferior ao nível de significância ($\alpha = 0,05$).
+
+\qquad Em relação à análise de distribuição normal dos dados, mesmo que o teste de Shapiro–Wilk indique desvio da normalidade, a utilização de procedimentos não paramétricos de equivalência também apresenta limitações importantes de poder estatístico em razão do reduzido tamanho amostral dos grupos femininos, particularmente no grupo com menor número de observações. Dessa forma, optou-se pelo TOST baseado no teste t, reconhecendo-se a possível violação da premissa de normalidade como uma limitação do procedimento e recomendando cautela na interpretação dos resultados.
 
 \vspace{0.5cm}
 
@@ -347,7 +358,7 @@ g1 + g2
 
 \vspace{0.5cm}
 
-```{r executar_testes}
+```{r executar_testes, results='asis'}
 resultados <- lapply(comparacoes, function(cmp) {
   x <- extrair_grupo(dados, cmp$semestre_1, cmp$genero)
   y <- extrair_grupo(dados, cmp$semestre_2, cmp$genero)
@@ -374,21 +385,50 @@ tabela_resultados <- do.call(rbind, lapply(resultados, function(r) {
     Teste                = r$diferenca$nome_teste,
     p_diferenca          = round(r$diferenca$p_valor, 3),
     p_tost                = round(r$equivalencia$p_tost, 3),
-    equivalente           = r$equivalencia$equivalente,
-    n_ideal_diferenca     = r$n_ideal_diferenca,
-    n_ideal_equivalencia  = r$n_ideal_equivalencia
+    Equivalente           = r$equivalencia$equivalente,
+    Intervalo_confianca  = paste0(
+    "[", round(r$diferenca$ic[1], 2),
+    "; ", round(r$diferenca$ic[2], 2), "]"
+  ))
+}))
+
+tabela_resultados2 <- do.call(rbind, lapply(resultados, function(r) {
+  data.frame(
+    Genero               = r$genero,
+    n1                   = r$n1,
+    n2                   = r$n2,
+    Tam_efeito_diferenca     = r$n_ideal_diferenca,
+    Tam_efeito_equivalencia  = r$n_ideal_equivalencia
   )
 }))
-knitr::kable(tabela_resultados, row.names = FALSE)
+
+tabela <- footnote(
+  knitr::kable(
+    tabela_resultados,
+    booktabs = TRUE,
+    row.names = FALSE,
+    caption = "Resultados dos testes de diferença e equivalência."
+  ),
+  general = "No teste de Welch, o intervalo de confiança corresponde à diferença de médias; no teste de Mann-Whitney, à diferença de localização estimada pelo método de Hodges-Lehmann. Essas grandezas não são diretamente comparáveis.",
+  general_title = "Nota: ",
+  threeparttable = TRUE
+)
+
+cat(as.character(tabela))
 ```
 
-\qquad A análise da tabela de resultados revela cenários estatísticos distintos para cada gênero, fortemente influenciados pelo tamanho amostral disponível.
+```{r tabela_tamanho_amostral}
+knitr::kable(tabela_resultados2, row.names = FALSE, 
+             caption = "Resultados das análises de tamanho amostral.")
+```
 
-Devido à rejeição da normalidade, o teste principal adotado foi o de Mann-Whitney, cuja estimativa reflete a diferença de localização (Hodges-Lehmann) e não a diferença de médias aritméticas. Para o cálculo do TOST, optou-se por manter os testes *t* paramétricos. Optou-se por escolha por conta da limitação amostral extrema ($n=4$ no segundo semestre), o que inviabilizaria o poder de detecção de testes de equivalência não-paramétricos baseados em postos.
+\qquad A análise das tabelas de resultados revela cenários estatísticos distintos para cada gênero, fortemente influenciados pelo tamanho amostral disponível.
+
+\qquad Devido à rejeição da normalidade, o teste principal adotado foi o de Mann-Whitney, cuja estimativa reflete a diferença de localização (Hodges-Lehmann) e não a diferença de médias aritméticas. Para o cálculo do TOST, optou-se por manter os testes *t* paramétricos. Optou-se por escolha por conta da limitação amostral extrema ($n=4$ no segundo semestre), o que inviabilizaria o poder de detecção de testes de equivalência não-paramétricos baseados em postos.
 
 \qquad Para o grupo masculino ($n = 21$ em ambos os semestres), o teste principal não indicou diferença significativa no IMC médio ($p = 0,59$). Além disso, o teste complementar de equivalência (TOST) confirmou estatisticamente que as médias são equivalentes na prática ($p_{TOST} = 0,019 < \alpha$). Esse resultado é reforçado pela análise de poder: o tamanho amostral calculado como ideal situou-se na faixa de 24 a 26 indivíduos, valor muito próximo da amostra real utilizada, o que reforça a conclusão de que não houve alteração no IMC dos homens.
 
-\qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste principal não tenha apontado diferença significativa ($p = 0,073$), o TOST falhou em confirmar a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de aproximadamente 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, o fato de não se confirmar nem a diferença e nem a equivalência fornece evidência direta de uma limitação de poder estatístico (falta de amostra), impossibilitando qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
+\qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste principal não tenha apontado diferença significativa ($p = 0,073$), o TOST falhou em confirmar a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de no mínimo 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, o fato de não se confirmar nem a diferença e nem a equivalência é resultado da limitação de poder estatístico (falta de amostra), que impossibilita qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
 
 
 ## Conclusões e Recomendações
@@ -401,9 +441,9 @@ Devido à rejeição da normalidade, o teste principal adotado foi o de Mann-Whi
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. Após utilizar este serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX e o Claude com o objetivo de identificar possíveis erros no trabalho. Após utilizar este serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
 
-### Papéis e Contribuições da Equipe
+## Papéis e Contribuições da Equipe
 
 \qquad Conforme solicitado, detalhamos abaixo os papéis e as contribuições de cada membro da equipe:
 
