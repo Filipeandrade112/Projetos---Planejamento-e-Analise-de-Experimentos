@@ -32,7 +32,7 @@ if (!require(GGally, quietly = TRUE)){
       library(GGally)
 }
 
-# Instalando/carregando dplyr
+# Instalando/carregando ++++++++++++++++++++++++++++++++++++++
 if (!require(dplyr, quietly = TRUE)){
       install.packages("dplyr")
       library(dplyr)
@@ -49,7 +49,7 @@ library(knitr)
 
 \qquad Para realizar essa comparação, o estudo fará uso de ferramentas de inferência estatística. Em resumo, serão aplicados testes de hipóteses para verificar se houve diferença significativa nas médias dos dois semestres, além da realização de testes de equivalência para avaliar a relevância prática dos resultados. As premissas necessárias para os testes e a adequação do tamanho das amostras também serão avaliadas, sendo a justificativa de cada uma dessas etapas detalhada no decorrer deste estudo de caso.
 
-## Coleta e Tratamento de Dados
+## Descrição da Coleta de Dados
 
 \qquad O primeiro passo foi a coleta dos dados disponibilizados nos arquivos .CSV. Em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
 
@@ -354,16 +354,23 @@ knitr::kable(tabela_resultados, row.names = FALSE)
 \qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste principal não tenha apontado diferença significativa ($p = 0,073$), o TOST falhou em confirmar a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de aproximadamente 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, o fato de não se confirmar nem a diferença e nem a equivalência fornece evidência direta de uma limitação de poder estatístico (falta de amostra), impossibilitando qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
 
 
-### Conclusões e Recomendações
+## Conclusões e Recomendações
 
 \qquad O uso combinado de testes de diferença, equivalência (TOST) e análise de poder estatístico demonstrou cenários distintos entre os gêneros avaliados. Para o grupo masculino, conclui-se que o IMC médio permaneceu estável, uma vez que a amostra disponível foi suficiente para confirmar a equivalência estatística e prática entre os semestres. Por outro lado, os resultados para o grupo feminino são inconclusivos. O tamanho amostral insuficiente no segundo semestre impossibilitou tanto a detecção de diferenças quanto a confirmação de equivalência.
 
 \qquad Diante dessas limitações, recomenda-se para estudos futuros um redimensionamento amostral, assegurando o número mínimo de indivíduos calculado para garantir o poder estatístico das análises, com atenção especial ao público feminino. Por fim, é recomendável a incorporação de métricas complementares, como questionários sobre frequência de atividade física e qualidade do sono, superando as limitações do IMC como indicador isolado para avaliar mudanças no estilo de vida.
 
+## Declaração de uso de IA generativa e tecnologias assistidas por IA
+
+\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. Após utilizar este serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+
+### Papéis e Contribuições da Equipe
+
+\qquad Conforme solicitado, detalhamos abaixo os papéis e as contribuições de cada membro da equipe:
+
+* **Izabela C. S. Barbosa:** Desenvolvimento principal dos códigos computacionais em R (Programadora), redação estrutural do manuscrito e revisão técnica.
+* **Filipe C. Andrade:** Apoio no desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+
 ## Referências
 
 \hypertarget{ref_oms}{WORLD HEALTH ORGANIZATION. Physical status: the use and interpretation of anthropometry: report of a WHO Expert Committee. Geneva: WHO, 1995. (WHO Technical Report Series, 854). Disponível em: https://iris.who.int/handle/10665/37003. Acesso em: 3 set. 2026.}
-
-### Declaração de uso de IA generativa e tecnologias assistidas por IA
-
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. Após utilizar este serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
