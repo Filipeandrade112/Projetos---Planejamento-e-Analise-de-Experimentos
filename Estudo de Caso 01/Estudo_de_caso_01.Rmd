@@ -38,12 +38,27 @@ if (!require(dplyr, quietly = TRUE)){
       library(dplyr)
 }
 
-library(knitr)
+# Instalando/carregando car (para o qqPlot)
+if (!require(car, quietly = TRUE)){
+      install.packages("car")
+      library(car)
+}
+
+# Instalando/carregando knitr (para o qqPlot)
+if (!require(knitr, quietly = TRUE)){
+      install.packages("knitr")
+      library(knitr)
+}
+
+if (!require(patchwork, quietly = TRUE)){
+      install.packages("patchwork")
+      library(patchwork)
+}
 ```
 
 ## Introdução
 
-\qquad Nesse estudo de caso, temos como objetivo comparar o IMC (Índice de Massa Corporal) médio de duas populações independentes de estudantes. O grupo amostral é composto por alunos do Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) da UFMG (Universidade Federal de Minas Gerais), dos semestres 2016-2 e 2017-2.
+\qquad Nesse estudo de caso, o objetivo deste estudo é comparar o IMC (Índice de Massa Corporal) médio de duas populações independentes de estudantes. O grupo amostral é composto por alunos do Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) da UFMG (Universidade Federal de Minas Gerais), dos semestres 2016-2 e 2017-2.
 
 \qquad O IMC é utilizado como um indicador indireto (variável proxy) para avaliar possíveis mudanças no estilo de vida dos estudantes entre esses dois períodos. As duas turmas são compostas por alunos diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como esse índice possui limitações conhecidas, é mais adequado analisar os dados separando-os por gênero. Portanto, os testes estatísticos serão realizados de forma independente para as populações masculina e feminina
 
@@ -114,13 +129,13 @@ dados_2016 <- carregar_dados(config_2016)
 dados_2017 <- carregar_dados(config_2017)
 ```
 
-\qquad O arquivo de 2016 contém também alunos de graduação (curso ENGSIS) e por isso foi aplicado um filtro para selcionar somente alunos do PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
+\qquad O arquivo de 2016 contém também alunos de graduação em Engenharia de Sistemas (curso ENGSIS) e por isso foi aplicado um filtro para selecionar somente alunos do PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
 
-Após essa etapa proseguimos com o cálculo do IMC de cada participante por meio da equação:
+Após essa etapa prosseguiu-se com o cálculo do IMC de cada participante por meio da equação:
 
 $$IMC = \frac{Peso}{Altura^2}$$
 
-sendo o peso dado em quilogramas (kg) e a altura em metros (m). O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada IMC, adicionada ao final do conjunto de dados, conforme o codigo abaixo.
+sendo o peso dado em quilogramas (kg) e a altura em metros (m). O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada IMC, adicionada ao final do conjunto de dados, conforme o código abaixo.
 
 \vspace{0.5cm}
 
@@ -156,11 +171,11 @@ dados <- bind_rows(dados_2016, dados_2017)
 checar_qualidade(dados)
 ```
 
-\qquad Após finalizadas as etapas de tratamento, validação e organização dos dados foi inciada a eta seguinte, que consiste na modelagem do experimento, delimitando o escopo, assim como seu objetivo e outros pormenores que serão discorridos na proxima secção.
+\qquad Após finalizadas as etapas de tratamento, validação e organização dos dados foi iniciada a etapa seguinte, que consiste na modelagem do experimento, delimitando o escopo, assim como seu objetivo e outros pormenores que serão discorridos na próxima seção.
 
 ## Desenho do Experimento
 
-\qquad Para cada gênero, comparou-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar (*TOST*).
+\qquad Para cada gênero, comparou-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar TOST (do inglês Two One-Sided Tests).
 
 $$H_0: \mu_1 = \mu_2 \qquad H_1: \mu_1 \neq \mu_2$$
 
@@ -173,7 +188,7 @@ Em que:
 
 \vspace{0.5cm}
 
-E, para o Teste de equivalência (*TOST*), decomposto em dois testes unilaterais:
+E, para o Teste de equivalência (TOST), decomposto em dois testes unilaterais:
 
 $$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \qquad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
 
@@ -295,16 +310,36 @@ calcular_n_equivalencia <- function(delta, sd, alpha = 0.05, power_alvo = 0.80,
 
 \vspace{0.5cm}
 
-```{r histograma_imc, fig.width=7, fig.height=5, fig.cap="Distribuição do IMC por semestre e gênero"}
-ggplot(dados, aes(x = IMC)) +
-  geom_histogram(bins = 8, fill = "grey70", color = "black") +
+```{r graficos_exploratorios, fig.width=10, fig.height=5, fig.cap="Comparação das distribuições do IMC: Histograma vs Boxplot", message=FALSE, warning=FALSE}
+
+# Cria o Histograma e salva na variável g1
+g1 <- ggplot(dados, aes(x = IMC, fill = Genero)) + 
+  geom_histogram(bins = 8, color = "black") +
   facet_grid(Genero ~ Semestre) +
+  scale_fill_manual(values = c("F" = "lightpink", "M" = "lightblue")) +
   labs(x = "IMC", y = "Frequência",
-       title = "Distribuição do IMC por semestre e gênero") +
-  theme_minimal()
+       title = "Histograma") +
+  theme_minimal() +
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5)) # Remove legenda e centraliza
+
+# Cria o Boxplot e salva na variável g2
+g2 <- ggplot(dados, aes(x = Semestre, y = IMC, fill = Genero)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(width = 0.15, size = 2, alpha = 0.7, color = "black") +
+  facet_wrap(~ Genero) +
+  scale_fill_manual(values = c("F" = "lightpink", "M" = "lightblue")) +
+  labs(x = "Semestre", y = "IMC (kg/m²)",
+       title = "Boxplot com Jitter") +
+  theme_minimal() +
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5)) # Remove legenda e centraliza
+
+# Plota lado a lado 
+g1 + g2
 ```
 
-\qquad As distribuiçãos se comportam, visualmente, de forma similar a normal. No entanto, o grupo feminino de 2017 por só possuir 4 pontos faz com que essa suposição seja incerta, consistente com o Shapiro-Wilk já calculado na seção de desenho do experimento.
+\qquad As distribuições comportam-se, visualmente, de forma similar a normal. No entanto, o grupo feminino de 2017 por só possuir 4 pontos faz com que essa suposição seja incerta, consistente com o Shapiro-Wilk já calculado na seção de desenho do experimento.
 
 ## Análise Estatística
 
@@ -349,6 +384,8 @@ knitr::kable(tabela_resultados, row.names = FALSE)
 
 \qquad A análise da tabela de resultados revela cenários estatísticos distintos para cada gênero, fortemente influenciados pelo tamanho amostral disponível.
 
+Devido à rejeição da normalidade, o teste principal adotado foi o de Mann-Whitney, cuja estimativa reflete a diferença de localização (Hodges-Lehmann) e não a diferença de médias aritméticas. Para o cálculo do TOST, optou-se por manter os testes *t* paramétricos. Optou-se por escolha por conta da limitação amostral extrema ($n=4$ no segundo semestre), o que inviabilizaria o poder de detecção de testes de equivalência não-paramétricos baseados em postos.
+
 \qquad Para o grupo masculino ($n = 21$ em ambos os semestres), o teste principal não indicou diferença significativa no IMC médio ($p = 0,59$). Além disso, o teste complementar de equivalência (TOST) confirmou estatisticamente que as médias são equivalentes na prática ($p_{TOST} = 0,019 < \alpha$). Esse resultado é reforçado pela análise de poder: o tamanho amostral calculado como ideal situou-se na faixa de 24 a 26 indivíduos, valor muito próximo da amostra real utilizada, o que reforça a conclusão de que não houve alteração no IMC dos homens.
 
 \qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste principal não tenha apontado diferença significativa ($p = 0,073$), o TOST falhou em confirmar a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de aproximadamente 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, o fato de não se confirmar nem a diferença e nem a equivalência fornece evidência direta de uma limitação de poder estatístico (falta de amostra), impossibilitando qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
@@ -356,7 +393,9 @@ knitr::kable(tabela_resultados, row.names = FALSE)
 
 ## Conclusões e Recomendações
 
-\qquad O uso combinado de testes de diferença, equivalência (TOST) e análise de poder estatístico demonstrou cenários distintos entre os gêneros avaliados. Para o grupo masculino, conclui-se que o IMC médio permaneceu estável, uma vez que a amostra disponível foi suficiente para confirmar a equivalência estatística e prática entre os semestres. Por outro lado, os resultados para o grupo feminino são inconclusivos. O tamanho amostral insuficiente no segundo semestre impossibilitou tanto a detecção de diferenças quanto a confirmação de equivalência.
+\qquad O uso combinado de testes de diferença, equivalência (TOST) e análise de poder estatístico demonstrou cenários distintos entre os gêneros avaliados. Para o grupo masculino, conclui-se que o IMC médio permaneceu estável. No entanto, do ponto de vista prático, essa estabilidade ocorre no limiar superior da faixa de peso normal (médias de 24,94 e 24,29 kg/m²), quase adentrando o sobrepeso.
+
+\qquad Por outro lado, os resultados para o grupo feminino são inconclusivos por limitação de poder estatístico ($n=4$ em 2017-2). Contudo, durante a análise, observa-se uma queda expressiva da média feminina, que atingiu 18,45 kg/m² em 2017-2, valor classificado como "Abaixo do peso" pela OMS. Essa diferença biológica ajuda a explicar a não confirmação da equivalência estatística, somada à subamostragem.
 
 \qquad Diante dessas limitações, recomenda-se para estudos futuros um redimensionamento amostral, assegurando o número mínimo de indivíduos calculado para garantir o poder estatístico das análises, com atenção especial ao público feminino. Por fim, é recomendável a incorporação de métricas complementares, como questionários sobre frequência de atividade física e qualidade do sono, superando as limitações do IMC como indicador isolado para avaliar mudanças no estilo de vida.
 
@@ -370,6 +409,7 @@ knitr::kable(tabela_resultados, row.names = FALSE)
 
 * **Izabela C. S. Barbosa:** Desenvolvimento principal dos códigos computacionais em R (Programadora), redação estrutural do manuscrito e revisão técnica.
 * **Filipe C. Andrade:** Apoio no desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Beatriz S. Campagnaro:** 
 
 ## Referências
 
