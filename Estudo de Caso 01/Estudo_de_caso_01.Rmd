@@ -10,6 +10,7 @@ output:
 header-includes:
   - \usepackage{makecell}
   - \usepackage{threeparttable}
+  - \usepackage{url}
 ---
 
 ```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
@@ -23,7 +24,7 @@ if (!require(ggplot2, quietly = TRUE)){
       library(ggplot2)
 }
 
-# Instalando/carregando broom DIRETO DO CRAN
+# Instalando/carregando broom
 if (!require(broom, quietly = TRUE)){
       install.packages("broom")
       library(broom)
@@ -35,24 +36,25 @@ if (!require(GGally, quietly = TRUE)){
       library(GGally)
 }
 
-# Instalando/carregando ++++++++++++++++++++++++++++++++++++++
+# Instalando/carregando dplyr
 if (!require(dplyr, quietly = TRUE)){
       install.packages("dplyr")
       library(dplyr)
 }
 
-# Instalando/carregando car (para o qqPlot)
+# Instalando/carregando car (reservado para verificacao grafica de premissas)
 if (!require(car, quietly = TRUE)){
       install.packages("car")
       library(car)
 }
 
-# Instalando/carregando knitr (para o qqPlot)
+# Instalando/carregando knitr
 if (!require(knitr, quietly = TRUE)){
       install.packages("knitr")
       library(knitr)
 }
 
+# Instalando/carregando patchwork (para juntar graficos lado a lado)
 if (!require(patchwork, quietly = TRUE)){
       install.packages("patchwork")
       library(patchwork)
@@ -67,15 +69,15 @@ if (!require(kableExtra, quietly = TRUE)){
 
 ## Introdução
 
-\qquad Nesse estudo de caso, o objetivo deste estudo é comparar o IMC (Índice de Massa Corporal) médio de duas populações independentes de estudantes. O grupo amostral é composto por alunos do Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) da UFMG (Universidade Federal de Minas Gerais), dos semestres 2016-2 e 2017-2.
+\qquad Neste estudo de caso, o objetivo é comparar o IMC (Índice de Massa Corporal) médio de duas populações independentes de estudantes. O grupo amostral é composto por alunos do Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) da UFMG (Universidade Federal de Minas Gerais), dos semestres 2016-2 e 2017-2.
 
-\qquad O IMC é utilizado como um indicador indireto (variável proxy) para avaliar possíveis mudanças no estilo de vida dos estudantes entre esses dois períodos. As duas turmas são compostas por alunos diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como esse índice possui limitações conhecidas, é mais adequado analisar os dados separando-os por gênero. Portanto, os testes estatísticos serão realizados de forma independente para as populações masculina e feminina
+\qquad O IMC é utilizado como um indicador indireto (variável *proxy*) para avaliar possíveis mudanças no estilo de vida dos estudantes entre esses dois períodos. As duas turmas são compostas por alunos diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como esse índice possui limitações conhecidas, é mais adequado analisar os dados separando-os por gênero. Portanto, os testes estatísticos são realizados de forma independente para as populações masculina e feminina.
 
-\qquad Para realizar essa comparação, o estudo fará uso de ferramentas de inferência estatística. Em resumo, serão aplicados testes de hipóteses para verificar se houve diferença significativa nas médias dos dois semestres, além da realização de testes de equivalência para avaliar a relevância prática dos resultados. As premissas necessárias para os testes e a adequação do tamanho das amostras também serão avaliadas, sendo a justificativa de cada uma dessas etapas detalhada no decorrer deste estudo de caso.
+\qquad Para realizar essa comparação, o estudo faz uso de ferramentas de inferência estatística. São aplicados testes de hipóteses para verificar se houve diferença significativa nas médias dos dois semestres, além de testes de equivalência para avaliar a relevância prática dos resultados. As premissas necessárias para os testes e a adequação do tamanho das amostras também são avaliadas, sendo a justificativa de cada uma dessas etapas detalhada no decorrer deste estudo de caso.
 
 ## Descrição da Coleta de Dados
 
-\qquad O primeiro passo foi a coleta dos dados disponibilizados nos arquivos .CSV. Em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
+\qquad Os dados foram disponibilizados na disciplina, referentes às turmas de 2016-2 e 2017-2 do PPGEE-UFMG, com as variáveis peso, altura e gênero autopreenchidas pelos alunos. O primeiro passo foi a coleta dos dados a partir dos arquivos CSV (do inglês *Comma-Separated Values*). Em seguida, os dados foram tratados para ficarem no mesmo formato, com as colunas padronizadas da seguinte forma:
 
 | Semestre | ID | Curso | Genero | Idade | Altura (m) | Peso (kg) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -140,11 +142,14 @@ dados_2017 <- carregar_dados(config_2017)
 
 \qquad O arquivo de 2016 contém também alunos de graduação em Engenharia de Sistemas (curso ENGSIS) e por isso foi aplicado um filtro para selecionar somente alunos do PPGEE; o de 2017 já contém exclusivamente alunos de pós-graduação.
 
-Após essa etapa prosseguiu-se com o cálculo do IMC de cada participante por meio da equação:
+Após essa etapa prosseguiu-se com o cálculo do IMC de cada participante por meio da Equação \ref{eq:imc}:
 
-$$IMC = \frac{Peso}{Altura^2}$$
+\begin{equation}
+IMC = \frac{Peso}{Altura^2}
+\label{eq:imc}
+\end{equation}
 
-sendo o peso dado em quilogramas (kg) e a altura em metros (m). O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada IMC, adicionada ao final do conjunto de dados, conforme o código abaixo.
+sendo o peso dado em quilogramas (kg) e a altura em metros (m). O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada IMC, adicionada ao final do conjunto de dados, conforme o código a seguir.
 
 \vspace{0.5cm}
 
@@ -184,7 +189,7 @@ checar_qualidade(dados)
 
 ## Desenho do Experimento
 
-\qquad Para cada gênero, comparou-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar TOST (do inglês Two One-Sided Tests).
+\qquad Para cada gênero, comparou-se a média de IMC entre 2016-2 e 2017-2 por dois testes: um teste de diferença (principal) e um teste de equivalência complementar TOST (do inglês *Two One-Sided Tests*).
 
 $$H_0: \mu_1 = \mu_2 \qquad H_1: \mu_1 \neq \mu_2$$
 
@@ -197,11 +202,11 @@ Em que:
 
 \vspace{0.5cm}
 
-E, para o Teste de equivalência (TOST), decomposto em dois testes unilaterais:
+E, para o teste de equivalência (TOST), decomposto em dois testes unilaterais:
 
 $$\begin{cases} H_0^1: \mu_1-\mu_2=-\delta^* \\ H_1^1: \mu_1-\mu_2>-\delta^* \end{cases} \qquad \begin{cases} H_0^2: \mu_1-\mu_2=\delta^* \\ H_1^2: \mu_1-\mu_2<\delta^* \end{cases}$$
 
-onde $\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde \hyperlink{ref_oms}{(WORLD HEALTH ORGANIZATION, 1995)}, calculada a seguir a partir da tabela de classificação.
+onde $\delta^*$ é metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde \hyperlink{ref_oms}{(WORLD HEALTH ORGANIZATION, 1995)}, calculada a seguir a partir da tabela de classificação. O símbolo $p_{TOST}$, usado adiante, corresponde ao maior dos dois *p-valores* dos testes unilaterais.
 
 \vspace{0.5cm}
 
@@ -242,7 +247,7 @@ extrair_grupo <- function(dados, semestre_alvo, genero_alvo) {
 ```
 
 
-\qquad Com todos os dados tratados e organizados, e com a premissa definida, será dado início ao teste de Diferença e Premissa de Normalidade. Com o intuito de verificar o teste de Diferença implementou-se a função `testar_diferenca`, que aplica incialmente o teste de Shapiro-Wilk em ambos os grupos. Se a premissa de normalidade for atendida, utiliza-se o Teste t de Welch (que não exige que as variâncias sejam iguais). Caso a normalidade seja violada em pelo menos um dos grupos, o algoritmo adota automaticamente o teste não-paramétrico de Mann-Whitney.
+\qquad Com todos os dados tratados e organizados, e com a premissa definida, dá-se início ao teste de diferença. A função `testar_diferenca` aplica inicialmente o teste de Shapiro-Wilk em ambos os grupos. Se a premissa de normalidade for atendida, utiliza-se o teste t de Welch (que não exige que as variâncias sejam iguais). Caso a normalidade seja violada em pelo menos um dos grupos, o algoritmo adota automaticamente o teste não paramétrico de Mann-Whitney.
 
 \vspace{0.5cm}
 
@@ -268,9 +273,9 @@ testar_diferenca <- function(x, y, alpha = 0.05) {
 }
 ```
 
-\qquad Quanto ao teste de equivalencia para verificar se a ausência de diferença estatística significa que os grupos são realmente iguais na prática, construiu-se a função testar_equivalencia. Ela executa os dois testes *t* unilaterais, comparando a diferença das médias com os limites inferior ($-\delta^*$) e superior ($\delta^*$). A equivalência estatística só é confirmada se o maior *p-valor* obtido entre os dois testes for inferior ao nível de significância ($\alpha = 0,05$).
+\qquad Quanto ao teste de equivalência, para verificar se a ausência de diferença estatística significa que os grupos são realmente iguais na prática, construiu-se a função `testar_equivalencia`. Ela executa os dois testes *t* unilaterais, comparando a diferença das médias com os limites inferior ($-\delta^*$) e superior ($\delta^*$). A equivalência estatística só é confirmada se o maior *p-valor* obtido entre os dois testes for inferior ao nível de significância ($\alpha = 0,05$).
 
-\qquad Em relação à análise de distribuição normal dos dados, mesmo que o teste de Shapiro–Wilk indique desvio da normalidade, a utilização de procedimentos não paramétricos de equivalência também apresenta limitações importantes de poder estatístico em razão do reduzido tamanho amostral dos grupos femininos, particularmente no grupo com menor número de observações. Dessa forma, optou-se pelo TOST baseado no teste t, reconhecendo-se a possível violação da premissa de normalidade como uma limitação do procedimento e recomendando cautela na interpretação dos resultados.
+\qquad Em relação à análise de distribuição normal dos dados, mesmo que o teste de Shapiro-Wilk indique desvio da normalidade, a utilização de procedimentos não paramétricos de equivalência também apresenta limitações importantes de poder estatístico em razão do reduzido tamanho amostral dos grupos femininos, particularmente no grupo com menor número de observações. Dessa forma, optou-se pelo TOST baseado no teste t, reconhecendo-se a possível violação da premissa de normalidade como uma limitação do procedimento e recomendando cautela na interpretação dos resultados.
 
 \vspace{0.5cm}
 
@@ -286,7 +291,7 @@ testar_equivalencia <- function(x, y, delta, alpha = 0.05) {
 }
 ```
 
-\qquad E, por fim, para realizar a análise do tamanho amostral (Poder Estatístico): Tendo em vista que o volume de dados coletados é relativamente baixo (especialmente para o gênero feminino), é pertinente avaliar se os testes possuem força estatística suficiente para detectar diferenças ou confirmar equivalências. Para isso, as funções de cálculo de amostra estimam qual seria o tamanho ideal das turmas ($n$) para garantir um poder estatístico de 80%, dado o $\delta^*$ estipulado.
+\qquad E, por fim, para realizar a análise do tamanho amostral (poder estatístico): tendo em vista que o volume de dados coletados é relativamente baixo (especialmente para o gênero feminino), é pertinente avaliar se os testes possuem força estatística suficiente para detectar diferenças ou confirmar equivalências. Para isso, as funções de cálculo de amostra estimam qual seria o tamanho ideal das turmas ($n$) para garantir um poder estatístico de 80%, dado o $\delta^*$ estipulado. A estimativa do tamanho amostral para o TOST é obtida por simulação de Monte Carlo com 2.000 réplicas (semente = 42).
 
 \vspace{0.5cm}
 
@@ -317,7 +322,7 @@ calcular_n_equivalencia <- function(delta, sd, alpha = 0.05, power_alvo = 0.80,
 }
 ```
 
-\qquad Com todas as funções que serão usadas já criadas e todas as premissas discorridas, visualiza-se a distribuição do IMC por semestre e gênero como uma análise preliminar, antes da implementação e execução dos testes.
+\qquad Com todas as funções que serão usadas já criadas e todas as premissas discorridas, visualiza-se a distribuição do IMC por semestre e gênero como uma análise preliminar, antes da execução dos testes. A Figura 1 apresenta essa distribuição.
 
 \vspace{0.5cm}
 
@@ -350,11 +355,11 @@ g2 <- ggplot(dados, aes(x = Semestre, y = IMC, fill = Genero)) +
 g1 + g2
 ```
 
-\qquad As distribuições comportam-se, visualmente, de forma similar a normal. No entanto, o grupo feminino de 2017 por só possuir 4 pontos faz com que essa suposição seja incerta, consistente com o Shapiro-Wilk já calculado na seção de desenho do experimento.
+\qquad As distribuições comportam-se, visualmente, de forma similar à normal. No entanto, o grupo feminino de 2017, por possuir apenas 4 pontos, torna essa suposição incerta, aspecto avaliado formalmente pelo teste de Shapiro-Wilk na seção seguinte.
 
 ## Análise Estatística
 
-\qquad Nesta etapa, os testes definidos nas seções anteriores são executados a seguir, para cada comparação.
+\qquad Nesta etapa, os testes definidos nas seções anteriores são executados para cada comparação. A Tabela 1 reúne os resultados dos testes de diferença e equivalência; a Tabela 2, as análises de tamanho amostral; e a Tabela 3, as médias descritivas por grupo.
 
 \vspace{0.5cm}
 
@@ -367,6 +372,8 @@ resultados <- lapply(comparacoes, function(cmp) {
   list(
     genero = cmp$genero,
     n1 = length(x), n2 = length(y),
+    media_1 = mean(x), media_2 = mean(y),
+    dp_1 = sd(x), dp_2 = sd(y),
     diferenca = testar_diferenca(x, y, alpha),
     equivalencia = testar_equivalencia(x, y, delta, alpha),
     n_ideal_diferenca = calcular_n_diferenca(delta, sd_pool, alpha, power_alvo),
@@ -377,6 +384,7 @@ resultados <- lapply(comparacoes, function(cmp) {
 
 names(resultados) <- sapply(comparacoes, function(c) c$genero)
 
+# Tabela 1: testes de diferença e equivalência
 tabela_resultados <- do.call(rbind, lapply(resultados, function(r) {
   data.frame(
     Genero               = r$genero,
@@ -384,22 +392,12 @@ tabela_resultados <- do.call(rbind, lapply(resultados, function(r) {
     n2                   = r$n2,
     Teste                = r$diferenca$nome_teste,
     p_diferenca          = round(r$diferenca$p_valor, 3),
-    p_tost                = round(r$equivalencia$p_tost, 3),
-    Equivalente           = r$equivalencia$equivalente,
+    p_tost               = round(r$equivalencia$p_tost, 3),
+    Equivalente          = ifelse(r$equivalencia$equivalente, "Sim", "Não"),
     Intervalo_confianca  = paste0(
-    "[", round(r$diferenca$ic[1], 2),
-    "; ", round(r$diferenca$ic[2], 2), "]"
-  ))
-}))
-
-tabela_resultados2 <- do.call(rbind, lapply(resultados, function(r) {
-  data.frame(
-    Genero               = r$genero,
-    n1                   = r$n1,
-    n2                   = r$n2,
-    Tam_efeito_diferenca     = r$n_ideal_diferenca,
-    Tam_efeito_equivalencia  = r$n_ideal_equivalencia
-  )
+      "[", round(r$diferenca$ic[1], 2),
+      "; ", round(r$diferenca$ic[2], 2), "]"
+    ))
 }))
 
 tabela <- footnote(
@@ -407,6 +405,8 @@ tabela <- footnote(
     tabela_resultados,
     booktabs = TRUE,
     row.names = FALSE,
+    col.names = c("Gênero", "n (2016-2)", "n (2017-2)", "Teste",
+                  "p (diferença)", "p (TOST)", "Equivalente", "IC 95%"),
     caption = "Resultados dos testes de diferença e equivalência."
   ),
   general = "No teste de Welch, o intervalo de confiança corresponde à diferença de médias; no teste de Mann-Whitney, à diferença de localização estimada pelo método de Hodges-Lehmann. Essas grandezas não são diretamente comparáveis.",
@@ -418,30 +418,58 @@ cat(as.character(tabela))
 ```
 
 ```{r tabela_tamanho_amostral}
-knitr::kable(tabela_resultados2, row.names = FALSE, 
-             caption = "Resultados das análises de tamanho amostral.")
+# Tabela 2: tamanho amostral ideal
+tabela_resultados2 <- do.call(rbind, lapply(resultados, function(r) {
+  data.frame(
+    Genero               = r$genero,
+    n1                   = r$n1,
+    n2                   = r$n2,
+    n_ideal_diferenca    = r$n_ideal_diferenca,
+    n_ideal_equivalencia = r$n_ideal_equivalencia
+  )
+}))
+knitr::kable(tabela_resultados2, row.names = FALSE,
+             col.names = c("Gênero", "n (2016-2)", "n (2017-2)",
+                           "n ideal (diferença)", "n ideal (equivalência)"),
+             caption = "Resultados das análises de tamanho amostral (n ideal por grupo).")
 ```
 
-\qquad A análise das tabelas de resultados revela cenários estatísticos distintos para cada gênero, fortemente influenciados pelo tamanho amostral disponível.
+```{r tabela_descritiva}
+# Tabela 3: médias descritivas por grupo (dá proveniência aos valores citados na Conclusão)
+tabela_descritiva <- do.call(rbind, lapply(resultados, function(r) {
+  data.frame(
+    Genero      = r$genero,
+    Media_2016  = round(r$media_1, 2),
+    DP_2016     = round(r$dp_1, 2),
+    Media_2017  = round(r$media_2, 2),
+    DP_2017     = round(r$dp_2, 2)
+  )
+}))
+knitr::kable(tabela_descritiva, row.names = FALSE,
+             col.names = c("Gênero", "Média 2016-2", "DP 2016-2",
+                           "Média 2017-2", "DP 2017-2"),
+             caption = "IMC médio e desvio-padrão por grupo e semestre.")
+```
 
-\qquad Devido à rejeição da normalidade, o teste principal adotado foi o de Mann-Whitney, cuja estimativa reflete a diferença de localização (Hodges-Lehmann) e não a diferença de médias aritméticas. Para o cálculo do TOST, optou-se por manter os testes *t* paramétricos. Optou-se por escolha por conta da limitação amostral extrema ($n=4$ no segundo semestre), o que inviabilizaria o poder de detecção de testes de equivalência não-paramétricos baseados em postos.
+\qquad A análise das tabelas de resultados revela cenários estatísticos distintos para cada gênero, influenciados pelo tamanho amostral disponível.
 
-\qquad Para o grupo masculino ($n = 21$ em ambos os semestres), o teste principal não indicou diferença significativa no IMC médio ($p = 0,59$). Além disso, o teste complementar de equivalência (TOST) confirmou estatisticamente que as médias são equivalentes na prática ($p_{TOST} = 0,019 < \alpha$). Esse resultado é reforçado pela análise de poder: o tamanho amostral calculado como ideal situou-se na faixa de 24 a 26 indivíduos, valor muito próximo da amostra real utilizada, o que reforça a conclusão de que não houve alteração no IMC dos homens.
+\qquad Conforme a coluna Teste da Tabela 1, o teste principal foi definido por grupo segundo a premissa de normalidade. Para o grupo masculino, cujos dados não rejeitaram a normalidade, aplicou-se o teste t de Welch, cuja estimativa reflete a diferença de médias. Para o grupo feminino, a rejeição da normalidade levou ao teste de Mann-Whitney, cuja estimativa reflete a diferença de localização (Hodges-Lehmann). Para o TOST, mantiveram-se os testes *t* paramétricos em ambos os grupos, pelo motivo já discutido na seção anterior.
 
-\qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste principal não tenha apontado diferença significativa ($p = 0,073$), o TOST falhou em confirmar a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de no mínimo 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, o fato de não se confirmar nem a diferença e nem a equivalência é resultado da limitação de poder estatístico (falta de amostra), que impossibilita qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
+\qquad Para o grupo masculino ($n = 21$ em ambos os semestres), o teste de Welch não indicou diferença significativa no IMC médio ($p = 0,59$). Além disso, o teste complementar de equivalência confirmou estatisticamente que as médias são equivalentes na prática ($p_{TOST} = 0,019 < \alpha$). Esse resultado é reforçado pela análise de poder: o tamanho amostral calculado como ideal situou-se na faixa de 24 a 26 indivíduos, valor próximo da amostra real utilizada, o que sustenta a conclusão de que não houve alteração no IMC dos homens.
 
+\qquad Por outro lado, os resultados do grupo feminino ($n = 7$ em 2016-2 e $n = 4$ em 2017-2) demonstraram um problema claro de subdimensionamento amostral. Embora o teste de Mann-Whitney não tenha apontado diferença significativa ($p = 0,073$), o TOST não confirmou a equivalência ($p_{TOST} = 0,31 > \alpha$). O cálculo amostral indicou a necessidade de ao menos 8 indivíduos por grupo, o dobro do disponível para o segundo semestre. Portanto, a impossibilidade de confirmar tanto a diferença quanto a equivalência é consistente com uma limitação de poder estatístico (falta de amostra), o que impede qualquer afirmação conclusiva sobre a igualdade dos grupos femininos.
 
 ## Conclusões e Recomendações
 
-\qquad O uso combinado de testes de diferença, equivalência (TOST) e análise de poder estatístico demonstrou cenários distintos entre os gêneros avaliados. Para o grupo masculino, conclui-se que o IMC médio permaneceu estável. No entanto, do ponto de vista prático, essa estabilidade ocorre no limiar superior da faixa de peso normal (médias de 24,94 e 24,29 kg/m²), quase adentrando o sobrepeso.
+\qquad O uso combinado de testes de diferença, equivalência e análise de poder estatístico revelou cenários distintos entre os gêneros avaliados. Para o grupo masculino, conclui-se que o IMC médio permaneceu estável. Do ponto de vista prático, no entanto, essa estabilidade ocorre no limiar superior da faixa de peso normal (médias de 24,94 e 24,29 kg/m², conforme a Tabela 3), próximo do sobrepeso.
 
-\qquad Por outro lado, os resultados para o grupo feminino são inconclusivos por limitação de poder estatístico ($n=4$ em 2017-2). Contudo, durante a análise, observa-se uma queda expressiva da média feminina, que atingiu 18,45 kg/m² em 2017-2, valor classificado como "Abaixo do peso" pela OMS. Essa diferença biológica ajuda a explicar a não confirmação da equivalência estatística, somada à subamostragem.
+\qquad Para o grupo feminino, os resultados são inconclusivos por limitação de poder estatístico ($n = 4$ em 2017-2). Observa-se ainda que a média feminina de 2017-2 (18,45 kg/m², Tabela 3) situa-se na faixa classificada como abaixo do peso pela OMS. Dado o tamanho amostral, esse valor deve ser interpretado com cautela, pois é fortemente sensível a observações individuais e não permite afirmar a existência de uma tendência real.
 
 \qquad Diante dessas limitações, recomenda-se para estudos futuros um redimensionamento amostral, assegurando o número mínimo de indivíduos calculado para garantir o poder estatístico das análises, com atenção especial ao público feminino. Por fim, é recomendável a incorporação de métricas complementares, como questionários sobre frequência de atividade física e qualidade do sono, superando as limitações do IMC como indicador isolado para avaliar mudanças no estilo de vida.
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX e o Claude com o objetivo de identificar possíveis erros no trabalho. Após utilizar este serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. O Claude (modelo Opus 4.8, configuração de raciocínio alto) foi utilizado para revisão técnica e identificação de possíveis erros, apoiado na skill \textit{paper-review}\footnote{Disponível em: \url{https://github.com/WenyuChiou/academic-writing-skills/tree/main/skills/paper-review}. Acesso em: 8 set. 2026.}, que estrutura a revisão em etapas de verificação de cobertura de objetivos, hipóteses, premissas e consistência interna. Após utilizar esses serviços, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
 
 ## Papéis e Contribuições da Equipe
 
@@ -449,7 +477,8 @@ knitr::kable(tabela_resultados2, row.names = FALSE,
 
 * **Izabela C. S. Barbosa:** Desenvolvimento principal dos códigos computacionais em R (Programadora), redação estrutural do manuscrito e revisão técnica.
 * **Filipe C. Andrade:** Apoio no desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
-* **Beatriz S. Campagnaro:** 
+* **Beatriz S. Campagnaro:** [PREENCHER - contribuicao pendente]
+* **Stephanie F. Lemos:** [PREENCHER - contribuicao pendente]
 
 ## Referências
 
