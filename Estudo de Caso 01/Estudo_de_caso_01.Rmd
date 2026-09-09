@@ -262,10 +262,10 @@ testar_diferenca <- function(x, y, alpha = 0.05) {
 
   if (normal) {
     teste <- t.test(x, y, var.equal = FALSE)
-    nome_teste <- "Teste t de Welch"
+    nome_teste <- "t de Welch"
   } else {
     teste <- wilcox.test(x, y, conf.int = TRUE)
-    nome_teste <- "Teste de Mann-Whitney"
+    nome_teste <- "Mann-Whitney"
   }
 
   list(nome_teste = nome_teste, shapiro_x = shapiro_x, shapiro_y = shapiro_y,
@@ -275,7 +275,7 @@ testar_diferenca <- function(x, y, alpha = 0.05) {
 
 \qquad Quanto ao teste de equivalência, para verificar se a ausência de diferença estatística significa que os grupos são realmente iguais na prática, construiu-se a função `testar_equivalencia`. Ela executa os dois testes *t* unilaterais, comparando a diferença das médias com os limites inferior ($-\delta^*$) e superior ($\delta^*$). A equivalência estatística só é confirmada se o maior *p-valor* obtido entre os dois testes for inferior ao nível de significância ($\alpha = 0,05$).
 
-\qquad Em relação à análise de distribuição normal dos dados, mesmo que o teste de Shapiro-Wilk indique desvio da normalidade, a utilização de procedimentos não paramétricos de equivalência também apresenta limitações importantes de poder estatístico em razão do reduzido tamanho amostral dos grupos femininos, particularmente no grupo com menor número de observações. Dessa forma, optou-se pelo TOST baseado no teste t, reconhecendo-se a possível violação da premissa de normalidade como uma limitação do procedimento e recomendando cautela na interpretação dos resultados.
+\qquad Em relação à análise de distribuição normal dos dados, mesmo que o teste de Shapiro-Wilk indique desvio da normalidade, a utilização de procedimentos não paramétricos de equivalência também apresentaria limitações importantes de poder estatístico em razão do reduzido tamanho amostral dos grupos femininos, particularmente no grupo com menor número de observações. Dessa forma, optou-se pelo TOST baseado no teste t, reconhecendo-se a possível violação da premissa de normalidade como uma limitação do procedimento e recomendando cautela na interpretação dos resultados.
 
 \vspace{0.5cm}
 
@@ -415,6 +415,7 @@ tabela <- footnote(
 )
 
 cat(as.character(tabela))
+
 ```
 
 ```{r tabela_tamanho_amostral}
