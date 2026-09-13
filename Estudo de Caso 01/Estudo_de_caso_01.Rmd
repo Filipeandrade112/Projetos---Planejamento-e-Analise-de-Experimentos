@@ -1,6 +1,6 @@
 ---
 title: 'Estudo de Caso 01: Comparação do IMC médio de alunos do PPGEE-UFMG ao longo de dois semestres'
-author: "Beatriz S. Campagnaro, Izabela C. S. Barbosa e Filipe C. Andrade"
+author: "Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa"
 date: "28 de Agosto de 2026"
 output:
   pdf_document:
@@ -202,6 +202,8 @@ Em que:
 
 \qquad Como a diferença mínima de interesse entre as médias populacionais de IMC não é estabelecida diretamente pelo teste de hipótese e não foram encontrados trabalhos técnicos que definam um valor adequado para o escopo da população observada (adultos universitários), optou-se por realizar uma análise de sensibilidade do tamanho amostral. Foram consideradas tamanhos de efeito minimamente relevantes de 0,5, 1,0, 1,5, 2,0, 2,5 e 3,0 unidades de IMC, permitindo avaliar como a quantidade de indivíduos necessária para atingir o poder estatístico desejado varia em função da magnitude do efeito de interesse. Essa faixa de valores de $\delta^*$ foi escolhida de modo a abranger desde diferenças relativamente pequenas (0,5-1,0) até diferenças de maior magnitude (2,5-3,0) na escala do IMC, sabendo que metade da largura da faixa de peso normal, segundo a classificação de IMC da Organização Mundial da Saúde \hyperlink{ref_oms}{(WORLD HEALTH ORGANIZATION, 1995)}, calculada a seguir a partir da tabela de classificação é 3,25 unidades de IMC.
 
+\qquad O poder estatístico foi definido em 80% por ser um valor que estabelece um equilíbrio entre a precisão necessária para detectar diferenças reais e a complexidade do dimensionamento amostral. Um poder estatístico maior, como 90% ou 95%, aumentaria a quantidade de observações necessárias, o que não reflete ao tamanho dos dados amostrados. Dessa forma, esse valor assegura a confiabilidade da análise sem tornar os requisitos de amostra impraticáveis.
+
 \vspace{0.5cm}
 
 ```{r classificacao_imc}
@@ -278,11 +280,12 @@ testar_diferenca <- function(x, y, alpha = 0.05) {
 # n ideal pro teste de diferença: fórmula pronta do R
 calcular_n_diferenca <- function(delta, sd, alpha = 0.05, power_alvo = 0.80) {
   ceiling(power.t.test(delta = delta, sd = sd, sig.level = alpha,
-                        power = power_alvo, type = "two.sample", alternative = "two.sided")$n)
+                        power = power_alvo, type = "two.sample", 
+                        alternative = "two.sided")$n)
 }
 ```
 
-\qquad Com todas as funções que serão usadas já criadas e todas as premissas discorridas, visualiza-se a distribuição do IMC por semestre e gênero como uma análise preliminar, antes da execução dos testes. A Figura 1 apresenta essa distribuição.
+\qquad Com todas as funções que serão usadas já criadas e todas as premissas discorridas, visualiza-se abaixo a distribuição do IMC por semestre e gênero como uma análise preliminar, antes da execução dos testes. A Figura 1 apresenta essa distribuição.
 
 \vspace{0.5cm}
 
@@ -384,7 +387,9 @@ tabela <- footnote(
                   "p (diferença)", "IC 95%"),
     caption = "Resultados dos testes de diferença."
   ),
-  general = "No teste de Welch, o intervalo de confiança corresponde à diferença de médias; no teste de Mann-Whitney, à diferença de localização estimada pelo método de Hodges-Lehmann. Essas grandezas não são diretamente comparáveis.",
+  general = "No teste de Welch, o intervalo de confiança corresponde à diferença de 
+  médias; no teste de Mann-Whitney, à diferença de localização estimada pelo método 
+  de Hodges-Lehmann. Essas grandezas não são diretamente comparáveis.",
   general_title = "Nota: ",
   threeparttable = TRUE
 )
@@ -408,7 +413,8 @@ knitr::kable(
     "n ideal masculino",
     "n ideal feminino"
   ),
-  caption = "Tamanho amostral necessário por grupo para diferentes magnitudes de tamanho de efeito."
+  caption = "Tamanho amostral necessário por grupo para diferentes 
+  magnitudes de tamanho de efeito."
 )
 ```
 
@@ -429,7 +435,7 @@ knitr::kable(tabela_descritiva, row.names = FALSE,
              caption = "IMC médio e desvio-padrão por grupo e semestre.")
 ```
 
-\qquad A análise conjunta das tabelas de resultados evidencia diferenças importantes entre os grupos masculino e feminino quanto ao teste estatístico utilizado e aos tamanhos amostrais necessários para detectar efeitos de diferentes magnitudes. A interpretação dos resultados deve, portanto, considerar conjuntamente a evidência fornecida pelos testes de hipótese, os intervalos de confiança e a análise de sensibilidade do tamanho amostral.
+\qquad A análise conjunta das tabelas de resultados evidencia diferenças entre os grupos masculino e feminino, quanto ao teste estatístico utilizado e aos tamanhos amostrais necessários para detectar efeitos de diferentes magnitudes. A interpretação dos resultados deve, portanto, considerar conjuntamente a evidência fornecida pelos testes de hipótese, os intervalos de confiança e a análise de sensibilidade do tamanho amostral.
 
 \qquad Conforme a coluna Teste da Tabela 1, a escolha do procedimento inferencial foi condicionada à avaliação da normalidade. Para o grupo masculino, cujos dados não rejeitaram a hipótese de normalidade, aplicou-se o teste t de Welch, cuja estimativa corresponde à diferença entre as médias dos dois semestres. Para o grupo feminino, a rejeição da hipótese de normalidade levou à utilização do teste de Mann-Whitney, cuja estimativa corresponde à diferença de localização obtida pelo método de Hodges-Lehmann. Dessa forma, as estimativas apresentadas para os dois gêneros possuem interpretações distintas e não devem ser comparadas diretamente entre si.
 
@@ -458,15 +464,15 @@ knitr::kable(tabela_descritiva, row.names = FALSE,
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. O Claude (modelo Opus 4.8, configuração de raciocínio alto) foi utilizado para revisão técnica e identificação de possíveis erros, apoiado na skill \textit{paper-review}\footnote{Disponível em: \url{https://github.com/WenyuChiou/academic-writing-skills/tree/main/skills/paper-review}. Acesso em: 8 set. 2026.}, que estrutura a revisão em etapas de verificação de cobertura de objetivos, hipóteses, premissas e consistência interna. Após utilizar esses serviços, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini (modelo 3.1 Pro, configuração de raciocínio complexo) com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. O Claude (modelo Opus 4.8, configuração de raciocínio alto) foi utilizado para revisão técnica e identificação de possíveis erros, apoiado na skill \textit{paper-review}\footnote{Disponível em: \url{https://github.com/WenyuChiou/academic-writing-skills/tree/main/skills/paper-review}. Acesso em: 8 set. 2026.}, que estrutura a revisão em etapas de verificação de cobertura de objetivos, hipóteses, premissas e consistência interna. Após utilizar esses serviços, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
 
 ## Papéis e Contribuições da Equipe
 
 \qquad Conforme solicitado, detalhamos abaixo os papéis e as contribuições de cada membro da equipe:
 
-* **Izabela C. S. Barbosa:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
-* **Filipe C. Andrade:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
 * **Beatriz S. Campagnaro:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Filipe C. Andrade:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Izabela C. S. Barbosa:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
 
 ## Referências
 
