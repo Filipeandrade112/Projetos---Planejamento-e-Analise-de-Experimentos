@@ -79,7 +79,7 @@ if (!require(tidyr, quietly = TRUE)){
 
 \qquad O retorno mensal é utilizado como um indicador principal para avaliar possíveis diferenças na rentabilidade desses ativos ao longo do período analisado. As cinco ações referem-se a empresas diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como o comportamento financeiro possui oscilações inerentes, é mais adequado analisar os dados comparando simultaneamente todas as opções. Portanto, os testes estatísticos iniciais são realizados avaliando todas as ações conjuntamente.
 
-\qquad Para realizar essa comparação, o estudo faz uso de ferramentas de inferência estatística. São aplicados testes de hipóteses para verificar se há diferença significativa nas médias das cinco ações. As premissas necessárias para os testes e a adequação das amostras também são avaliadas, sendo a justificativa de cada uma dessas etapas detalhada no decorrer deste estudo de caso.
+\qquad Para realizar essa comparação, o estudo faz uso de ferramentas de inferência estatística. É aplicado o teste ANOVA para verificar se há diferença significativa nas médias das cinco ações. As premissas necessárias para o teste também são avaliadas, compreendendo: a independência das observações; a homocedasticidade (igualdade de variâncias), verificada por meio do teste de Fligner-Killeen ou gráfico de resíduos pelos valores ajustados; e a normalidade, analisada via teste de Shapiro-Wilk ou análise gráfica. A justificativa de cada uma dessas etapas é detalhada no decorrer deste estudo de caso.
 
 ## Descrição da Coleta de Dados
 
@@ -170,7 +170,7 @@ calcular_retorno <- function(dados) {
 dados_acoes <- calcular_retorno(dados_brutos)
 ```
 
-\qquad Antes dos testes de hipótese, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de variação de preço, a fim de evitar a exclusão de flutuações financeiras potencialmente legítimas. A base original continha 36 observações por ação, mas o cálculo de retorno absorveu o primeiro mês cronológico. Não foram identificados valores ausentes ou duplicidades nas 35 observações de retorno de cada ação; portanto, nenhuma observação foi excluída.
+\qquad Antes da aplicação do testes ANOVA, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de variação de preço, a fim de evitar a exclusão de flutuações financeiras potencialmente legítimas. A base original continha 36 observações por ação, mas o cálculo de retorno absorveu o primeiro mês cronológico. Não foram identificados valores ausentes ou duplicidades nas 35 observações de retorno de cada ação; portanto, nenhuma observação foi excluída.
 
 \vspace{0.5cm}
 
@@ -194,7 +194,7 @@ checar_qualidade_acoes(dados_acoes)
 
 ## Desenho do Experimento
 
-\qquad Para a análise comparativa, avaliou-se a média do retorno mensal entre as cinco ações por meio de um teste global de diferença de médias (como ANOVA ou similar não paramétrico).
+\qquad Para a análise comparativa, avaliou-se a média do retorno mensal entre as cinco ações por meio do teste ANOVA.
 
 $$H_0: \mu_1 = \mu_2 = \mu_3 = \mu_4 = \mu_5 \qquad H_1: \text{Pelo menos uma média } \mu_i \text{ difere das demais}$$
 
@@ -206,7 +206,7 @@ Em que:
 
 \vspace{0.5cm}
 
-E, caso o teste global detecte diferenças, testes de comparações múltiplas *post-hoc* (como o de Tukey) poderão isolar os pares de ações que de fato divergem estatisticamente:
+E, caso o teste ANOVA, testes de comparações múltiplas *post-hoc* (como o de Tukey) poderão isolar os pares de ações que de fato divergem estatisticamente:
 
 $$\begin{cases} H_0: \mu_A - \mu_B = 0 \\ H_1: \mu_A - \mu_B \neq 0 \end{cases}$$
 
@@ -215,53 +215,12 @@ onde as médias de cada par $(A, B)$ são contrastadas. A diferença obtida é c
 \vspace{0.5cm}
 
 ```{r testar_diferenca}
-# Teste de diferença (principal). Shapiro-Wilk decide entre ANOVA de Welch
-# (todos os grupos passam em normalidade) ou Kruskal-Wallis
-# (algum dos grupos falha)
-testar_diferenca <- function(dados, alpha = 0.05) {
-  
-  # Testa normalidade para cada ação
-  shapiro_res <- dados %>%
-    group_by(Acao) %>%
-    summarise(p_valor = shapiro.test(Retorno_Mensal)$p.value, .groups = "drop")
-  
-  # Verifica se TODOS passaram no teste
-  normal <- all(shapiro_res$p_valor > alpha)
-  
-  if (normal) {
-    # ANOVA de Welch (não exige variâncias iguais)
-    teste <- oneway.test(Retorno_Mensal ~ Acao, data = dados, var.equal = FALSE)
-    nome_teste <- "ANOVA de Welch"
-  } else {
-    # Kruskal-Wallis (não paramétrico)
-    teste <- kruskal.test(Retorno_Mensal ~ Acao, data = dados)
-    nome_teste <- "Kruskal-Wallis"
-  }
-  
-  list(nome_teste = nome_teste, shapiro_res = shapiro_res,
-       p_valor = teste$p.value, estatistica = teste$statistic)
-}
-
-resultado_teste_principal <- testar_diferenca(dados_acoes)
-print(resultado_teste_principal)
+# Removido: A lógica será reestruturada na seção de Análise Estatística.
 ```
-
-
-
-```{r testar_equivalencia}
-# [ESPAÇO PARA O CÓDIGO]
-```
-
-
-
-```{r calcular_n_ideal}
-# [ESPAÇO PARA O CÓDIGO]
-```
-
 
 \vspace{0.5cm}
 
-```{r graficos_exploratorios, fig.width=10, fig.height=5, fig.cap="Comparação das distribuições do Retorno Mensal: Histograma vs Boxplot", message=FALSE, warning=FALSE}
+```{r graficos_exploratorios, fig.width=12, fig.height=8, fig.cap="Comparação das distribuições dos retornos mensais: Histograma vs Boxplot", message=FALSE, warning=FALSE}
 # Cria o Histograma e salva na variável g1
 g1 <- ggplot(dados_acoes, aes(x = Retorno_Mensal, fill = Acao)) +
   geom_histogram(bins = 10, color = "black", alpha = 0.8) +
@@ -291,21 +250,76 @@ g1 / g2
 
 ## Análise Estatística
 
-\qquad Nesta etapa, os códigos definidos devem ser preenchidos para testar o comportamento global dos retornos. Quadros ou tabelas geradas no documento devem resumir os testes de diferença, a validação de premissas, além das principais métricas descritivas de cada ação.
+### Verificação de Premissas
 
-\vspace{0.5cm}
+\qquad Antes de avançar para os testes de diferença entre as médias de retorno das ações, é necessário avaliar as premissas fundamentais da Análise de Variância (ANOVA).
 
-```{r executar_testes, results='asis'}
-# [ESPAÇO PARA O CÓDIGO]
+**1. Independência:**
+\qquad A premissa de independência estabelece que as observações coletadas não devem influenciar umas às outras. Neste estudo, como as cinco ações pertencem a empresas distintas e operam independentemente, justifica-se teoricamente que as amostras entre os grupos não possuem dependência mútua. Dessa forma, consideramos essa premissa atendida sob o ponto de vista do desenho do experimento.
+
+**2. Homocedasticidade (Igualdade de Variâncias):**
+\qquad A premissa de homocedasticidade exige que a variância dos retornos seja homogênea entre todas as ações. Para avaliar essa premissa, utilizamos o teste de Fligner-Killeen, que é não-paramétrico e muito robusto a desvios de normalidade.
+
+```{r verificar_homocedasticidade}
+# Teste de Fligner-Killeen para Homocedasticidade
+teste_fligner <- fligner.test(Retorno_Mensal ~ Acao, data = dados_acoes)
+print(teste_fligner)
 ```
 
-```{r tabela_tamanho_amostral}
-# [ESPAÇO PARA O CÓDIGO]
+**3. Normalidade:**
+\qquad Por fim, avalia-se a premissa de normalidade dos retornos mensais para cada ação utilizando o teste de Shapiro-Wilk.
+
+```{r verificar_normalidade}
+# Teste de Shapiro-Wilk para Normalidade, agrupado por Ação
+teste_shapiro <- dados_acoes %>%
+  group_by(Acao) %>%
+  summarise(
+    Estatistica_W = shapiro.test(Retorno_Mensal)$statistic,
+    p_valor = shapiro.test(Retorno_Mensal)$p.value,
+    .groups = "drop"
+  ) %>%
+  mutate(Normalidade = ifelse(p_valor > 0.05, "Atendida", "Violada"))
+
+print(teste_shapiro)
 ```
 
-```{r tabela_descritiva}
-# [ESPAÇO PARA O CÓDIGO]
+### Teste de Diferença de Médias
+
+\qquad Com base nos resultados da verificação das premissas, a escolha do teste global de diferença de médias segue a seguinte lógica: se os dados forem normais e homocedásticos, utiliza-se a ANOVA Clássica. Se forem normais, mas heterocedásticos, utiliza-se a ANOVA de Welch. Caso a normalidade seja violada, utiliza-se o teste não paramétrico de Kruskal-Wallis.
+
+```{r executar_teste_global}
+# Função para definir e executar o teste adequado
+executar_teste_global <- function(dados, p_fligner, res_shapiro, alpha = 0.05) {
+  
+  normal <- all(res_shapiro$p_valor > alpha)
+  homocedastico <- (p_fligner > alpha)
+  
+  if (normal && homocedastico) {
+    nome_teste <- "ANOVA Clássica"
+    teste <- aov(Retorno_Mensal ~ Acao, data = dados)
+    # Extrai o p-valor da ANOVA clássica
+    p_valor <- summary(teste)[[1]][["Pr(>F)"]][1]
+  } else if (normal && !homocedastico) {
+    nome_teste <- "ANOVA de Welch"
+    teste <- oneway.test(Retorno_Mensal ~ Acao, data = dados, var.equal = FALSE)
+    p_valor <- teste$p.value
+  } else {
+    nome_teste <- "Kruskal-Wallis"
+    teste <- kruskal.test(Retorno_Mensal ~ Acao, data = dados)
+    p_valor <- teste$p.value
+  }
+  
+  list(nome_teste = nome_teste, p_valor = p_valor, resultado_completo = teste)
+}
+
+resultado_global <- executar_teste_global(dados_acoes, teste_fligner$p.value, teste_shapiro)
+
+cat("Teste escolhido com base nas premissas:", resultado_global$nome_teste, "\n")
+cat("P-valor do teste global:", resultado_global$p_valor, "\n\n")
+
+print(resultado_global$resultado_completo)
 ```
+
 
 
 ## Conclusões e Recomendações
