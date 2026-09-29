@@ -261,8 +261,31 @@ print(resultado_teste_principal)
 
 \vspace{0.5cm}
 
-```{r graficos_exploratorios, fig.width=10, fig.height=5, fig.cap="Comparação das distribuições do IMC: Histograma vs Boxplot", message=FALSE, warning=FALSE}
-# [ESPAÇO PARA O CÓDIGO]
+```{r graficos_exploratorios, fig.width=10, fig.height=5, fig.cap="Comparação das distribuições do Retorno Mensal: Histograma vs Boxplot", message=FALSE, warning=FALSE}
+# Cria o Histograma e salva na variável g1
+g1 <- ggplot(dados_acoes, aes(x = Retorno_Mensal, fill = Acao)) +
+  geom_histogram(bins = 10, color = "black", alpha = 0.8) +
+  facet_wrap(~ Acao, ncol = 5) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(x = "Retorno Mensal", y = "Frequência", title = "Histograma") +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+# Cria o Boxplot e salva na variável g2
+g2 <- ggplot(dados_acoes, aes(x = Acao, y = Retorno_Mensal, fill = Acao)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(width = 0.15, size = 1.5, alpha = 0.7, color = "black") +
+  facet_wrap(~ Acao, ncol = 5, scales = "free_x") +
+  scale_fill_brewer(palette = "Set1") +
+  labs(x = "Ação", y = "Retorno Mensal", title = "Boxplot com Jitter") +
+  theme_minimal() +
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+# Plota um em cima do outro (2 linhas e 5 colunas no total) usando o patchwork
+g1 / g2
 ```
 
 
