@@ -11,6 +11,8 @@ header-includes:
   - \usepackage{makecell}
   - \usepackage{threeparttable}
   - \usepackage{url}
+  - \renewcommand{\figurename}{Figura}
+  - \renewcommand{\tablename}{Tabela}
 ---
 
 ```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
@@ -42,7 +44,7 @@ if (!require(dplyr, quietly = TRUE)){
       library(dplyr)
 }
 
-# Instalando/carregando car (reservado para verificacao grafica de premissas)
+# Instalando/carregando car (reservado para verificação gráfica de premissas)
 if (!require(car, quietly = TRUE)){
       install.packages("car")
       library(car)
@@ -54,7 +56,7 @@ if (!require(knitr, quietly = TRUE)){
       library(knitr)
 }
 
-# Instalando/carregando patchwork (para juntar graficos lado a lado)
+# Instalando/carregando patchwork (para juntar gráficos lado a lado)
 if (!require(patchwork, quietly = TRUE)){
       install.packages("patchwork")
       library(patchwork)
@@ -75,9 +77,9 @@ if (!require(tidyr, quietly = TRUE)){
 
 ## Resumo
 
-\qquad Este estudo comparou os retornos médios mensais de cinco ações com o objetivo de subsidiar a escolha de um único ativo para investimento. A partir de 36 preços de fechamento mensais por ação, foram calculados 35 retornos por ativo. A análise empregou ANOVA de uma via, precedida pela avaliação das premissas de homocedasticidade e normalidade dos resíduos, e comparações múltiplas pelo teste de Tukey, ao nível de significância de 5%. O teste de Fligner-Killeen não identificou evidência de heterogeneidade das variâncias, enquanto o teste de Shapiro-Wilk indicou não normalidade dos resíduos da Ação 1. A ANOVA foi mantida considerando o delineamento balanceado e a literatura sobre a robustez do teste F. Foram identificadas diferenças entre as médias (\(F(4,170) = 23{,}808\); \(p < 0{,}001\)), com as Ações 4 e 5 apresentando retornos médios significativamente superiores aos das demais. A diferença entre essas duas ações não foi significativa pelo teste de Tukey (\(p_{\text{ajustado}} = 0{,}06738\)). Na análise descritiva, a Ação 4 apresentou maior retorno médio mensal (1,703% contra 1,062%), menor variabilidade e perdas menos frequentes e menos acentuadas. Recomenda-se, assim, a Ação 4 com base nos indicadores históricos avaliados, sem afirmar superioridade de sua média populacional sobre a da Ação 5 ou garantir maior retorno futuro.
+\qquad Este estudo comparou os retornos médios mensais de cinco ações com o objetivo de subsidiar a escolha de um único ativo para investimento. A partir de 36 preços de fechamento mensais por ação, foram calculados 35 retornos por ativo. O delineamento adotado foi completamente aleatorizado, com cinco grupos independentes e amostras balanceadas. A análise empregou ANOVA de uma via, precedida pela avaliação das premissas de homocedasticidade e normalidade dos resíduos, e comparações múltiplas pelo teste de Tukey, ao nível de significância de 5%. O teste de Fligner-Killeen não identificou evidência de heterogeneidade das variâncias, enquanto o teste de Shapiro-Wilk indicou não normalidade dos resíduos da Ação 1. A ANOVA foi mantida considerando o delineamento balanceado e a literatura sobre a robustez do teste F. Foram identificadas diferenças entre as médias (\(F(4,170) = 23{,}809\); \(p < 0{,}001\)), com as Ações 4 e 5 apresentando retornos médios significativamente superiores aos das demais. A diferença entre essas duas ações não foi significativa pelo teste de Tukey (\(p_{\text{ajustado}} = 0{,}06738\)). A análise de potência indicou que, com \(n = 35\), a menor diferença detectável com 80% de poder é de 0,70 ponto percentual, superior à diferença observada de 0,642 ponto percentual entre as Ações 4 e 5, o que contribui para explicar o resultado inconclusivo nessa comparação. Na análise descritiva, a Ação 4 apresentou maior retorno médio mensal (1,703% contra 1,062%), menor variabilidade e perdas menos frequentes e menos acentuadas. Recomenda-se, assim, a Ação 4 com base nos indicadores históricos avaliados, sem afirmar superioridade de sua média populacional sobre a da Ação 5 ou garantir maior retorno futuro.
 
-**Palavras-chave:** retorno mensal; análise de variância; teste de Tukey; comparação de ações; risco.
+**Palavras-chave:** retorno mensal; análise de variância; teste de Tukey; comparação de ações; análise de potência.
 
 ## Introdução
 
@@ -85,13 +87,13 @@ if (!require(tidyr, quietly = TRUE)){
 
 \qquad O retorno mensal é utilizado como um indicador principal para avaliar possíveis diferenças na rentabilidade desses ativos ao longo do período analisado. As cinco ações referem-se a empresas diferentes, o que caracteriza as coletas como amostras independentes. Além disso, como o comportamento financeiro possui oscilações inerentes, é mais adequado analisar os dados comparando simultaneamente todas as opções. Portanto, os testes estatísticos iniciais são realizados avaliando todas as ações conjuntamente.
 
-\qquad Para realizar essa comparação, o estudo faz uso de ferramentas de inferência estatística. É aplicado o teste ANOVA para verificar se há diferença significativa nas médias das cinco ações. As premissas necessárias para o teste também são avaliadas, compreendendo: a independência das observações; a homocedasticidade (igualdade de variâncias), verificada por meio do teste de Fligner-Killeen ou gráfico de resíduos pelos valores ajustados; e a normalidade dos resíduos, analisada via teste de Shapiro-Wilk ou análise gráfica. A justificativa de cada uma dessas etapas é detalhada no decorrer deste estudo de caso.
+\qquad Para realizar essa comparação, o estudo faz uso de ferramentas de inferência estatística. É aplicado o teste ANOVA para verificar se há diferença significativa nas médias das cinco ações. As premissas necessárias para o teste também são avaliadas, compreendendo: a independência das observações; a homocedasticidade (igualdade de variâncias), verificada por meio do teste de Fligner-Killeen e complementada pelo gráfico de resíduos pelos valores ajustados; e a normalidade dos resíduos, analisada via teste de Shapiro-Wilk e análise gráfica. A justificativa de cada uma dessas etapas é detalhada no decorrer deste estudo de caso.
 
 ## Descrição da Coleta de Dados
 
-\qquad Os dados que foram disponibilizados são referentes a cinco ações distintas, com os preços de fechamento mensais coletados para avaliação. O primeiro passo foi a coleta dos dados a partir do arquivo CSV (do inglês *Comma-Separated Values*). Em seguida, os dados foram tratados para ficarem em formato longo, com as colunas padronizadas da seguinte forma:
+\qquad Os dados disponibilizados são referentes a cinco ações distintas, com os preços de fechamento mensais coletados para avaliação. O primeiro passo foi a coleta dos dados a partir do arquivo CSV (do inglês *Comma-Separated Values*). A estrutura original do arquivo segue o formato largo, com cada coluna representando uma ação e cada linha representando um mês, conforme a Tabela 1.
 
-```{r estrutura dados}
+```{r estrutura_dados}
 knitr::kable(
   data.frame(
     Mês = c("1", "2", "$\\vdots$", "36"),
@@ -102,40 +104,35 @@ knitr::kable(
     `Ação 5` = c("Preço", "Preço", "$\\vdots$", "Preço"),
     check.names = FALSE
   ),
-  caption = "Estrutura dos dados de preços de fechamento mensais",
+  caption = "Estrutura original dos dados de preços de fechamento mensais (formato largo)",
   align = "c",
   booktabs = TRUE,
   escape = FALSE
 )
 ```
 
-```{r configuracao_fontes}
+\qquad Para viabilizar a análise conjunta, foi aplicado um processo de pivoteamento que transformou o formato largo em formato longo, agrupando todas as observações em uma única variável de preço e associando cada valor à respectiva ação.
 
+```{r configuracao_fontes}
 # 1. Configuração do arquivo e das colunas
 config_acoes <- list(
-  caminho       = "DadosAcoesGrupoB.csv", # caminho dO arquivo
+  caminho       = "DadosAcoesGrupoB.csv", # caminho do arquivo
   separador     = ",",
   nomes_colunas = c("Acao_1", "Acao_2", "Acao_3", "Acao_4", "Acao_5")
 )
-
 ```
 
 ```{r carregar_dados}
 # 2. Carregamento e padronização dos dados
 carregar_dados_acoes <- function(config) {
-  # Lê os dados assumindo que não há cabeçalho no CSV original
   bruto <- read.csv(config$caminho,
                     sep = config$separador,
                     header = FALSE, 
                     stringsAsFactors = FALSE)
   
-  # Aplica os nomes padronizados às colunas
   colnames(bruto) <- config$nomes_colunas
-  
-  # Cria o identificador do mês: 1 (mais recente) a 36 (mais distante)
   bruto$Mes <- seq_len(nrow(bruto))
   
-  # Pivoteamento: transforma as 5 colunas em apenas duas (Acao e Preco_Fechamento)
   bruto_longo <- bruto %>%
     pivot_longer(
       cols = starts_with("Acao"),
@@ -149,16 +146,14 @@ carregar_dados_acoes <- function(config) {
 dados_brutos <- carregar_dados_acoes(config_acoes)
 ```
 
-\qquad O arquivo original contém as ações dispostas em colunas separadas e, por isso, foi aplicado um processo de pivoteamento para agrupar todas as observações na mesma variável de preço, facilitando as análises.
-
-Após essa etapa prosseguiu-se com o cálculo do retorno mensal de cada ação por meio da Equação \ref{eq:retorno}:
+\qquad Após essa etapa, prosseguiu-se com o cálculo do retorno mensal de cada ação por meio da Equação \ref{eq:retorno}:
 
 \begin{equation}
 Retorno = \frac{Preco_{Atual} - Preco_{Anterior}}{Preco_{Anterior}}
 \label{eq:retorno}
 \end{equation}
 
-sendo o retorno a variação percentual frente ao preço do mês anterior. O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada Retorno_Mensal, adicionada ao conjunto de dados, conforme o código a seguir.
+sendo o retorno a variação relativa do preço frente ao mês anterior, expressa em escala decimal (proporção). Para obter o valor em porcentagem, o resultado é multiplicado por 100. O valor resultante desse cálculo foi armazenado em uma nova coluna, nomeada Retorno\_Mensal, adicionada ao conjunto de dados, conforme o código a seguir.
 
 \vspace{0.5cm}
 
@@ -166,33 +161,62 @@ sendo o retorno a variação percentual frente ao preço do mês anterior. O val
 # 3. Cálculo do Retorno Mensal
 calcular_retorno <- function(dados) {
   dados %>%
-    # Ordena cronologicamente: do mais antigo (36) para o mais recente (1)
     arrange(Acao, desc(Mes)) %>%
     group_by(Acao) %>%
     mutate(
-      # O lag() captura o fechamento do mês anterior cronológico
       Preco_Anterior = lag(Preco_Fechamento),
-      
-      # Retorno mensal conforme a variação entre o mês anterior e o atual
       Retorno_Mensal = (Preco_Fechamento - Preco_Anterior) / Preco_Anterior
     ) %>%
     ungroup() %>%
-    # O mês 36 ficará com NA, pois não há dados do mês 37 para calcular seu retorno.
-    # Removemos esse mês isolado para ter 35 retornos limpos por ação.
     filter(!is.na(Retorno_Mensal)) %>%
-    # Retorna a ordenação para visualização: Ação e Mês (1 ao 35)
     arrange(Acao, Mes)
 }
 
 dados_acoes <- calcular_retorno(dados_brutos)
 ```
 
-\qquad Antes da aplicação do testes ANOVA, os dados foram verificados quanto à presença de valores ausentes e identificadores duplicados. Não foram aplicados filtros por faixa de variação de preço, a fim de evitar a exclusão de flutuações financeiras potencialmente legítimas. A base original continha 36 observações por ação, mas o cálculo de retorno absorveu o primeiro mês cronológico. Não foram identificados valores ausentes ou duplicidades nas 35 observações de retorno de cada ação; portanto, nenhuma observação foi excluída.
+\qquad Antes da aplicação do teste ANOVA, os dados foram verificados quanto à integridade da base original e à presença de valores ausentes. A verificação foi realizada sobre a base bruta, antes do cálculo de retorno, confirmando que todos os preços são numéricos, finitos e positivos, sem valores ausentes ou linhas duplicadas. A base original continha 36 observações por ação, das quais o cálculo de retorno absorveu o primeiro mês cronológico de cada ação, resultando em 35 retornos por ativo. Não foram realizadas exclusões adicionais à remoção dos retornos estruturalmente indisponíveis no primeiro mês cronológico de cada ação.
 
 \vspace{0.5cm}
 
+```{r validar_base_bruta}
+# 4a. Validação da base bruta (antes do cálculo de retorno)
+base_bruta <- read.csv(config_acoes$caminho,
+                       sep = config_acoes$separador,
+                       header = FALSE,
+                       stringsAsFactors = FALSE)
+colnames(base_bruta) <- config_acoes$nomes_colunas
+
+validacao <- data.frame(
+  Verificação = c(
+    "Dimensões (linhas × colunas)",
+    "Todos os valores numéricos",
+    "Todos os valores finitos",
+    "Todos os valores positivos",
+    "Valores ausentes (NA)",
+    "Linhas duplicadas"
+  ),
+  Resultado = c(
+    paste(nrow(base_bruta), "×", ncol(base_bruta)),
+    ifelse(all(sapply(base_bruta, is.numeric)), "Sim", "Não"),
+    ifelse(all(sapply(base_bruta, function(x) all(is.finite(x)))), "Sim", "Não"),
+    ifelse(all(base_bruta > 0), "Sim", "Não"),
+    as.character(sum(is.na(base_bruta))),
+    as.character(sum(duplicated(base_bruta)))
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(
+  validacao,
+  caption = "Validação da integridade da base de dados bruta",
+  align = c("l", "c"),
+  booktabs = TRUE
+)
+```
+
 ```{r checar_qualidade}
-# 4. Verificação da qualidade dos dados
+# 4b. Verificação da qualidade dos dados após cálculo de retorno
 checar_qualidade_acoes <- function(dados) {
   dados %>%
     group_by(Acao) %>%
@@ -212,53 +236,119 @@ checar_qualidade_acoes(dados_acoes) %>%
     `Valores Ausentes (Retorno)` = n_ausentes_retorno
   ) %>%
   knitr::kable(
-    caption = "Verificação da qualidade dos dados por ação",
+    caption = "Verificação da qualidade dos dados por ação após cálculo de retorno",
     align = "c"
   )
 ```
 
-\qquad Após finalizadas as etapas de tratamento, validação e organização dos dados foi iniciada a etapa seguinte, que consiste na modelagem do experimento, delimitando o escopo, assim como seu objetivo e outros pormenores que serão discorridos na próxima seção.
+\qquad Após finalizadas as etapas de tratamento, validação e organização dos dados, foi iniciada a etapa seguinte, que consiste na modelagem do experimento, delimitando o escopo, assim como seu objetivo e outros pormenores que serão discorridos na próxima seção.
 
 ## Desenho do Experimento
 
-\qquad Para a análise comparativa, avaliou-se a média do retorno mensal entre as cinco ações por meio do teste ANOVA.
+\qquad O problema consiste em determinar qual dentre cinco ações candidatas tem maior potencial de retorno mensal para um investidor. Para responder a essa pergunta, foi adotado um delineamento completamente aleatorizado, cujos elementos formais são descritos a seguir:
+
+\begin{itemize}
+  \item \textbf{Variável resposta:} retorno mensal, calculado conforme a Equação \ref{eq:retorno}, expresso em escala decimal.
+  \item \textbf{Fator:} ação (fator fixo com 5 níveis: Ações 1 a 5).
+  \item \textbf{Número de repetições:} 35 retornos mensais por ação, obtidos a partir de 36 preços de fechamento.
+  \item \textbf{Nível de significância:} $\alpha = 0{,}05$.
+\end{itemize}
+
+\qquad A sequência de testes planejada foi a seguinte: (i) verificação das premissas de independência, homocedasticidade e normalidade dos resíduos; (ii) teste global de diferença entre as médias por meio da ANOVA de uma via; e (iii) caso a hipótese nula seja rejeitada, comparações múltiplas pelo teste de Tukey (HSD) para identificar quais pares de ações apresentam diferenças significativas.
+
+\qquad As hipóteses do teste global foram formuladas como:
 
 $$H_0: \mu_1 = \mu_2 = \mu_3 = \mu_4 = \mu_5 \qquad H_1:\ \exists\, i,j \in \{1,2,3,4,5\},\quad i \neq j:\ \mu_i \neq \mu_j.$$
 
 Em que:
 
-*   **$H_0$ (Hipótese Nula):** Assume que não há diferença no retorno médio mensal entre as cinco ações. Matematicamente, as médias de todos os ativos são estritamente iguais.
-*   **$H_1$ (Hipótese Alternativa):** Assume que existe uma diferença estatisticamente significativa entre ao menos duas médias populacionais de retorno mensal.
-*   **$\mu_i$:** Média populacional do retorno mensal referente à ação $i$ ($i = 1 \dots 5$).
+*   **$H_0$ (Hipótese Nula):** as médias populacionais do retorno mensal das cinco ações são iguais.
+*   **$H_1$ (Hipótese Alternativa):** ao menos duas médias populacionais de retorno mensal diferem entre si.
+*   **$\mu_i$:** média populacional do retorno mensal referente à ação $i$ ($i = 1 \dots 5$).
 
 \vspace{0.5cm}
 
-E, caso o teste ANOVA rejeite a hipótese nula, testes de comparações múltiplas *post-hoc* (como o de Tukey) poderão isolar os pares de ações que de fato divergem estatisticamente:
+Caso a ANOVA rejeite a hipótese nula, o teste de Tukey isola os pares de ações que divergem estatisticamente:
 
 $$\begin{cases} H_0: \mu_A - \mu_B = 0 \\ H_1: \mu_A - \mu_B \neq 0 \end{cases}$$
 
-onde as médias de cada par $(A, B)$ são contrastadas. A diferença obtida é comparada a uma margem de significância ajustada para o número de ações, permitindo identificar assim a candidata com potencial de gerar o maior ganho com robustez estatística.
+onde as médias de cada par $(A, B)$ são contrastadas. A diferença obtida é avaliada com controle da taxa de erro tipo I familiar, ajustada para o número de comparações, permitindo identificar a candidata com potencial de gerar o maior ganho com robustez estatística.
 
-## Análise Estatística
+## Análise Exploratória
 
-### Verificação de Premissas
+\qquad Antes da verificação formal das premissas e da aplicação dos testes de hipóteses, foi realizada uma análise exploratória dos retornos mensais das cinco ações. A Tabela \ref{tab:descritiva_5} apresenta as medidas descritivas, e a Figura \ref{fig:exploratorios} compara as distribuições por meio de histogramas e boxplots.
 
-\qquad Antes de avançar para os testes de diferença entre as médias de retorno das ações, é necessário avaliar as premissas fundamentais da Análise de Variância (ANOVA).
+```{r descritiva_5_acoes}
+# Tabela descritiva das 5 ações
+desc_5 <- dados_acoes %>%
+  group_by(Acao) %>%
+  summarise(
+    n = n(),
+    `Média (%)` = sprintf("%.3f", mean(Retorno_Mensal) * 100),
+    `DP (p.p.)` = sprintf("%.3f", sd(Retorno_Mensal) * 100),
+    `Mediana (%)` = sprintf("%.3f", median(Retorno_Mensal) * 100),
+    `Mínimo (%)` = sprintf("%.3f", min(Retorno_Mensal) * 100),
+    `Máximo (%)` = sprintf("%.3f", max(Retorno_Mensal) * 100),
+    .groups = "drop"
+  ) %>%
+  dplyr::rename(`Ação` = Acao)
+
+knitr::kable(
+  desc_5,
+  caption = "\\label{tab:descritiva_5}Medidas descritivas dos retornos mensais das cinco ações",
+  align = c("l", "c", "c", "c", "c", "c", "c"),
+  booktabs = TRUE
+)
+```
+
+```{r graficos_exploratorios, fig.width=12, fig.height=8, fig.cap="\\label{fig:exploratorios}Comparação das distribuições dos retornos mensais: Histograma e Boxplot com Jitter", message=FALSE, warning=FALSE}
+# Histograma
+g1 <- ggplot(dados_acoes, aes(x = Retorno_Mensal, fill = Acao)) +
+  geom_histogram(bins = 10, color = "black", alpha = 0.8) +
+  facet_wrap(~ Acao, ncol = 5) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(x = "Retorno Mensal", y = "Frequência", title = "Histograma") +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+# Boxplot com Jitter
+g2 <- ggplot(dados_acoes, aes(x = Acao, y = Retorno_Mensal, fill = Acao)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(width = 0.15, size = 1.5, alpha = 0.7, color = "black") +
+  facet_wrap(~ Acao, ncol = 5, scales = "free_x") +
+  scale_fill_brewer(palette = "Set1") +
+  labs(x = "Ação", y = "Retorno Mensal", title = "Boxplot com Jitter") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+g1 / g2
+```
+
+\qquad A análise exploratória indica que as Ações 4 e 5 possuem retornos médios visivelmente superiores às demais, com distribuições deslocadas para valores positivos. As Ações 1 e 3 apresentam retornos médios próximos de zero, enquanto a Ação 2 apresenta média levemente positiva. As dispersões aparentam ser semelhantes entre os grupos. Essas observações preliminares serão avaliadas formalmente nas seções seguintes.
+
+## Verificação de Premissas
+
+\qquad Antes de avançar para os testes de diferença entre as médias de retorno das ações, é necessário avaliar as premissas fundamentais da ANOVA.
 
 **1. Independência:**
  A premissa de independência estabelece que as observações coletadas não devem influenciar umas às outras. Neste estudo, como as cinco ações pertencem a empresas distintas e operam independentemente, justifica-se teoricamente que as amostras entre os grupos não possuem dependência mútua. Dessa forma, consideramos essa premissa atendida sob o ponto de vista do desenho do experimento.
 
 **2. Homocedasticidade (Igualdade de Variâncias):**
- A premissa de homocedasticidade exige que a variância dos retornos seja homogênea entre todas as ações. Para avaliar essa premissa, utilizamos o teste de Fligner-Killeen, que é não-paramétrico e muito robusto a desvios de normalidade.
+ A premissa de homocedasticidade exige que a variância dos retornos seja homogênea entre todas as ações. Para avaliar essa premissa, foi utilizado o teste de Fligner-Killeen, que é não paramétrico e robusto a desvios de normalidade. Complementarmente, foi produzido o gráfico de resíduos pelos valores ajustados.
 
 ```{r verificar_homocedasticidade}
+# Modelo ANOVA (utilizado nas verificações seguintes)
+modelo_anova <- aov(Retorno_Mensal ~ Acao, data = dados_acoes)
+
 # Teste de Fligner-Killeen
 teste_fligner <- fligner.test(
   Retorno_Mensal ~ Acao,
   data = dados_acoes
 )
 
-# Organiza os resultados
 tabela_fligner <- data.frame(
   `Estatística qui-quadrado` = unname(teste_fligner$statistic),
   `Graus de liberdade` = unname(teste_fligner$parameter),
@@ -266,7 +356,6 @@ tabela_fligner <- data.frame(
   check.names = FALSE
 )
 
-# Apresenta a tabela
 knitr::kable(
   tabela_fligner,
   caption = "Teste de Fligner-Killeen para homogeneidade das variâncias",
@@ -277,26 +366,34 @@ knitr::kable(
   row.names = FALSE
 )
 ```
-\qquad O teste de Fligner-Killeen apresentou estatística qui-quadrado de 2,7619, com 4 graus de liberdade e p-valor igual a 0,5984. Considerando um nível de significância de 5%, como o p-valor é superior a 0,05, não se rejeita a hipótese nula de homogeneidade das variâncias.
 
-\qquad Dessa forma, não foram detectadas evidências de heterogeneidade das variâncias ao nível de 5%, resultado compatível com a manutenção da hipótese de homocedasticidade na análise.
+```{r grafico_residuos_ajustados, fig.width=8, fig.height=4, fig.cap="Resíduos pelos valores ajustados do modelo ANOVA"}
+# Gráfico de resíduos vs. valores ajustados
+dados_diag <- data.frame(
+  Ajustados = fitted(modelo_anova),
+  Residuos  = residuals(modelo_anova),
+  Acao      = dados_acoes$Acao
+)
 
+ggplot(dados_diag, aes(x = Ajustados, y = Residuos, color = Acao)) +
+  geom_point(alpha = 0.7, size = 2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Valores Ajustados", y = "Resíduos", color = "Ação") +
+  theme_minimal()
+```
+
+\qquad O teste de Fligner-Killeen apresentou estatística qui-quadrado de 2,7619, com 4 graus de liberdade e p-valor igual a 0,5984. Considerando um nível de significância de 5%, não se rejeita a hipótese nula de homogeneidade das variâncias. Dessa forma, não foram detectadas evidências de heterogeneidade das variâncias ao nível de 5%. O gráfico de resíduos pelos valores ajustados confirma visualmente a ausência de padrões sistemáticos na dispersão dos resíduos entre os grupos.
 
 **3. Normalidade dos resíduos:** 
- A premissa de normalidade estabelece que os resíduos do modelo de análise de variância devem apresentar distribuição aproximadamente normal. Essa condição é importante para a validade das inferências realizadas por meio do teste ANOVA. Para avaliá-la, foi aplicado o teste de Shapiro-Wilk aos resíduos do modelo ajustado, complementado pela análise gráfica do histograma e do gráfico Q-Q.
+ A premissa de normalidade estabelece que os resíduos do modelo de análise de variância devem apresentar distribuição aproximadamente normal. Para avaliá-la, foi aplicado o teste de Shapiro-Wilk aos resíduos do modelo ajustado, complementado pela análise gráfica do histograma e do gráfico Q-Q.
 
-\qquad No teste de Shapiro-Wilk, a hipótese nula estabelece que os resíduos seguem uma distribuição normal, enquanto a hipótese alternativa indica que os resíduos não seguem essa distribuição. Considerando um nível de significância de 5%, valores de p superiores a 0,05 indicam que não há evidências estatisticamente significativas para rejeitar a hipótese de normalidade.
-
-\qquad A análise gráfica também foi utilizada como complemento ao teste estatístico, uma vez que pequenas diferenças em relação à normalidade podem ser detectadas visualmente por meio do histograma e do gráfico Q-Q. Neste último, espera-se que os pontos se distribuam aproximadamente sobre a linha de referência quando os resíduos apresentam comportamento compatível com uma distribuição normal.
 ```{r verificar_normalidade}
-# Modelo ANOVA
-modelo_anova <- aov(Retorno_Mensal ~ Acao, data = dados_acoes)
-
-# Calcula os resíduos do modelo ANOVA
+# Resíduos do modelo ANOVA
 dados_residuos <- dados_acoes %>%
   mutate(Residuos = residuals(modelo_anova))
 
-# Teste de Shapiro-Wilk para cada ação
+# Teste de Shapiro-Wilk por ação
 teste_shapiro <- dados_residuos %>%
   group_by(Acao) %>%
   summarise(
@@ -305,11 +402,8 @@ teste_shapiro <- dados_residuos %>%
     .groups = "drop"
   )
 
-# Tabela dos resultados
 teste_shapiro %>%
-  dplyr::rename(
-    `Ação` = Acao
-  ) %>%
+  dplyr::rename(`Ação` = Acao) %>%
   knitr::kable(
     caption = "Teste de normalidade de Shapiro-Wilk dos resíduos por ação",
     digits = 5,
@@ -318,85 +412,55 @@ teste_shapiro %>%
   )
 ```
 
-```{r analise_grafica}
+```{r analise_grafica, fig.width=12, fig.height=8, fig.cap="Diagnóstico de normalidade dos resíduos: Histograma e Q-Q Plot"}
 # Histograma dos resíduos
-g_hist_residuos <- ggplot(
-  dados_residuos,
-  aes(x = Residuos, fill = Acao)
-) +
-  geom_histogram(
-    bins = 10,
-    color = "black",
-    alpha = 0.8
-  ) +
+g_hist_residuos <- ggplot(dados_residuos, aes(x = Residuos, fill = Acao)) +
+  geom_histogram(bins = 10, color = "black", alpha = 0.8) +
   facet_wrap(~Acao, ncol = 5) +
   scale_fill_brewer(palette = "Set1") +
-  labs(
-    x = "Resíduos",
-    y = "Frequência",
-    title = "Histograma dos Resíduos"
-  ) +
+  labs(x = "Resíduos", y = "Frequência", title = "Histograma dos Resíduos") +
   theme_minimal() +
-  theme(
-    legend.position = "none",
-    plot.title = element_text(hjust = 0.5)
-  )
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
 # Q-Q plot dos resíduos
-g_qq_residuos <- ggplot(
-  dados_residuos,
-  aes(sample = Residuos)
-) +
+g_qq_residuos <- ggplot(dados_residuos, aes(sample = Residuos)) +
   stat_qq() +
   stat_qq_line() +
   facet_wrap(~Acao, ncol = 5) +
-  labs(
-    x = "Quantis Teóricos",
-    y = "Quantis Amostrais",
-    title = "Q-Q Plot dos Resíduos"
-  ) +
+  labs(x = "Quantis Teóricos", y = "Quantis Amostrais", title = "Q-Q Plot dos Resíduos") +
   theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5)
-  )
+  theme(plot.title = element_text(hjust = 0.5))
 
-# Plota os gráficos
 g_hist_residuos / g_qq_residuos
 ```
 
-\qquad Embora o teste de Shapiro-Wilk tenha identificado evidência estatisticamente significativa de não normalidade para os resíduos da Ação 1 (W = 0,90050; p = 0,00408), a rejeição dessa hipótese não implica, isoladamente, a inadequação da análise de variância. A literatura metodológica demonstra que a estatística F da ANOVA apresenta considerável robustez a desvios da normalidade, sobretudo em delineamentos balanceados. Estudos de simulação, como o de \hyperlink{ref_schmider2010}{Schmider et al. (2010)}, demonstraram que a ANOVA de uma via pode manter adequadamente suas taxas de erro tipo I e tipo II mesmo quando os dados são provenientes de distribuições substancialmente distintas da distribuição normal.
+\qquad Embora o teste de Shapiro-Wilk tenha identificado evidência de não normalidade para os resíduos da Ação 1 (W = 0,90050; p = 0,00408), a rejeição dessa hipótese não implica, isoladamente, a inadequação da análise de variância. A literatura metodológica demonstra que a estatística F da ANOVA apresenta considerável robustez a desvios da normalidade, sobretudo em delineamentos balanceados. Estudos de simulação, como o de \hyperlink{ref_schmider2010}{Schmider et al. (2010)}, demonstraram que a ANOVA de uma via pode manter adequadamente suas taxas de erro tipo I e tipo II mesmo quando os dados são provenientes de distribuições substancialmente distintas da normal.
 
-\qquad Para as demais ações, os testes de Shapiro-Wilk não apresentaram evidências estatisticamente significativas de violação da normalidade dos resíduos. Os p-valores obtidos para as Ações 2, 3, 4 e 5 foram, respectivamente, 0,88743, 0,09535, 0,55919 e 0,56439, todos superiores ao nível de significância de 5%. Assim, a evidência de não normalidade identificada na análise formal está restrita à Ação 1.
+\qquad Para as demais ações, os testes de Shapiro-Wilk não apresentaram evidências de violação da normalidade dos resíduos. Os p-valores obtidos para as Ações 2, 3, 4 e 5 foram, respectivamente, 0,88743, 0,09535, 0,55919 e 0,56439, todos superiores ao nível de significância de 5%. Assim, a evidência de não normalidade identificada está restrita à Ação 1.
 
-\qquad No presente estudo, os cinco grupos possuem o mesmo tamanho amostral (n = 35), caracterizando um delineamento balanceado, e o teste de Fligner-Killeen não forneceu evidências de heterogeneidade das variâncias (p = 0,5984). Além disso, a inspeção dos histogramas e gráficos Q-Q indica que o desvio observado na Ação 1 está predominantemente concentrado na cauda superior da distribuição, enquanto a região central dos resíduos apresenta aderência razoável à reta de referência. Não se observa, portanto, uma deformação generalizada da distribuição dos resíduos nos cinco grupos.
+\qquad No presente estudo, os cinco grupos possuem o mesmo tamanho amostral (n = 35), caracterizando um delineamento balanceado, e o teste de Fligner-Killeen não forneceu evidências de heterogeneidade das variâncias (p = 0,5984). A inspeção dos histogramas e gráficos Q-Q indica que o desvio observado na Ação 1 está predominantemente concentrado na cauda superior da distribuição, enquanto a região central dos resíduos apresenta aderência razoável à reta de referência.
 
-\qquad Dessa forma, a não normalidade identificada para a Ação 1 é tratada como uma violação localizada da premissa, e não como uma condição suficiente para invalidar a análise paramétrica. Considerando conjuntamente o delineamento balanceado, a homogeneidade das variâncias, a ausência de evidência de não normalidade nas demais ações e a evidência empírica disponível acerca da robustez da estatística F frente a desvios da normalidade, considera-se metodologicamente justificável a aplicação da ANOVA clássica. A violação observada será, contudo, mantida explícita na discussão dos resultados e considerada na avaliação da robustez das conclusões obtidas.
+\qquad Dessa forma, a não normalidade identificada para a Ação 1 é tratada como uma violação localizada da premissa, e não como uma condição suficiente para invalidar a análise paramétrica. Considerando conjuntamente o delineamento balanceado, a ausência de evidência de heterogeneidade das variâncias, a ausência de evidência de não normalidade nas demais ações e a evidência empírica acerca da robustez da estatística F frente a desvios da normalidade, considera-se metodologicamente justificável a aplicação da ANOVA clássica. A violação observada será mantida explícita na discussão dos resultados.
 
 
-### Teste de Diferença de Médias
+## Teste de Diferença de Médias
 
-\qquad Após a verificação das premissas, foi realizada uma análise de variância
-(ANOVA) de uma via, tendo como variável resposta o retorno mensal e como
-fator a ação.
-
-\qquad As hipóteses testadas foram:
+\qquad Após a verificação das premissas, foi realizada uma análise de variância (ANOVA) de uma via, tendo como variável resposta o retorno mensal e como fator a ação. As hipóteses testadas foram:
 
 \[
 H_0:\mu_1=\mu_2=\mu_3=\mu_4=\mu_5
 \]
 
 \[
-H_1:\text{pelo menos uma das médias difere das demais}.
+H_1:\text{ao menos duas das médias populacionais diferem entre si}.
 \]
 
 \qquad O nível de significância adotado foi de 5%.
 
 ```{r teste_anova}
-  # Teste ANOVA de uma via (modelo_anova foi criado anteriormente em 
-  #{r verificar_normalidade})
+# Tabela ANOVA
 resultado_anova <- summary(modelo_anova)[[1]]
-  
-  # Organiza a tabela para apresentação
+
 tabela_anova <- data.frame(
   `Fonte de variação` = c("Ação", "Resíduos"),
   `Graus de liberdade` = resultado_anova[, "Df"],
@@ -410,7 +474,9 @@ tabela_anova <- data.frame(
   check.names = FALSE
 )
 
-# Apresentação da tabela
+# Substituir NA por traço para apresentação
+tabela_anova[is.na(tabela_anova)] <- "---"
+
 knitr::kable(
   tabela_anova,
   caption = "Análise de variância do retorno mensal das ações",
@@ -420,113 +486,62 @@ knitr::kable(
 )
 ``` 
 
-\qquad A análise de variância resultou em uma estatística \(F = 23,808\), com 4 graus de liberdade no numerador e 170 graus de liberdade no denominador. O p-valor associado ao teste foi inferior a \(0,001\), fornecendo evidência estatisticamente significativa contra a hipótese nula de igualdade das médias dos retornos mensais entre as cinco ações.
+\qquad A análise de variância resultou em uma estatística \(F = 23{,}809\), com 4 graus de liberdade no numerador e 170 graus de liberdade no denominador. O p-valor associado ao teste foi inferior a \(0{,}001\), fornecendo evidência contra a hipótese nula de igualdade das médias dos retornos mensais entre as cinco ações. Dessa forma, ao nível de significância de 5%, rejeitou-se \(H_0\), concluindo-se que existem diferenças entre os retornos médios mensais das ações analisadas. A ANOVA não permite determinar, isoladamente, quais ações apresentam diferenças entre suas médias, pois o teste avalia apenas a hipótese global de igualdade dos cinco grupos.
 
-\qquad Dessa forma, ao nível de significância de 5%, rejeita-se \(H_0\), concluindo-se que existem diferenças estatisticamente significativas entre os retornos médios mensais das ações analisadas. Entretanto, a ANOVA não permite determinar, isoladamente, quais ações apresentam diferenças entre suas médias, pois o teste avalia apenas a hipótese global de igualdade dos cinco grupos.
+## Comparações Múltiplas pelo Teste de Tukey
 
-### Comparações Múltiplas pelo Teste de Tukey
+\qquad Diante da rejeição da hipótese global de igualdade das médias pela ANOVA, foi aplicado o teste de comparações múltiplas de Tukey (*Honestly Significant Difference*, HSD), com nível de significância de 5%, para identificar quais pares de ações apresentam diferenças nos retornos médios mensais. Foram avaliadas as dez comparações possíveis entre as cinco ações, com controle da taxa de erro tipo I familiar, isto é, a probabilidade de rejeitar indevidamente pelo menos uma hipótese nula no conjunto de comparações, sob as premissas do modelo.
 
-\qquad Diante da rejeição da hipótese global de igualdade das médias pela ANOVA, será aplicado o teste de comparações múltiplas de Tukey (*Honestly Significant Difference*, HSD), com nível de significância de 5%, para identificar quais pares de ações apresentam diferenças nos retornos médios mensais. Serão avaliadas as dez comparações possíveis entre as cinco ações, controlando a taxa de erro tipo I familiar, isto é, a probabilidade de rejeitar indevidamente pelo menos uma hipótese nula no conjunto de comparações, sob as premissas do modelo.
-
-\qquad Para cada par, serão apresentados a diferença estimada entre as médias, o intervalo de confiança simultâneo de 95% e o p-valor ajustado. A diferença será calculada como a média da primeira ação indicada na comparação menos a média da segunda; portanto, valores positivos indicarão maior retorno médio da primeira ação. Serão consideradas estatisticamente significativas as comparações com p-valor ajustado inferior a 0,05, correspondentes a intervalos de confiança que não incluem zero.
+\qquad Para cada par, são apresentados a diferença estimada entre as médias (em pontos percentuais), o intervalo de confiança simultâneo de 95% e o p-valor ajustado. A diferença foi calculada como a média da primeira ação indicada na comparação menos a média da segunda; portanto, valores positivos indicam maior retorno médio da primeira ação. Foram consideradas significativas as comparações com p-valor ajustado inferior a 0,05, correspondentes a intervalos de confiança que não incluem zero.
 
 ```{r teste_tukey}
-# Teste de Tukey para comparações múltiplas
+# Teste de Tukey
 resultado_tukey <- TukeyHSD(modelo_anova)
 
-# Organiza os resultados do teste de Tukey
 tabela_tukey <- as.data.frame(resultado_tukey$Acao)
-
-# Adiciona as comparações como uma coluna
 tabela_tukey$Comparacao <- rownames(tabela_tukey)
 rownames(tabela_tukey) <- NULL
 
-# Formata os nomes das comparações
-tabela_tukey$Comparacao <- gsub(
-  "Acao_",
-  "Ação ",
-  tabela_tukey$Comparacao
-)
+tabela_tukey$Comparacao <- gsub("Acao_", "Ação ", tabela_tukey$Comparacao)
+tabela_tukey$Comparacao <- gsub("-", " - ", tabela_tukey$Comparacao)
 
-tabela_tukey$Comparacao <- gsub(
-  "-",
-  " - ",
-  tabela_tukey$Comparacao
-)
-
-# Formata os valores numéricos
+# Expressar diferenças e ICs em pontos percentuais
 tabela_tukey <- tabela_tukey %>%
   dplyr::transmute(
     `Comparação` = Comparacao,
-    `Diferença` = sprintf("%.5f", diff),
-    `Limite inferior` = sprintf("%.5f", lwr),
-    `Limite superior` = sprintf("%.5f", upr),
-    `p-valor ajustado` = format.pval(
-      `p adj`,
-      digits = 4,
-      eps = 1e-4
-    )
+    `Diferença (p.p.)` = sprintf("%.3f", diff * 100),
+    `Limite inferior (p.p.)` = sprintf("%.3f", lwr * 100),
+    `Limite superior (p.p.)` = sprintf("%.3f", upr * 100),
+    `p-valor ajustado` = format.pval(`p adj`, digits = 4, eps = 1e-4)
   )
 
-# Apresenta a tabela
 knitr::kable(
   tabela_tukey,
-  caption = "Comparações múltiplas entre os retornos médios pelo teste de Tukey",
+  caption = "Comparações múltiplas entre os retornos médios pelo teste de Tukey (valores em pontos percentuais)",
   align = "c",
   booktabs = TRUE
 )
 
-# Extrai os resultados do teste de Tukey
+# Gráfico dos intervalos de confiança (em p.p.)
 dados_tukey <- as.data.frame(resultado_tukey$Acao)
-
-# Adiciona os nomes das comparações
 dados_tukey$Comparacao <- rownames(dados_tukey)
-
-# Organiza a ordem das comparações no gráfico
 dados_tukey$Comparacao <- factor(
   dados_tukey$Comparacao,
   levels = rev(rownames(dados_tukey))
 )
+dados_tukey$Comparacao <- gsub("Acao_", "Ação ", dados_tukey$Comparacao)
+dados_tukey$Comparacao <- gsub("-", " - ", dados_tukey$Comparacao)
+```
 
-#Substitui nomes para facilitar a compreenção
-dados_tukey$Comparacao <- gsub(
-  "Acao_",
-  "Ação ",
-  dados_tukey$Comparacao
-)
-
-dados_tukey$Comparacao <- gsub(
-  "-",
-  " - ",
-  dados_tukey$Comparacao
-)
-
-# Gráfico dos intervalos de confiança
-g_tukey <- ggplot(
-  dados_tukey,
-  aes(
-    x = Comparacao,
-    y = diff
-  )
-) +
-  geom_hline(
-    yintercept = 0,
-    linetype = "dashed"
-  ) +
-  geom_errorbar(
-    aes(
-      ymin = lwr,
-      ymax = upr
-    ),
-    width = 0.15
-  ) +
-  geom_point(
-    size = 2
-  ) +
+```{r grafico_tukey, fig.width=8, fig.height=5, fig.cap="Comparações múltiplas pelo teste de Tukey: intervalos de confiança simultâneos de 95\\% (em pontos percentuais)"}
+g_tukey <- ggplot(dados_tukey, aes(x = Comparacao, y = diff * 100)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_errorbar(aes(ymin = lwr * 100, ymax = upr * 100), width = 0.15) +
+  geom_point(size = 2) +
   coord_flip() +
   labs(
     x = "Comparação entre ações",
-    y = "Diferença entre as médias",
+    y = "Diferença entre as médias (p.p.)",
     title = "Comparações múltiplas pelo teste de Tukey",
     subtitle = "Intervalos de confiança simultâneos de 95%"
   ) +
@@ -541,24 +556,138 @@ g_tukey <- ggplot(
 g_tukey
 ```
 
-\qquad O teste de Tukey identificou diferenças estatisticamente significativas em seis das dez comparações realizadas. A Ação 4 apresentou retorno médio mensal significativamente superior aos das Ações 1, 2 e 3, com diferenças estimadas de 0,01973, 0,01394 e 0,01852, respectivamente, e p-valores ajustados inferiores a 0,0001 em todas essas comparações. Como os retornos foram calculados em escala decimal, essas diferenças correspondem, respectivamente, a aproximadamente 1,973, 1,394 e 1,852 pontos percentuais de retorno mensal.
+\qquad O teste de Tukey identificou diferenças significativas em seis das dez comparações realizadas. A Ação 4 apresentou retorno médio mensal significativamente superior aos das Ações 1, 2 e 3, com diferenças estimadas de 1,973, 1,394 e 1,852 pontos percentuais, respectivamente, e p-valores ajustados inferiores a 0,0001 em todas essas comparações.
 
-\qquad A Ação 5 também apresentou retorno médio mensal significativamente superior aos das Ações 1, 2 e 3. As diferenças estimadas foram, respectivamente, de 0,01332, 0,00753 e 0,01211, equivalentes a aproximadamente 1,332, 0,753 e 1,211 pontos percentuais. Os p-valores ajustados foram inferiores a 0,0001 nas comparações com as Ações 1 e 3 e iguais a 0,01907 na comparação com a Ação 2. Em todas as comparações significativas envolvendo as Ações 4 e 5 frente às três primeiras ações, os intervalos de confiança simultâneos permaneceram inteiramente acima de zero, sustentando a direção das diferenças estimadas.
+\qquad A Ação 5 também apresentou retorno médio mensal significativamente superior aos das Ações 1, 2 e 3. As diferenças estimadas foram de 1,332, 0,753 e 1,211 pontos percentuais, respectivamente. Os p-valores ajustados foram inferiores a 0,0001 nas comparações com as Ações 1 e 3 e igual a 0,01907 na comparação com a Ação 2. Em todas as comparações significativas envolvendo as Ações 4 e 5, os intervalos de confiança simultâneos permaneceram inteiramente acima de zero.
 
-\qquad Não foram identificadas diferenças estatisticamente significativas entre as Ações 1, 2 e 3. Os p-valores ajustados foram de 0,12470 para a comparação entre as Ações 2 e 1, de 0,98739 entre as Ações 3 e 1 e de 0,32921 entre as Ações 3 e 2. Esses resultados indicam ausência de evidência suficiente para distinguir seus retornos médios ao nível de significância adotado, sem estabelecer equivalência entre eles.
+\qquad Não foram identificadas diferenças significativas entre as Ações 1, 2 e 3. Os p-valores ajustados foram de 0,12470 para a comparação entre as Ações 2 e 1, de 0,98739 entre as Ações 3 e 1 e de 0,32921 entre as Ações 3 e 2.
 
-\qquad Na comparação entre as Ações 5 e 4, a diferença estimada foi de -0,00642, com intervalo de confiança simultâneo de 95% de [-0,01311; 0,00028] e p-valor ajustado de 0,06738. Assim, embora a Ação 4 tenha apresentado retorno médio amostral aproximadamente 0,642 ponto percentual superior ao da Ação 5, o intervalo inclui zero e a diferença não foi estatisticamente significativa ao nível de 5%. Portanto, os resultados não permitem afirmar superioridade do retorno médio populacional da Ação 4 em relação ao da Ação 5, tampouco demonstram equivalência entre ambas.
+\qquad Na comparação entre as Ações 5 e 4, a diferença estimada foi de -0,642 ponto percentual, com intervalo de confiança simultâneo de 95% de [-1,311; 0,028] pontos percentuais e p-valor ajustado de 0,06738. Assim, embora a Ação 4 tenha apresentado retorno médio amostral superior ao da Ação 5, o intervalo inclui zero e a diferença não foi significativa ao nível de 5%. Portanto, os resultados não permitem afirmar superioridade do retorno médio populacional da Ação 4 em relação ao da Ação 5, tampouco demonstram equivalência entre ambas.
 
-\qquad Em conjunto, as comparações múltiplas apontam as Ações 4 e 5 como as alternativas que se destacam quanto ao retorno médio mensal no período analisado, pois ambas superaram significativamente as Ações 1, 2 e 3. Entretanto, o teste de Tukey não fornece evidência suficiente para selecionar uma única ação entre essas duas com base apenas na diferença entre suas médias. Para subsidiar essa escolha, será necessário realisar uma análise descritiva das Ações 4 e 5. As inferências permanecem condicionadas à adequação das premissas do modelo, incluindo a ressalva sobre a não normalidade dos resíduos da Ação 1, e não constituem garantia de desempenho no mês seguinte.
+\qquad Em conjunto, as comparações múltiplas apontaram as Ações 4 e 5 como as alternativas que se destacam quanto ao retorno médio mensal no período analisado, pois ambas superaram significativamente as Ações 1, 2 e 3. Entretanto, o teste de Tukey não forneceu evidência suficiente para selecionar uma única ação entre essas duas com base apenas na diferença entre suas médias. Para subsidiar essa escolha, foi realizada uma análise descritiva das Ações 4 e 5, apresentada a seguir.
 
-### Análise Descritiva das Ações em Destaque
+## Análise de Potência
 
-\qquad As comparações múltiplas pelo teste de Tukey identificaram as Ações 4 e 5 como as alternativas com retornos médios significativamente superiores aos das demais ações, sem detectar diferença estatisticamente significativa entre elas ao nível de 5%. Para complementar esses resultados e subsidiar a escolha de uma única ação, será realizada uma análise descritiva dos retornos mensais dessas duas alternativas.
+\qquad Dado que a comparação entre as Ações 4 e 5 resultou em um p-valor próximo ao limiar de significância (p = 0,06738), é pertinente avaliar se o tamanho amostral disponível oferece potência suficiente para detectar diferenças da magnitude observada. A análise de potência abordou dois aspectos: a potência do teste global (ANOVA) e a capacidade de detectar a diferença específica entre as Ações 4 e 5.
 
-\qquad Serão apresentados o retorno médio mensal, o desvio-padrão dos retornos, a proporção de meses com retorno negativo e o menor retorno mensal observado. A média caracteriza o ganho médio no período analisado, enquanto o desvio-padrão expressa a dispersão dos retornos em torno dessa média. A proporção de meses negativos descreve a frequência observada de perdas, e o menor retorno mensal caracteriza o resultado mais desfavorável registrado na amostra. Essas medidas oferecem evidências complementares sobre retorno e risco, sem constituir, isoladamente, testes de diferenças populacionais ou previsões de desempenho futuro.
+```{r analise_potencia}
+# Variância residual do modelo ANOVA
+msw <- summary(modelo_anova)[[1]]["Residuals", "Mean Sq"]
+dp_resid <- sqrt(msw)
+
+# Tamanho de efeito observado (f de Cohen)
+medias_grupos <- dados_acoes %>%
+  group_by(Acao) %>%
+  summarise(media = mean(Retorno_Mensal), .groups = "drop")
+var_entre <- var(medias_grupos$media)
+f_cohen <- sqrt(var_entre / msw)
+
+# Potência da ANOVA para o efeito observado
+pwr_obs <- power.anova.test(
+  groups = 5,
+  n = 35,
+  between.var = var_entre,
+  within.var = msw,
+  sig.level = 0.05
+)
+
+# Tabela de sensibilidade
+f_vals <- c(0.10, 0.15, 0.20, 0.25, 0.40)
+tab_sens <- data.frame(
+  `f de Cohen` = f_vals,
+  check.names = FALSE
+)
+tab_sens$`Potência` <- sapply(f_vals, function(f_val) {
+  bv <- (f_val^2) * msw
+  pwr <- power.anova.test(groups = 5, n = 35, between.var = bv,
+                          within.var = msw, sig.level = 0.05)
+  sprintf("%.4f", pwr$power)
+})
+
+knitr::kable(
+  tab_sens,
+  caption = "Análise de sensibilidade: potência da ANOVA para diferentes tamanhos de efeito (n = 35, k = 5, $\\alpha$ = 0,05)",
+  align = "c",
+  booktabs = TRUE,
+  escape = FALSE
+)
+```
+
+\qquad O tamanho de efeito observado correspondeu a um f de Cohen de `r sprintf("%.2f", f_cohen)`, classificado como efeito grande segundo os critérios convencionais. Para esse efeito, a potência da ANOVA foi virtualmente igual a 1, indicando que o teste global possuía capacidade amplamente suficiente para detectar diferenças da magnitude observada entre as cinco ações. A Tabela de sensibilidade mostra que, mesmo para efeitos moderados (f = 0,25), a potência já superava 99% com o tamanho amostral disponível.
+
+```{r potencia_par_45}
+# Comparação par-a-par Ação 4 vs Ação 5
+media_4 <- mean(dados_acoes$Retorno_Mensal[dados_acoes$Acao == "Acao_4"])
+media_5 <- mean(dados_acoes$Retorno_Mensal[dados_acoes$Acao == "Acao_5"])
+diff_45 <- media_4 - media_5
+
+# Potência para essa diferença com n=35
+pwr_45 <- power.t.test(
+  n = 35,
+  delta = diff_45,
+  sd = dp_resid,
+  sig.level = 0.05,
+  type = "two.sample"
+)
+
+# n necessário para 80% de potência
+n_necessario <- power.t.test(
+  power = 0.80,
+  delta = diff_45,
+  sd = dp_resid,
+  sig.level = 0.05,
+  type = "two.sample"
+)
+
+# Menor diferença detectável com n=35
+delta_min <- power.t.test(
+  n = 35,
+  power = 0.80,
+  sd = dp_resid,
+  sig.level = 0.05,
+  type = "two.sample"
+)
+
+# Tabela resumo
+tab_pot_45 <- data.frame(
+  Indicador = c(
+    "Diferença observada (p.p.)",
+    "d de Cohen",
+    "Potência com n = 35 ($\\alpha$ = 0,05)",
+    "n necessário para 80\\% de potência",
+    "Menor diferença detectável com n = 35 e 80\\% de potência (p.p.)"
+  ),
+  Valor = c(
+    sprintf("%.3f", diff_45 * 100),
+    sprintf("%.2f", diff_45 / dp_resid),
+    sprintf("%.1f\\%%", pwr_45$power * 100),
+    as.character(ceiling(n_necessario$n)),
+    sprintf("%.2f", delta_min$delta * 100)
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(
+  tab_pot_45,
+  caption = "Análise de potência para a comparação entre as Ações 4 e 5",
+  align = c("l", "c"),
+  booktabs = TRUE,
+  escape = FALSE
+)
+```
+
+\qquad Na comparação específica entre as Ações 4 e 5, a diferença observada foi de `r sprintf("%.3f", diff_45 * 100)` ponto percentual, correspondendo a um d de Cohen de `r sprintf("%.2f", diff_45 / dp_resid)`, classificado como efeito médio. Com n = 35 observações por grupo e nível de significância de 5%, a potência estimada para detectar essa diferença foi de `r sprintf("%.1f", pwr_45$power * 100)`%, inferior ao limiar convencional de 80%. Para atingir 80% de potência nessa magnitude de efeito, seriam necessárias aproximadamente `r ceiling(n_necessario$n)` observações por grupo. A menor diferença detectável com 80% de potência e o tamanho amostral disponível (n = 35) foi de `r sprintf("%.2f", delta_min$delta * 100)` ponto percentual, superior à diferença observada de `r sprintf("%.3f", diff_45 * 100)` ponto percentual.
+
+\qquad Esses resultados indicam que o tamanho amostral foi suficiente para o teste global da ANOVA, mas insuficiente para distinguir com alta confiança as Ações 4 e 5. O resultado inconclusivo entre essas duas ações (p = 0,06738) é, portanto, compatível com a limitação de potência identificada, sem que se possa concluir que a diferença não existe na população.
+
+## Análise Descritiva das Ações em Destaque
+
+\qquad As comparações múltiplas pelo teste de Tukey identificaram as Ações 4 e 5 como as alternativas com retornos médios significativamente superiores aos das demais ações, sem detectar diferença significativa entre elas ao nível de 5%. Para complementar esses resultados e subsidiar a escolha de uma única ação, foi realizada uma análise descritiva dos retornos mensais dessas duas alternativas.
+
+\qquad São apresentados o retorno médio mensal, o desvio-padrão dos retornos, a proporção de meses com retorno negativo e o menor retorno mensal observado. A média caracteriza o ganho médio no período analisado, enquanto o desvio-padrão expressa a dispersão dos retornos em torno dessa média. A proporção de meses negativos descreve a frequência observada de perdas, e o menor retorno mensal caracteriza o resultado mais desfavorável registrado na amostra. Essas medidas oferecem evidências complementares sobre retorno e risco, sem constituir, isoladamente, testes de diferenças populacionais ou previsões de desempenho futuro.
 
 ```{r tabela_descritiva_acoes_destaque}
-# Seleciona as Ações 4 e 5 e calcula as medidas descritivas
+# Medidas descritivas das Ações 4 e 5
 resumo_acoes_destaque <- dados_acoes %>%
   dplyr::filter(Acao %in% c("Acao_4", "Acao_5")) %>%
   dplyr::group_by(Acao) %>%
@@ -572,17 +701,10 @@ resumo_acoes_destaque <- dados_acoes %>%
   ) %>%
   dplyr::arrange(Acao)
 
-# Formata os valores com vírgula decimal
 formatar_percentual <- function(x) {
-  formatC(
-    100 * x,
-    format = "f",
-    digits = 3,
-    decimal.mark = ","
-  )
+  formatC(100 * x, format = "f", digits = 3, decimal.mark = ",")
 }
 
-# Organiza a tabela com indicadores nas linhas e ações nas colunas
 tabela_descritiva_destaque <- data.frame(
   Indicador = c(
     "Número de retornos mensais",
@@ -595,11 +717,7 @@ tabela_descritiva_destaque <- data.frame(
 )
 
 for (i in seq_len(nrow(resumo_acoes_destaque))) {
-  nome_acao <- gsub(
-    "Acao_", "Ação ",
-    resumo_acoes_destaque$Acao[i]
-  )
-
+  nome_acao <- gsub("Acao_", "Ação ", resumo_acoes_destaque$Acao[i])
   tabela_descritiva_destaque[[nome_acao]] <- c(
     as.character(resumo_acoes_destaque$n[i]),
     formatar_percentual(resumo_acoes_destaque$media[i]),
@@ -620,31 +738,31 @@ knitr::kable(
 
 \qquad Na tabela, os retornos e a proporção de meses negativos são expressos em porcentagem, enquanto o desvio-padrão é expresso em pontos percentuais (p.p.). O menor retorno mensal corresponde ao mínimo observado no período e somente representa uma perda quando seu valor é negativo.
 
-\qquad A análise descritiva dos 35 retornos mensais de cada ação revela que a Ação 4 apresentou resultados mais favoráveis em todos os indicadores considerados. Seu retorno médio mensal foi de 1,703%, frente a 1,062% para a Ação 5. Além disso, o desvio-padrão dos retornos da Ação 4 foi menor, de 0,860 ponto percentual, comparado a 0,994 ponto percentual para a Ação 5, indicando menor dispersão dos retornos em torno da média no período observado.
+\qquad A análise descritiva dos 35 retornos mensais de cada ação revela que a Ação 4 apresentou resultados mais favoráveis em todos os indicadores considerados. Seu retorno médio mensal foi de 1,703%, frente a 1,062% para a Ação 5. O desvio-padrão dos retornos da Ação 4 foi menor, de 0,860 ponto percentual, comparado a 0,994 ponto percentual para a Ação 5, indicando menor dispersão dos retornos em torno da média no período observado.
 
-\qquad A Ação 4 também apresentou menor frequência de meses com retorno negativo: foram 2 dos 35 meses analisados (5,714%), enquanto a Ação 5 registrou perdas em 6 meses (17,143%). O menor retorno mensal observado foi de -0,338% para a Ação 4 e de -1,249% para a Ação 5. Portanto, além da menor frequência de perdas, a Ação 4 apresentou um resultado mensal mínimo menos desfavorável na amostra.
+\qquad A Ação 4 também apresentou menor frequência de meses com retorno negativo: 2 dos 35 meses analisados (5,714%), enquanto a Ação 5 registrou perdas em 6 meses (17,143%). O menor retorno mensal observado foi de -0,338% para a Ação 4 e de -1,249% para a Ação 5. Portanto, além da menor frequência de perdas, a Ação 4 apresentou um resultado mensal mínimo menos desfavorável na amostra.
 
-\qquad Em conjunto, esses indicadores fornecem evidências descritivas favoráveis à escolha da Ação 4: maior retorno médio, menor variabilidade, menor frequência de perdas e menor magnitude da pior perda mensal observada. Assim, caso seja necessário selecionar uma única ação, a Ação 4 constitui a alternativa mais bem sustentada pelos indicadores históricos considerados.
-
-\qquad Essa preferência deve, contudo, ser distinguida de uma conclusão de superioridade populacional. O teste de Tukey não identificou diferença estatisticamente significativa entre os retornos médios das Ações 4 e 5 ao nível de 5% (p-valor ajustado de 0,06738), e as diferenças nos indicadores de risco foram avaliadas apenas descritivamente. Dessa forma, a escolha da Ação 4 fundamenta-se no desempenho observado no período analisado, sem demonstrar que ela manterá essas vantagens ou proporcionará o maior retorno no próximo mês.
+\qquad Em conjunto, esses indicadores fornecem evidências descritivas favoráveis à escolha da Ação 4: maior retorno médio, menor variabilidade, menor frequência de perdas e menor magnitude da pior perda mensal observada. Essa preferência deve, contudo, ser distinguida de uma conclusão de superioridade populacional: o teste de Tukey não identificou diferença significativa entre os retornos médios das Ações 4 e 5 (p-valor ajustado de 0,06738), e a análise de potência indicou que o tamanho amostral disponível foi insuficiente para detectar com alta confiança uma diferença da magnitude observada.
 
 ## Conclusões e Recomendações
 
-\qquad Este estudo comparou os retornos médios mensais de cinco ações, utilizando 35 retornos por ativo, calculados a partir de 36 preços de fechamento mensais. A ANOVA de uma via identificou diferenças estatisticamente significativas entre as médias (\(F(4,170) = 23{,}808\); \(p < 0{,}001\)). As comparações múltiplas pelo teste de Tukey indicaram que as Ações 4 e 5 apresentaram retornos médios significativamente superiores aos das Ações 1, 2 e 3, destacando-se como as principais candidatas para o investimento.
+\qquad Este estudo comparou os retornos médios mensais de cinco ações, utilizando 35 retornos por ativo, calculados a partir de 36 preços de fechamento mensais. A ANOVA de uma via identificou diferenças entre as médias (\(F(4,170) = 23{,}809\); \(p < 0{,}001\)). As comparações múltiplas pelo teste de Tukey indicaram que as Ações 4 e 5 apresentaram retornos médios significativamente superiores aos das Ações 1, 2 e 3, destacando-se como as principais candidatas para o investimento.
 
-\qquad Entre as duas alternativas em destaque, a Ação 4 apresentou o maior retorno médio mensal observado, de 1,703%, frente a 1,062% para a Ação 5. Entretanto, a comparação entre suas médias não foi estatisticamente significativa ao nível de 5% (p-valor ajustado de 0,06738). Portanto, embora a Ação 4 tenha liderado na amostra, não há evidência suficiente para afirmar que seu retorno médio populacional seja superior ao da Ação 5. A ausência de significância também não estabelece equivalência entre as duas ações.
+\qquad Entre as duas alternativas em destaque, a Ação 4 apresentou o maior retorno médio mensal observado, de 1,703%, frente a 1,062% para a Ação 5. Entretanto, a comparação entre suas médias não foi significativa ao nível de 5% (p-valor ajustado de 0,06738). A análise de potência indicou que o tamanho amostral de 35 observações por grupo fornece potência de aproximadamente 74% para essa comparação, inferior ao limiar convencional de 80%. Seriam necessárias pelo menos 41 observações por grupo para atingir 80% de potência para a diferença observada. Assim, o resultado inconclusivo é compatível com a limitação de potência, sem demonstrar que a diferença não exista na população.
 
 \qquad A análise descritiva complementar forneceu evidências favoráveis à escolha da Ação 4. Além do maior retorno médio, essa ação apresentou menor desvio-padrão dos retornos (0,860 contra 0,994 ponto percentual), menor proporção de meses com perdas (5,714% contra 17,143%) e menor magnitude da pior perda mensal observada (-0,338% contra -1,249%). Dessa forma, considerando o objetivo de selecionar uma única ação e os indicadores históricos de retorno e risco avaliados, recomenda-se a Ação 4. A Ação 5 permanece como alternativa em destaque, pois também superou significativamente as três primeiras ações na comparação de médias.
 
-\qquad A recomendação para melhoria do estudo está relacionada às limitações estatísticas da análise. O teste de Fligner-Killeen não detectou evidências de heterogeneidade das variâncias, enquanto o teste de Shapiro-Wilk identificou não normalidade dos resíduos da Ação 1. A aplicação da ANOVA clássica foi mantida com base no balanceamento dos grupos, na ausência de evidência de heterogeneidade das variâncias e na literatura sobre a robustez do teste F. Essa justificativa não elimina o desvio de normalidade observado nem garante, por si só, a robustez das comparações de Tukey. Além disso, as diferenças nos indicadores de risco das Ações 4 e 5 foram avaliadas apenas descritivamente, sem demonstrar diferenças populacionais nesses indicadores.
+### Limitações e recomendações de melhoria
 
-\qquad Para aprimorar o estudo, recomenda-se realizar uma análise de sensibilidade à não normalidade e avaliar a estabilidade dos resultados em outros períodos de observação. Também seria pertinente desenvolver uma análise de potência baseada em uma diferença mínima de retorno considerada economicamente relevante, permitindo avaliar a capacidade do estudo de distinguir as alternativas. Essa avaliação contribuiria para interpretar o resultado inconclusivo entre as Ações 4 e 5 e orientar o planejamento de estudos posteriores.
+\qquad A recomendação de investimento deve ser interpretada considerando as limitações da análise. O teste de Fligner-Killeen não detectou evidências de heterogeneidade das variâncias, enquanto o teste de Shapiro-Wilk identificou não normalidade dos resíduos da Ação 1. A aplicação da ANOVA clássica foi mantida com base no balanceamento dos grupos, na ausência de evidência de heterogeneidade das variâncias e na literatura sobre a robustez do teste F. Essa justificativa não elimina o desvio de normalidade observado nem garante, por si só, a robustez das comparações de Tukey.
+
+\qquad Para aprimorar o estudo, recomenda-se: (i) ampliar o período de observação, permitindo um tamanho amostral compatível com a detecção de diferenças entre as Ações 4 e 5 com potência adequada; (ii) realizar uma análise de sensibilidade à não normalidade, verificando se os resultados se mantêm sob abordagens não paramétricas; (iii) avaliar a estabilidade dos resultados em diferentes subperíodos, verificando se a superioridade das Ações 4 e 5 persiste ao longo do tempo.
 
 \qquad Por fim, os resultados caracterizam o desempenho histórico das ações no período analisado. Sua utilização para orientar o investimento no próximo mês depende da suposição de que esse histórico permanece informativo sobre o comportamento futuro. Assim, a Ação 4 é a escolha mais bem sustentada pelos indicadores avaliados, mas não há garantia de que proporcionará o maior ganho no mês seguinte.
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini (modelo 3.1 Pro, configuração de raciocínio complexo) com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. O ChatGPT, da OpenAI, foi utilizado como apoio à elaboração de código R, ajustes de apresentação e revisão técnica e de redação. Após utilizar esses serviços, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram o Google Gemini (modelo 3.1 Pro, configuração de raciocínio complexo) com o objetivo de aprimorar a redação acadêmica e estruturar as explicações matemáticas em LaTeX. O ChatGPT, da OpenAI, foi utilizado como apoio à elaboração de código R, ajustes de apresentação e revisão técnica e de redação. O Claude, da Anthropic (modelo Opus 4.6), foi utilizado para revisão técnica e identificação de inconsistências, apoiado na skill \textit{paper-review}\footnote{Disponível em: \url{https://github.com/WenyuChiou/academic-writing-skills/tree/main/skills/paper-review}. Acesso em: 5 out. 2026.}. Após utilizar esses serviços, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
 
 
 ## Papéis e Contribuições da Equipe
