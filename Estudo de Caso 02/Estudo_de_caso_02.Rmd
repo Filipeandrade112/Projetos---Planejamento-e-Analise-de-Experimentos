@@ -305,7 +305,7 @@ knitr::kable(
 )
 ```
 
-```{r graficos_exploratorios, fig.pos="H", fig.width=12, fig.height=8, fig.cap="\\label{fig:exploratorios}Comparação das distribuições dos retornos mensais: Histograma e Boxplot com Jitter", message=FALSE, warning=FALSE}
+```{r graficos_exploratorios, fig.pos="H", fig.width=9, fig.height=4.9, fig.cap="\\label{fig:exploratorios}Comparação das distribuições dos retornos mensais: Histograma e Boxplot com Jitter", message=FALSE, warning=FALSE}
 # Histograma
 g1 <- ggplot(dados_acoes, aes(x = Retorno_Mensal, fill = Acao)) +
   geom_histogram(bins = 10, color = "black", alpha = 0.8) +
@@ -372,7 +372,7 @@ knitr::kable(
 )
 ```
 
-```{r grafico_residuos_ajustados, fig.pos="H", fig.width=8, fig.height=4, fig.cap="\\label{fig:residuos_ajustados}Resíduos pelos valores ajustados do modelo ANOVA"}
+```{r grafico_residuos_ajustados, fig.pos="H", fig.width=6, fig.height=3, fig.cap="\\label{fig:residuos_ajustados}Resíduos pelos valores ajustados do modelo ANOVA"}
 # Gráfico de resíduos vs. valores ajustados
 dados_diag <- data.frame(
   Ajustados = fitted(modelo_anova),
@@ -418,6 +418,10 @@ teste_shapiro %>%
   )
 ```
 
+\qquad Embora o teste de Shapiro-Wilk tenha identificado evidência de não normalidade para os resíduos da Ação 1 (W = 0.90050; p = 0.00408), como é possivel visualizar na Tabela \ref{tab:normalidade_shapiro}, a rejeição dessa hipótese não implica, isoladamente, a inadequação da análise de variância. A literatura metodológica consolida que a estatística F da ANOVA apresenta considerável robustez a desvios da normalidade, sobretudo em delineamentos balanceados (\hyperlink{ref_montgomery2017}{MONTGOMERY, 2017}). Estudos de simulação modernos, como os conduzidos por \hyperlink{ref_schmider2010}{Schmider \textit{et al.} (2010)} e \hyperlink{ref_blanca2017}{Blanca \textit{et al.} (2017)}, demonstraram que a ANOVA de uma via mantém adequadamente suas taxas de erro tipo I e tipo II mesmo quando os dados empíricos provêm de distribuições substancialmente distintas da normal, legitimando seu uso sob leves anomalias distributivas.
+
+\qquad Para as demais ações, os testes de Shapiro-Wilk não apresentaram evidências de violação da normalidade dos resíduos. Os p-valores obtidos para as Ações 2, 3, 4 e 5 foram, respectivamente, 0.88743, 0.09535, 0.55919 e 0.56439, todos superiores ao nível de significância de 5%. Assim, a evidência de não normalidade identificada está restrita à Ação 1.
+
 \newpage
 ```{r analise_grafica, fig.pos="H", fig.width=12, fig.height=8, fig.cap="\\label{fig:histograma_e_qqplot}Diagnóstico de normalidade dos resíduos: Histograma e Q-Q Plot"}
 # Histograma dos resíduos
@@ -441,10 +445,6 @@ g_qq_residuos <- ggplot(dados_residuos, aes(sample = Residuos, color = Acao)) +
 
 g_hist_residuos / g_qq_residuos
 ```
-
-\qquad Embora o teste de Shapiro-Wilk tenha identificado evidência de não normalidade para os resíduos da Ação 1 (W = 0.90050; p = 0.00408), como é possivel visualizar na Tabela \ref{tab:normalidade_shapiro}, a rejeição dessa hipótese não implica, isoladamente, a inadequação da análise de variância. A literatura metodológica consolida que a estatística F da ANOVA apresenta considerável robustez a desvios da normalidade, sobretudo em delineamentos balanceados (\hyperlink{ref_montgomery2017}{MONTGOMERY, 2017}). Estudos de simulação modernos, como os conduzidos por \hyperlink{ref_schmider2010}{Schmider \textit{et al.} (2010)} e \hyperlink{ref_blanca2017}{Blanca \textit{et al.} (2017)}, demonstraram que a ANOVA de uma via mantém adequadamente suas taxas de erro tipo I e tipo II mesmo quando os dados empíricos provêm de distribuições substancialmente distintas da normal, legitimando seu uso sob leves anomalias distributivas.
-
-\qquad Para as demais ações, os testes de Shapiro-Wilk não apresentaram evidências de violação da normalidade dos resíduos. Os p-valores obtidos para as Ações 2, 3, 4 e 5 foram, respectivamente, 0.88743, 0.09535, 0.55919 e 0.56439, todos superiores ao nível de significância de 5%. Assim, a evidência de não normalidade identificada está restrita à Ação 1.
 
 \qquad No presente estudo, os cinco grupos possuem o mesmo tamanho amostral (n = 35), caracterizando um delineamento balanceado, e o teste de Fligner-Killeen não forneceu evidências de heterogeneidade das variâncias (p = 0.5984). A inspeção dos histogramas e gráficos Q-Q, Figura \ref{fig:histograma_e_qqplot} indica que o desvio observado na Ação 1 está predominantemente concentrado na cauda superior da distribuição, enquanto a região central dos resíduos apresenta aderência razoável à reta de referência.
 
@@ -565,6 +565,8 @@ g_tukey <- ggplot(dados_tukey, aes(x = Comparacao, y = diff * 100)) +
 
 g_tukey
 ```
+
+\newpage
 
 \qquad Conforme apresentado na Tabela \ref{tab:retorno_medio_turkey} e representado graficamente na Figura \ref{fig:multiplos_turkey}, o teste de Tukey identificou diferenças significativas em seis das dez comparações realizadas. A Ação 4 apresentou retorno médio mensal significativamente superior aos das Ações 1, 2 e 3, com diferenças estimadas de 1.973, 1.394 e 1.852 pontos percentuais, respectivamente, e p-valores ajustados inferiores a 0.0001 em todas essas comparações.
 
