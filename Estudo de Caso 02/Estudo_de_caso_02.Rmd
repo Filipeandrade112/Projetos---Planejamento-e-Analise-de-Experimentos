@@ -1,7 +1,7 @@
 ---
 title: 'Estudo de Caso 02: Avaliação e comparação do retorno mensal médio de ações'
 author: "Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa"
-date: "28 de Agosto de 2026"
+date: "05 de Outubro de 2026"
 output:
   pdf_document:
     fig_caption: yes
@@ -338,7 +338,7 @@ g1 / g2
 \qquad Antes de avançar para os testes de diferença entre as médias de retorno das ações, é necessário avaliar as premissas fundamentais da ANOVA.
 
 **1. Independência:**
-A premissa de independência estabelece que as observações coletadas não devem influenciar umas às outras. Neste estudo, assume-se a independência das amostras entre os grupos, assumindo que as cinco ações pertencem a empresas distintas. Adota-se também a independência dentro de cada grupo (intragrupo), o que é razoável para retornos mensais, cuja autocorrelação é tipicamente fraca nessa granularidade, diferentemente do que ocorreria com dados diários. Dessa forma, consideramos essa premissa atendida como uma suposição adotada para o exercício.
+A premissa de independência estabelece que as observações coletadas não devem influenciar umas às outras. Neste estudo, como as cinco ações pertencem a empresas distintas e operam independentemente, adota-se, para fins do exercício, a independência das amostras entre os grupos. Dentro de cada grupo (intragrupo), considera-se que a medição do preço de fechamento em um mês não interfere no valor medido no mês seguinte, fundamentando a suposição de independência entre as observações mensais. Dessa forma, consideramos essa premissa atendida sob o ponto de vista do desenho adotado para o exercício.
 
 **2. Homocedasticidade (Igualdade de Variâncias):**
 A premissa de homocedasticidade exige que a variância dos retornos seja homogênea entre todas as ações. Para avaliar essa premissa, foi utilizado o teste de Fligner-Killeen. Este teste é não paramétrico e robusto a desvios de normalidade, sendo recomendado para distribuições desconhecidas ou não normais (\hyperlink{ref_conover1981}{CONOVER \textit{et al.}, 1981}). Complementarmente, foi produzido o gráfico de resíduos pelos valores ajustados.
@@ -626,7 +626,7 @@ knitr::kable(
 )
 ```
 
-\qquad O tamanho de efeito observado correspondeu a um f de Cohen de r sprintf("%.2f", f_cohen), classificado como efeito grande segundo os critérios convencionais propostos por \hyperlink{ref_cohen1988}{Cohen (1988)}. Para esse efeito, a potência da ANOVA foi virtualmente igual a 1, indicando que o teste global possuía capacidade amplamente suficiente para detectar diferenças da magnitude observada entre as cinco ações. A Tabela de sensibilidade mostra que, mesmo para efeitos moderados ($f = 0,50$), a potência já superava 99% com o tamanho amostral disponível.
+\qquad O tamanho de efeito observado correspondeu a um f de Cohen de `r sprintf("%.2f", f_cohen)`, classificado como efeito grande segundo os critérios convencionais propostos por \hyperlink{ref_cohen1988}{Cohen (1988)}. Para esse efeito, a potência da ANOVA foi virtualmente igual a 1, indicando que o teste global possuía capacidade amplamente suficiente para detectar diferenças da magnitude observada entre as cinco ações. A Tabela de sensibilidade mostra que, mesmo para efeitos moderados ($f = 0,50$), a potência já superava 99% com o tamanho amostral disponível.
 
 ```{r potencia_par_45}
 # Comparação par-a-par Ação 4 vs Ação 5
