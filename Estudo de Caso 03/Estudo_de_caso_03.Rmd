@@ -1,7 +1,7 @@
 ---
 title: 'Estudo de Caso 03: Comparação de desempenho de duas configurações de um algoritmo de otimização'
 author: "Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa"
-date: "12 de Outubro de 2026"
+date: "18 de Outubro de 2026"
 output:
   pdf_document:
     fig_caption: yes
@@ -10,6 +10,7 @@ output:
 header-includes:
   - \usepackage{float}
   - \usepackage{amsmath}
+  - \usepackage{booktabs}
   - \renewcommand{\figurename}{Figura}
   - \renewcommand{\tablename}{Tabela}
 ---
@@ -57,42 +58,67 @@ if (!require(kableExtra, quietly = TRUE)){
 
 ## Introdução
 
-\qquad Algoritmos baseados em populações constituem uma alternativa comum para a solução de problemas de otimização (Storn e Price, 1997). A evolução diferencial (DE) se destaca pela flexibilidade na combinação de operadores de mutação e recombinação (Campelo e Botelho, 2016). Este estudo compara duas configurações do DE aplicadas à classe de funções Rosenbrock (Rosenbrock, 1960), implementada pelo pacote \texttt{smoof} (Bossek, 2017), com dimensão $\text{dim} \in [2, 150]$. O critério de desempenho é o melhor valor da função objetivo ($F_{\text{best}}$), em que valores menores indicam melhor desempenho. O objetivo é responder se existe diferença no desempenho médio entre as duas configurações e, caso exista, quantificá-la.
 
-## Delineamento Experimental
+\qquad Algoritmos baseados em populações constituem uma alternativa consolidada para a solução de problemas de otimização não linear em engenharia (Storn e Price, 1997). Nesse paradigma, um conjunto de soluções candidatas é iterativamente submetido a operadores de variação (mutação e recombinação) e seleção, promovendo a exploração do espaço de busca em direção ao ótimo da função objetivo. Entre esses métodos, a Evolução Diferencial (DE, do inglês *Differential Evolution*) destaca-se pela simplicidade estrutural e pela eficácia na otimização em espaços contínuos, sendo seu desempenho fortemente dependente da escolha adequada dos operadores e de seus hiperparâmetros (Campelo e Botelho, 2016).
 
-
-\qquad O delineamento adotado é um RCBD. Cada instância do problema (uma dimensão sorteada em $[2, 150]$) constitui um bloco, e as duas configurações são os tratamentos:
+\qquad Este estudo de caso tem como objetivo realizar a comparação experimental de duas configurações pré-ajustadas do algoritmo DE (atribuídas à Equipe B), aplicadas à classe de problemas de minimização definida pela família de funções de Rosenbrock (Rosenbrock, 1960; Pohlheim, 2005), implementada no pacote \texttt{smoof} (Bossek, 2017), com dimensão $\text{dim} \in [2, 150]$ e domínio $[-5, 10]^{\text{dim}}$. As configurações avaliadas são:
 
 \begin{itemize}
-  \item \textbf{Configuração 1:} recombinação exponencial (\texttt{recombination\_exp}, $cr = 0{,}6$) com mutação baseada no melhor indivíduo (\texttt{mutation\_best}, $f = 2$).
-  \item \textbf{Configuração 2:} recombinação geométrica (\texttt{recombination\_geo}, $\alpha = 0{,}6$) com mutação aleatória (\texttt{mutation\_rand}, $f = 1{,}2$).
+  \item \textbf{Configuração 1:} operador de recombinação exponencial (\texttt{recombination\_exp}, com $cr = 0{,}6$) combinado ao operador de mutação baseado no melhor indivíduo (\texttt{mutation\_best}, com $f = 2$).
+  \item \textbf{Configuração 2:} operador de recombinação geométrica (\texttt{recombination\_geo}, com $\alpha = 0{,}6$) combinado ao operador de mutação aleatória (\texttt{mutation\_rand}, com $f = 1{,}2$).
 \end{itemize}
 
-\qquad Os demais parâmetros são comuns a ambas: seleção padrão (\texttt{selection\_standard}), critério de parada por número de avaliações ($5000 \cdot \text{dim}$), tamanho da população ($5 \cdot \text{dim}$), e domínio $[-5, 10]^{\text{dim}}$. Cada bloco contém exatamente uma observação por tratamento, correspondente à média de $F_{\text{best}}$ sobre as repetições; tratar cada repetição individual como observação independente constituiria pseudorreplicação (Campelo e Takahashi, 2019). As instâncias são sorteadas sem reposição com semente fixa, e a ordem de execução das células é aleatorizada.
+\qquad Os demais parâmetros operacionais são mantidos fixos e idênticos para ambas as configurações em cada dimensão $\text{dim}$: seleção padrão (\texttt{selection\_standard}), tamanho da população $N_{\text{pop}} = 5 \cdot \text{dim}$, e critério de parada por orçamento máximo de avaliações da função objetivo ($\text{maxevals} = 5000 \cdot \text{dim}$ ou $\text{maxiter} = 100 \cdot \text{dim}$). O indicador de desempenho de cada execução é o melhor valor da função objetivo encontrado ao final da busca ($F_{\text{best}}$), de modo que **menores valores indicam melhor desempenho** do algoritmo.
 
-### Formulação das hipóteses
+\qquad A investigação é conduzida para responder às três questões técnicas norteadoras propostas: (i) verificar se há diferença estatisticamente significativa no desempenho médio do algoritmo equipado com as duas configurações na classe de problemas de interesse; (ii) caso exista, identificar qual é a melhor configuração e estimar a magnitude dessa diferença; e (iii) estabelecer se alguma configuração deve ser recomendada em relação à outra. O relatório está estruturado sequencialmente nas oito etapas metodológicas preconizadas para o planejamento e a análise do experimento.
 
-\qquad O valor de $F_{\text{best}}$ cresce em várias ordens de grandeza com a dimensão. Para tornar as comparações coerentes, a análise é conduzida na escala logarítmica. Seja $\bar{Y}_{ij}$ a média de $F_{\text{best}}$ sobre as repetições da configuração $i$ na instância $j$. A variável analisada é a diferença pareada:
+---
 
-$$D_j = \log \bar{Y}_{1j} - \log \bar{Y}_{2j} = \log \frac{\bar{Y}_{1j}}{\bar{Y}_{2j}}$$
+## 1. Formulação das Hipóteses de Teste
 
-\qquad Se $D_j > 0$, a Configuração 2 apresenta valor menor de $F_{\text{best}}$ (melhor desempenho) na instância $j$. As hipóteses são:
+\qquad Na comparação de algoritmos de otimização sobre uma classe heterogênea de problemas, a dificuldade intrínseca e a escala da função objetivo variam acentuadamente conforme a dimensão da instância avaliada. No contexto do planejamento de experimentos, a instância de teste (dimensão $\text{dim} \in [2, 150]$) atua como um **fator indesejável (*nuisance factor*) conhecido e controlável** (Montgomery, 2005). Caso o experimento fosse conduzido sob um delineamento completamente casualizado (CRD), toda a variabilidade decorrente das diferentes dimensões seria absorvida pelo termo residual ($\text{MS}_E$), mascarando o efeito de interesse entre os algoritmos.
+
+\qquad Seguindo o princípio fundamental de blocagem (*"Block what you can, randomize what you cannot"*), adota-se o **Experimento Completamente Aleatorizado com Blocos (RCBD, *Randomized Complete Block Design*)**, em que cada instância $j \in \{1, \ldots, N\}$ constitui um bloco independente e as configurações $i \in \{1, 2\}$ representam os níveis do fator experimental (tratamentos). Para atender à estrutura do RCBD sem incorrer em **pseudorreplicação** — o que inflaria artificialmente os graus de liberdade do resíduo e a taxa de Erro Tipo I (Campelo e Takahashi, 2019) —, as $n$ repetições estocásticas executadas para a configuração $i$ na instância $j$ são agregadas pela sua média amostral $\bar{Y}_{ij}$, fornecendo exatamente uma observação representativa por tratamento em cada bloco.
+
+\qquad Além disso, como o valor de $F_{\text{best}}$ na função de Rosenbrock cresce em múltiplas ordens de grandeza à medida que a dimensão aumenta, aplica-se a **transformação logarítmica** $y_{ij} = \log(\bar{Y}_{ij})$ (Feng et al., 2013; Campelo, 2018). Essa transformação estabiliza a variância entre blocos e converte comparações multiplicativas (razões de desempenho na escala original) em diferenças aditivas compatíveis com o modelo linear do RCBD:
+
+$$y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij} \begin{cases} i = 1, 2 \\ j = 1, \ldots, N \end{cases}, \quad \epsilon_{ij} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)$$
+
+\noindent em que $\mu$ é a média global na escala logarítmica, $\tau_i$ é o efeito da $i$-ésima configuração ($\sum_{i=1}^{2} \tau_i = 0$), $\beta_j$ é o efeito do $j$-ésimo bloco/instância ($\sum_{j=1}^{N} \beta_j = 0$) e $\epsilon_{ij}$ é o erro aleatório residual.
+
+\qquad Como o experimento possui apenas dois níveis do fator de interesse ($a = 2$), o teste $F$ da ANOVA para o RCBD ($H_0: \tau_1 = \tau_2 = 0$) é algebricamente equivalente ao **teste $t$ pareado bilateral** aplicado sobre as diferenças pareadas intra-bloco $D_j$ (Montgomery, 2005):
+
+$$D_j = y_{1j} - y_{2j} = \log(\bar{Y}_{1j}) - \log(\bar{Y}_{2j}) = \log\left(\frac{\bar{Y}_{1j}}{\bar{Y}_{2j}}\right)$$
+
+\qquad Pela definição adotada, valores negativos de $D_j$ ($D_j < 0 \iff \bar{Y}_{1j} < \bar{Y}_{2j}$) indicam que a **Configuração 1** obteve menor média de $F_{\text{best}}$ (melhor desempenho) na instância $j$, enquanto valores positivos ($D_j > 0 \iff \bar{Y}_{1j} > \bar{Y}_{2j}$) favorecem a **Configuração 2**. As hipóteses estatísticas para o teste paramétrico principal são formuladas de maneira bilateral ("conservadora" sob $H_0$, assumindo ausência de diferença):
 
 $$\begin{cases} H_0: \mu_D = 0 \\ H_1: \mu_D \neq 0 \end{cases}$$
 
-\noindent em que $\mu_D$ é a média populacional das diferenças pareadas na escala logarítmica. O teste é bilateral. O efeito padronizado minimamente relevante é $d^* = \delta^*/\sigma_{\Phi} = 0{,}5$ (Campelo e Takahashi, 2019) e o nível de significância é $\alpha = 0{,}05$. Com dois tratamentos ($a = 2$), o teste $F$ do RCBD é equivalente ao quadrado da estatística $t$ do teste $t$ pareado (Montgomery, 2005, Cap. 4).
+\noindent onde $\mu_D = E[D_j]$ representa a diferença média populacional na escala logarítmica. Complementarmente, estabelece-se a priori que, caso a premissa de normalidade das diferenças $D_j$ seja rejeitada ($\alpha = 0{,}05$), serão empregados métodos não paramétricos pareados (Teste dos Postos Sinalizados de Wilcoxon, Teste do Sinal e Testes de Permutação/Bootstrap), cujas hipóteses avaliam a localização central (mediana ou pseudo-mediana $\theta_D$) da distribuição das diferenças: $H_0: \theta_D = 0$ versus $H_1: \theta_D \neq 0$.
 
-### Cálculo do tamanho amostral
+---
 
-\qquad O número de instâncias $N$ é determinado pela exigência de potência $1 - \beta = 0{,}8$ no teste $t$ pareado bilateral. Como $d^* = 0{,}5$ já é normalizado por $\sigma_{\Phi}$, o cálculo independe de estimativas de variância.
+## 2. Cálculo dos Tamanhos Amostrais
+
+\qquad O planejamento amostral em experimentos de comparação de algoritmos em blocos envolve duas dimensões distintas (Campelo e Takahashi, 2019): (i) o número de instâncias (blocos) $N$, que governa os graus de liberdade do teste e o poder estatístico ($\pi = 1 - \beta$) frente à variabilidade entre problemas; e (ii) o número de repetições $n$ de cada algoritmo por instância, que controla a precisão da estimativa pontual de $\bar{Y}_{ij}$ dentro de cada bloco.
+
+### 2.1 Número de instâncias ($N$)
+
+\qquad Os parâmetros experimentais especificados para o estudo são:
+\begin{itemize}
+  \item Mínima diferença de importância prática padronizada: $d^* = \delta^* / \sigma_{\Phi} = 0{,}5$;
+  \item Nível de significância desejado (probabilidade de Erro Tipo I): $\alpha = 0{,}05$;
+  \item Potência mínima desejada (para o caso $d = d^*$): $\pi = 1 - \beta = 0{,}80$.
+\end{itemize}
+
+\qquad Sob a hipótese alternativa $H_1$ com efeito padronizado $d^* = 0{,}5$, a estatística do teste $t$ pareado segue uma distribuição $t$ não central com $\nu = N - 1$ graus de liberdade e parâmetro de não centralidade $\delta_{\text{ncp}} = d^* \sqrt{N}$. Como $d^*$ já é normalizado pelo desvio padrão das diferenças entre blocos ($\sigma_{\Phi}$), a determinação de $N$ independe do estudo piloto.
 
 ```{r calculo_N}
-# Cálculo iterativo do N mínimo para potência >= 0.8
+# Cálculo iterativo do N mínimo para potência >= 0.80 no teste t pareado
 calc_power_paired <- function(N, d_star = 0.5, alpha = 0.05) {
   df     <- N - 1
   ncp    <- d_star * sqrt(N)
-  t_crit <- qt(1 - alpha/2, df)
+  t_crit <- qt(1 - alpha / 2, df)
   power  <- 1 - pt(t_crit, df, ncp) + pt(-t_crit, df, ncp)
   return(power)
 }
@@ -100,427 +126,753 @@ calc_power_paired <- function(N, d_star = 0.5, alpha = 0.05) {
 N_range <- 30:40
 power_table <- data.frame(
   N     = N_range,
+  gl    = N_range - 1,
   Poder = sapply(N_range, calc_power_paired)
+)
+
+cap_poder <- paste0(
+  "\\label{tab:poder_N}Potência ($1 - \\beta$) do teste $t$ pareado ",
+  "bilateral em função do número de instâncias $N$ ",
+  "($d^* = 0{,}5$ e $\\alpha = 0{,}05$)"
 )
 
 knitr::kable(
   power_table,
-  caption = "\\label{tab:poder_N}Potência do teste $t$ pareado bilateral em função de $N$, com $d^* = 0{,}5$ e $\\alpha = 0{,}05$",
-  digits = 3,
-  align = "c",
-  booktabs = TRUE
+  caption   = cap_poder,
+  col.names = c("Número de Instâncias ($N$)",
+                "Graus de Liberdade ($N-1$)",
+                "Potência ($1 - \\beta$)"),
+  digits    = 4,
+  align     = "c",
+  booktabs  = TRUE,
+  escape    = FALSE
 )
 ```
 
 ```{r definir_N}
-N <- min(power_table$N[power_table$Poder >= 0.8])
+N       <- min(power_table$N[power_table$Poder >= 0.8])
 poder_N <- calc_power_paired(N)
 ```
 
-\qquad A Tabela \ref{tab:poder_N} mostra que $N =$ `r N` é o menor valor que atinge potência superior a 0,80 ($\pi =$ `r round(poder_N, 3)`).
+\qquad Conforme demonstrado na Tabela \ref{tab:poder_N}, o menor tamanho amostral que atende ao requisito $\pi \ge 0{,}80$ é **$N =$ `r N` instâncias**, assegurando um poder estatístico de $\pi =$ `r round(poder_N, 4)` (com $N = 33$, o poder seria de $0{,}7954$, insuficiente para o critério estabelecido).
 
-\qquad O número de repetições $n$ por célula controla a precisão da estimativa $\bar{Y}_{ij}$ e é definido pelo critério de Campelo e Takahashi (2019): $\text{se}^{*2} \leq 0{,}1 \cdot \hat{\sigma}_{\Phi}^2$. Para estimar os parâmetros necessários, um estudo piloto é conduzido.
+### 2.2 Número de repetições por instância ($n$) e Estudo Piloto
+
+\qquad A variância amostral da diferença observada em uma instância $j$, $D_j = \log(\bar{Y}_{1j}) - \log(\bar{Y}_{2j})$, é composta pela variância real do efeito relativo entre problemas ($\sigma_{\Phi}^2$) somada ao erro padrão quadrático de estimação intra-instância ($\text{se}_j^2 = \sigma_{1j}^2/n_1 + \sigma_{2j}^2/n_2$). Segundo a metodologia de Campelo e Takahashi (2019), escolhe-se $n$ de modo que a incerteza das repetições contribua com uma fração desprezível (no máximo $10\%$) da variância entre instâncias:
+
+$$\text{se}^{*2} = \frac{\hat{\sigma}_1^2}{n} + \frac{\hat{\sigma}_2^2}{n} \leq 0{,}1 \cdot \hat{\sigma}_{\Phi}^2 \implies n \geq \left\lceil \frac{\hat{\sigma}_1^2 + \hat{\sigma}_2^2}{0{,}1 \cdot \hat{\sigma}_{\Phi}^2} \right\rceil$$
+
+\qquad Para estimar $\hat{\sigma}_1$, $\hat{\sigma}_2$ e $\hat{\sigma}_{\Phi}$, conduziu-se um estudo piloto preliminar em $5$ dimensões sorteadas aleatoriamente em $[2, 150]$ com semente fixa (\texttt{set.seed(2026)}: dimensões `39, 46, 92, 112, 122`), executando $n_{\text{piloto}} = 15$ repetições por algoritmo em cada dimensão ($150$ execuções no total).
 
 ```{r param_piloto}
 set.seed(2026)
 pilot_dims <- sort(sample(2:150, 5))
 n_pilot    <- 15
-```
-
-```{r piloto}
 pilot_data <- read.csv("dados_piloto_EC03.csv", stringsAsFactors = FALSE)
 ```
 
 ```{r analise_piloto}
 pilot_sds <- pilot_data %>%
   group_by(dim, config) %>%
-  summarise(sd_log = sd(log(Fbest)), .groups = "drop") %>%
-  pivot_wider(names_from = config, values_from = sd_log,
-              names_prefix = "sd_")
+  summarise(sd_log     = sd(log(Fbest)),
+            mean_Fbest = mean(Fbest),
+            .groups    = "drop")
 
-knitr::kable(
-  pilot_sds,
-  caption = "\\label{tab:pilot_sd}Desvio padrão de $\\log(F_{\\text{best}})$ por instância e configuração no estudo piloto",
-  digits = 4,
-  col.names = c("Dimensão", "$\\hat{\\sigma}_1$", "$\\hat{\\sigma}_2$"),
-  align = "c",
-  booktabs = TRUE,
-  escape = FALSE
+pilot_wide <- pilot_sds %>%
+  pivot_wider(names_from  = config,
+              values_from = c(mean_Fbest, sd_log)) %>%
+  mutate(log_diff = log(mean_Fbest_Config1) - log(mean_Fbest_Config2))
+
+pilot_tab <- pilot_wide %>%
+  select(dim, mean_Fbest_Config1, mean_Fbest_Config2,
+         sd_log_Config1, sd_log_Config2, log_diff)
+
+cap_piloto <- paste0(
+  "\\label{tab:pilot_sd}Resultados do estudo piloto ",
+  "($n_{\\text{piloto}} = 15$) nas 5 instâncias preliminares"
 )
 
-s1_pool <- sqrt(mean(pilot_sds$sd_Config1^2))
-s2_pool <- sqrt(mean(pilot_sds$sd_Config2^2))
+knitr::kable(
+  pilot_tab,
+  caption   = cap_piloto,
+  digits    = c(0, 2, 2, 4, 4, 4),
+  col.names = c("Dimensão", "$\\bar{Y}_{1j}$ (Config 1)",
+                "$\\bar{Y}_{2j}$ (Config 2)", "$\\hat{\\sigma}_{1j}$ (log)",
+                "$\\hat{\\sigma}_{2j}$ (log)", "$D_j$ (Piloto)"),
+  align     = "c",
+  booktabs  = TRUE,
+  escape    = FALSE
+)
 
-pilot_block <- pilot_data %>%
-  group_by(dim, config) %>%
-  summarise(mean_Fbest = mean(Fbest), .groups = "drop") %>%
-  pivot_wider(names_from = config, values_from = mean_Fbest)
+s1_pool         <- sqrt(mean(pilot_wide$sd_log_Config1^2))
+s2_pool         <- sqrt(mean(pilot_wide$sd_log_Config2^2))
+sigma_phi_pilot <- sd(pilot_wide$log_diff)
+target_se2      <- 0.1 * sigma_phi_pilot^2
 
-pilot_block$log_diff <- log(pilot_block$Config1) - log(pilot_block$Config2)
-sigma_phi_pilot <- sd(pilot_block$log_diff)
-
-target_se2 <- 0.1 * sigma_phi_pilot^2
-
-n1_opt <- ceiling(s1_pool * (s1_pool + s2_pool) / target_se2)
-n2_opt <- ceiling(n1_opt * s2_pool / s1_pool)
+n1_opt  <- ceiling(s1_pool * (s1_pool + s2_pool) / target_se2)
+n2_opt  <- ceiling(n1_opt * s2_pool / s1_pool)
 n_equal <- ceiling((s1_pool^2 + s2_pool^2) / target_se2)
-```
-
-\qquad O piloto utilizou `r length(pilot_dims)` dimensões (`r paste(pilot_dims, collapse = ", ")`), `r n_pilot` repetições por célula. As estimativas combinadas são $\hat{\sigma}_1 =$ `r round(s1_pool, 4)` e $\hat{\sigma}_2 =$ `r round(s2_pool, 4)`, e $\hat{\sigma}_{\Phi} =$ `r round(sigma_phi_pilot, 4)`. O critério $\text{se}^{*2} \leq$ `r round(target_se2, 4)` resulta em $n =$ `r n_equal` com alocação igual.
-
-```{r definir_n}
 n_final <- max(n_equal, 30)
 ```
 
-```{r justificativa_n, results='asis'}
-if (n_equal <= 30) {
-  cat(sprintf(
-    "\\qquad O valor calculado ($n = %d$) é inferior a 30. Adota-se $n = 30$ repetições por configuração por instância como margem conservadora (Campelo, 2018). A verificação confirma que o critério é atendido: $\\text{se}^{*2} = %.4f \\leq %.4f$.\n",
-    n_equal, (s1_pool^2 + s2_pool^2)/30, target_se2))
-} else {
-  cat(sprintf(
-    "\\qquad O valor calculado ($n = %d$) é adotado. A verificação confirma: $\\text{se}^{*2} = %.4f \\leq %.4f$.\n",
-    n_equal, (s1_pool^2 + s2_pool^2)/n_equal, target_se2))
-}
-```
+\qquad A Tabela \ref{tab:pilot_sd} apresenta o comportamento observado no piloto. Os desvios padrão combinados (*pooled*) intra-instância foram $\hat{\sigma}_1 =$ `r round(s1_pool, 4)` e $\hat{\sigma}_2 =$ `r round(s2_pool, 4)`, enquanto o desvio padrão das diferenças entre blocos foi expressivo ($\hat{\sigma}_{\Phi} =$ `r round(sigma_phi_pilot, 4)`). Como a variabilidade entre dimensões domina amplamente a variabilidade estocástica entre repetições de uma mesma dimensão, o limite $\text{se}^{*2} \le$ `r round(target_se2, 4)` seria numericamente atendido já com $n_{\text{equal}} =$ `r n_equal` repetição.
 
-### Coleta dos dados
+\qquad Entretanto, realizar apenas uma ou poucas repetições de um algoritmo estocástico como o DE comprometeria a estabilidade da média amostral $\bar{Y}_{ij}$. Assim, seguindo a recomendação clássica da literatura de experimentação em algoritmos (Campelo, 2018; Campelo e Takahashi, 2019) e invocando o **Teorema Central do Limite (TCL)** para garantir que a média $\bar{Y}_{ij}$ de cada célula apresente distribuição amostral bem comportada e com baixíssimo erro padrão ($\text{se}^{*2}_{n=30} = (\hat{\sigma}_1^2 + \hat{\sigma}_2^2)/30 =$ `r sprintf("%.4f", (s1_pool^2 + s2_pool^2)/30)` $\ll$ `r round(target_se2, 4)`), adotou-se **$n =$ `r n_final` repetições independentes** por configuração em cada instância.
 
-\qquad O experimento utiliza $N =$ `r N` instâncias e $n =$ `r n_final` repetições por configuração por instância. As dimensões são amostradas sem reposição de $\{2, \ldots, 150\}$, excluindo as do piloto, com semente fixa.
+---
+
+## 3. Coleta e Tabulação dos Dados
+
+\qquad Definidos os tamanhos amostrais ($N = 34$ instâncias e $n = 30$ repetições por célula), as $34$ dimensões do experimento principal foram sorteadas aleatoriamente e sem reposição no conjunto $\{2, \ldots, 150\} \setminus \{39, 46, 92, 112, 122\}$ (excluindo-se as $5$ dimensões já empregadas no piloto para evitar vazamento de informação e viés de seleção), utilizando semente fixa (\texttt{set.seed(933)}). As $34$ dimensões selecionadas foram:
+
+\begin{center}
+\texttt{4, 6, 7, 10, 12, 17, 19, 34, 44, 45, 48, 49, 51, 53, 59, 62, 75, 76, 91, 96, 98, 100, 108, 109, 115, 128, 136, 137, 139, 140, 142, 145, 147, 150}
+\end{center}
+
+\qquad O plano completo de execução ($34 \times 2 \times 30 = 2.040$ execuções do algoritmo \texttt{ExpDE}) teve sua ordem de coleta completamente aleatorizada (\texttt{set.seed(7777)}) e cada rodada recebeu uma semente pseudoaleatória individual determinística em função da configuração, dimensão e repetição, garantindo total reprodutibilidade. Os dados brutos foram consolidados no arquivo \texttt{dados\_EC03\_grupoB.csv}.
 
 ```{r coleta}
 dados_brutos <- read.csv("dados_EC03_grupoB.csv", stringsAsFactors = FALSE)
-```
 
-```{r verificar_coleta}
-n_obs <- nrow(dados_brutos)
-n_config1 <- sum(dados_brutos$Algorithm == "Config1")
-n_config2 <- sum(dados_brutos$Algorithm == "Config2")
+n_obs       <- nrow(dados_brutos)
+n_config1   <- sum(dados_brutos$Algorithm == "Config1")
+n_config2   <- sum(dados_brutos$Algorithm == "Config2")
 n_instances <- length(unique(dados_brutos$Instance))
 
 tabela_coleta <- data.frame(
-  Item = c("Total de observações",
-           "Observações Config 1",
-           "Observações Config 2",
-           "Número de instâncias",
-           "Repetições por célula"),
-  Valor = c(n_obs, n_config1, n_config2, n_instances, n_final),
+  Item = c("Total de execuções coletadas (linhas no CSV)",
+           "Execuções da Configuração 1 (exp + best)",
+           "Execuções da Configuração 2 (geo + rand)",
+           "Número de instâncias / blocos (N)",
+           "Repetições por configuração por instância (n)",
+           "Total de médias de blocos geradas (a × N)"),
+  Valor = c(n_obs, n_config1, n_config2, n_instances,
+            n_final, 2 * n_instances),
   check.names = FALSE
 )
 
 knitr::kable(
   tabela_coleta,
-  caption = "\\label{tab:coleta}Resumo da coleta de dados",
-  align = c("l", "c"),
+  caption  = "\\label{tab:coleta}Síntese e verificação de integridade da coleta",
+  align    = c("l", "c"),
   booktabs = TRUE
 )
 ```
 
-\qquad A Tabela \ref{tab:coleta} confirma a integridade da coleta.
-
-## Análise Exploratória
+\qquad Conforme detalhado na Seção 1, os dados brutos foram tabulados e agregados pela média das $30$ repetições em cada célula ($\bar{Y}_{ij}$), calculando-se em seguida os valores transformados $\log(\bar{Y}_{ij})$ e as diferenças pareadas $D_j = \log(\bar{Y}_{1j}) - \log(\bar{Y}_{2j})$ para cada um dos $34$ blocos. A Tabela \ref{tab:resumo_descritivo} sintetiza as estatísticas descritivas das médias por instância, enquanto a Tabela \ref{tab:amostra_blocos} exibe uma visão parcial da tabulação pareada ao longo do espectro de dimensões.
 
 ```{r preparacao}
 block_means <- dados_brutos %>%
   group_by(Algorithm, Instance) %>%
-  summarise(mean_Fbest = mean(Result), .groups = "drop")
+  summarise(mean_Fbest = mean(Result),
+            sd_Fbest   = sd(Result),
+            .groups    = "drop")
 
 block_wide <- block_means %>%
+  select(Algorithm, Instance, mean_Fbest) %>%
   pivot_wider(names_from = Algorithm, values_from = mean_Fbest) %>%
-  mutate(log_C1   = log(Config1),
-         log_C2   = log(Config2),
-         D        = log_C1 - log_C2)
+  arrange(Instance) %>%
+  mutate(log_C1 = log(Config1),
+         log_C2 = log(Config2),
+         D      = log_C1 - log_C2,
+         Razao  = Config1 / Config2)
 
-D_bar    <- mean(block_wide$D)
-S_D      <- sd(block_wide$D)
-N_used   <- nrow(block_wide)
-d_obs    <- D_bar / S_D
+D_bar  <- mean(block_wide$D)
+S_D    <- sd(block_wide$D)
+N_used <- nrow(block_wide)
+d_obs  <- D_bar / S_D
+
+vars_list <- list(block_wide$Config1, block_wide$Config2,
+                  block_wide$log_C1, block_wide$log_C2, block_wide$D)
+
+resumo_desc <- data.frame(
+  Variavel = c("$\\bar{Y}_{1j}$ (Config 1 - original)",
+               "$\\bar{Y}_{2j}$ (Config 2 - original)",
+               "$\\log(\\bar{Y}_{1j})$ (Config 1 - log)",
+               "$\\log(\\bar{Y}_{2j})$ (Config 2 - log)",
+               "Diferença pareada $D_j$ (log)"),
+  Minimo  = sapply(vars_list, min),
+  Q1      = sapply(vars_list, quantile, probs = 0.25),
+  Mediana = sapply(vars_list, median),
+  Media   = sapply(vars_list, mean),
+  Q3      = sapply(vars_list, quantile, probs = 0.75),
+  Maximo  = sapply(vars_list, max),
+  DP      = sapply(vars_list, sd)
+)
+
+cap_desc <- paste0(
+  "\\label{tab:resumo_descritivo}Estatísticas descritivas das médias ",
+  "por bloco ($N = 34$ instâncias) nas escalas original e logarítmica"
+)
+
+knitr::kable(
+  resumo_desc,
+  caption   = cap_desc,
+  col.names = c("Variável", "Mín.", "1º Quartil", "Mediana",
+                "Média", "3º Quartil", "Máx.", "Desvio Padrão"),
+  digits    = 2,
+  align     = c("l", rep("c", 7)),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
 ```
 
-```{r exploratoria_boxplot, fig.pos="H", fig.width=7, fig.height=3.5, fig.cap="\\label{fig:boxplot_log}Distribuição de $\\log(\\bar{Y}_{ij})$ por configuração"}
+```{r tabela_blocos_amostra}
+# Selecionar 10 instâncias representativas ao longo do espectro [4, 150]
+idx_mostra <- c(1, 4, 8, 12, 17, 22, 25, 26, 30, 34)
+mostra_df <- block_wide[idx_mostra, ] %>%
+  mutate(
+    Config1_fmt = sprintf("%.2f", Config1),
+    Config2_fmt = sprintf("%.2f", Config2),
+    log_C1_fmt  = sprintf("%.4f", log_C1),
+    log_C2_fmt  = sprintf("%.4f", log_C2),
+    D_fmt       = sprintf("%.4f", D),
+    Razao_fmt   = sprintf("%.4f", Razao)
+  ) %>%
+  select(Instance, Config1_fmt, Config2_fmt,
+         log_C1_fmt, log_C2_fmt, D_fmt, Razao_fmt)
+
+cap_mostra <- paste0(
+  "\\label{tab:amostra_blocos}Tabulação das médias de bloco e diferenças ",
+  "pareadas para 10 instâncias representativas dentre as 34 avaliadas"
+)
+
+knitr::kable(
+  mostra_df,
+  caption   = cap_mostra,
+  col.names = c("Dimensão ($j$)", "$\\bar{Y}_{1j}$", "$\\bar{Y}_{2j}$",
+                "$\\log(\\bar{Y}_{1j})$", "$\\log(\\bar{Y}_{2j})$",
+                "$D_j = \\log(\\bar{Y}_{1j}/\\bar{Y}_{2j})$",
+                "Razão ($\\bar{Y}_{1j}/\\bar{Y}_{2j}$)"),
+  align     = "c",
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+### Análise Exploratória dos Dados
+
+\qquad A inspeção conjunta das Tabelas \ref{tab:resumo_descritivo} e \ref{tab:amostra_blocos} evidencia por que a transformação logarítmica é indispensável: na escala original, as médias $\bar{Y}_{ij}$ variam de $1{,}07$ ($\text{dim} = 6$) a $741.361{,}35$ ($\text{dim} = 150$), abrangendo seis ordens de grandeza. Na escala logarítmica, a dispersão é estabilizada e permite comparar diretamente a proporção entre o desempenho das configurações em cada bloco.
+
+```{r exploratoria_boxplot, fig.pos="H", fig.width=7, fig.height=3.3, fig.cap="\\label{fig:boxplot_log}Distribuição de $\\log(\\bar{Y}_{ij})$ por configuração ao longo das 34 instâncias"}
 block_long <- block_wide %>%
   select(Instance, log_C1, log_C2) %>%
-  pivot_longer(cols = c(log_C1, log_C2),
-               names_to = "Config",
+  pivot_longer(cols      = c(log_C1, log_C2),
+               names_to  = "Config",
                values_to = "log_mean") %>%
-  mutate(Config = ifelse(Config == "log_C1", "Config 1", "Config 2"))
+  mutate(Config = ifelse(Config == "log_C1",
+                         "Configuração 1 (exp + best)",
+                         "Configuração 2 (geo + rand)"))
 
 ggplot(block_long, aes(x = Config, y = log_mean, fill = Config)) +
-  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
-  geom_jitter(width = 0.15, size = 1.5, alpha = 0.6) +
-  labs(x = "Configuração", y = expression(log(bar(Y)[ij]))) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA, width = 0.45) +
+  geom_jitter(width = 0.12, size = 1.8, alpha = 0.7) +
+  scale_fill_manual(values = c("Configuração 1 (exp + best)" = "steelblue",
+                               "Configuração 2 (geo + rand)" = "tomato")) +
+  labs(x = "Tratamento (Configuração do DE)",
+       y = expression(log(bar(Y)[ij]))) +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-```{r exploratoria_diff, fig.pos="H", fig.width=7, fig.height=3, fig.cap="\\label{fig:hist_D}Distribuição das diferenças pareadas $D_j$"}
-ggplot(block_wide, aes(x = D)) +
-  geom_histogram(bins = 12, fill = "steelblue", color = "black", alpha = 0.7) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-  geom_vline(xintercept = D_bar, linetype = "solid", color = "darkblue") +
-  labs(x = expression(D[j] == log(bar(Y)["1j"]) - log(bar(Y)["2j"])),
-       y = "Frequência") +
-  theme_minimal()
+```{r exploratoria_perfil, fig.pos="H", fig.width=7.5, fig.height=3.6, fig.cap="\\label{fig:perfil}Perfil de desempenho por bloco (instância): $\\log(\\bar{Y}_{ij})$ para cada configuração em função da dimensão"}
+ggplot(block_wide, aes(x = Instance)) +
+  geom_line(aes(y = log_C1, color = "Configuração 1 (exp + best)"),
+            linetype = "dashed", linewidth = 0.7) +
+  geom_point(aes(y = log_C1, color = "Configuração 1 (exp + best)"),
+             size = 2.2) +
+  geom_line(aes(y = log_C2, color = "Configuração 2 (geo + rand)"),
+            linetype = "dashed", linewidth = 0.7) +
+  geom_point(aes(y = log_C2, color = "Configuração 2 (geo + rand)"),
+             size = 2.2) +
+  geom_segment(aes(x = Instance, xend = Instance, y = log_C1, yend = log_C2),
+               alpha = 0.35, color = "gray40") +
+  scale_color_manual(values = c("Configuração 1 (exp + best)" = "steelblue",
+                                "Configuração 2 (geo + rand)" = "tomato")) +
+  labs(x     = "Dimensão da Instância (Bloco)",
+       y     = expression(log(bar(Y)[ij])),
+       color = "Tratamento") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
-```{r exploratoria_perfil, fig.pos="H", fig.width=8, fig.height=4, fig.cap="\\label{fig:perfil}Perfil de desempenho por instância: $\\log(\\bar{Y}_{ij})$ para cada configuração"}
-block_perfil <- block_wide %>%
-  select(Instance, log_C1, log_C2) %>%
-  arrange(Instance) %>%
-  mutate(idx = row_number())
+```{r exploratoria_diff, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:hist_D}Esquerda: Histograma das diferenças pareadas $D_j$. Direita: Evolução de $D_j$ em função da dimensão"}
+par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
 
-ggplot() +
-  geom_point(data = block_perfil, aes(x = idx, y = log_C1, color = "Config 1")) +
-  geom_point(data = block_perfil, aes(x = idx, y = log_C2, color = "Config 2")) +
-  geom_segment(data = block_perfil,
-               aes(x = idx, xend = idx, y = log_C1, yend = log_C2),
-               alpha = 0.3) +
-  scale_color_manual(values = c("Config 1" = "steelblue", "Config 2" = "tomato")) +
-  labs(x = "Instância (ordenada por dimensão)", y = expression(log(bar(Y)[ij])),
-       color = "Configuração") +
-  theme_minimal()
+# Painel 1: Histograma de D_j
+hist(block_wide$D, breaks = 10, col = "steelblue", border = "white",
+     main = "Distribuição de D_j",
+     xlab = expression(D[j] == log(bar(Y)[1*j]) - log(bar(Y)[2*j])),
+     ylab = "Frequência")
+abline(v = 0, col = "red", lwd = 2, lty = 2)
+abline(v = D_bar, col = "darkblue", lwd = 2)
+legend("topleft", legend = c("H0 (D = 0)", "Média (-1,63)"),
+       col = c("red", "darkblue"), lty = c(2, 1),
+       lwd = 2, cex = 0.75, bty = "n")
+
+# Painel 2: D_j versus Dimensão
+cores_pts <- ifelse(block_wide$D < 0, "steelblue", "tomato")
+plot(block_wide$Instance, block_wide$D, pch = 19, col = cores_pts,
+     main = "Diferença Pareada vs. Dimensão",
+     xlab = "Dimensão da Instância",
+     ylab = expression(D[j]))
+abline(h = 0, col = "red", lwd = 2, lty = 2)
+legend("bottomright",
+       legend = c("Config 1 melhor (25)", "Config 2 melhor (9)"),
+       col = c("steelblue", "tomato"), pch = 19, cex = 0.75, bty = "n")
 ```
 
-<!-- PLACEHOLDER: interpretação da análise exploratória será escrita após obter os resultados -->
+\qquad Os gráficos exploratórios revelam três padrões fundamentais do experimento:
+\begin{enumerate}
+  \item \textbf{Superioridade global da Configuração 1:} Na Figura \ref{fig:boxplot_log}, a distribuição de $\log(\bar{Y}_{1j})$ apresenta mediana ($10{,}15$) e média ($8{,}87$) substancialmente inferiores às da Configuração 2 (mediana de $11{,}90$ e média de $10{,}50$), além de um deslocamento consistente para valores menores no gráfico de perfil por bloco (Figura \ref{fig:perfil}).
+  \item \textbf{Forte efeito de bloco (dimensão):} A Figura \ref{fig:perfil} mostra que ambas as curvas crescem acentuadamente com a dimensão do problema, confirmando que a blocagem por instância é essencial para isolar o efeito da dimensão do efeito dos operadores do algoritmo.
+  \item \textbf{Mudança de regime em dimensões muito altas:} O painel direito da Figura \ref{fig:hist_D} mostra o comportamento das diferenças $D_j$ ao longo das dimensões. Nas primeiras \textbf{25 instâncias} ($\text{dim} \in [4, 115]$, correspondendo a $73{,}5\%$ dos blocos), tem-se $D_j < 0$, com vantagem expressiva da Configuração 1 (atingindo $D_j = -4{,}16$ em $\text{dim} = 34$, onde $\bar{Y}_{1} = 314{,}22$ contra $\bar{Y}_{2} = 20.205{,}54$). A partir de $\text{dim} = 128$ (nas $9$ instâncias finais, $\text{dim} \in [128, 150]$), ocorre uma leve inversão ($D_j \in [+0{,}01; +0{,}35]$), na qual a Configuração 2 passa a obter valores ligeiramente menores. Esse comportamento em "U" explica a concentração de observações próxima a zero no histograma de $D_j$ (painel esquerdo da Figura \ref{fig:hist_D}).
+\end{enumerate}
 
-## Análise Estatística
+---
 
-### Teste de hipóteses
+## 4. Teste das Hipóteses
 
-\qquad O teste principal é o teste $t$ pareado bilateral sobre as diferenças $D_j$, com $N - 1 =$ `r N_used - 1` graus de liberdade. Complementarmente, apresenta-se o teste $F$ do RCBD e verifica-se a equivalência $F = t^2$.
+\qquad Para testar formalmente se existe diferença significativa no desempenho médio entre as duas configurações ($H_0: \mu_D = 0$ versus $H_1: \mu_D \neq 0$, ao nível $\alpha = 0{,}05$), executam-se o teste $t$ pareado bilateral sobre $D_j$ e a Análise de Variância (ANOVA) do modelo linear RCBD sobre $y_{ij} = \log(\bar{Y}_{ij})$.
 
 ```{r teste_t_pareado}
-teste_t <- t.test(block_wide$D, mu = 0, alternative = "two.sided",
-                  conf.level = 0.95)
+teste_t <- t.test(block_wide$D, mu = 0,
+                  alternative = "two.sided", conf.level = 0.95)
 
 tabela_t <- data.frame(
-  Estatística = c("$\\bar{D}$", "$S_D$", "$t_0$", "g.l.", "p-valor",
-                   "IC 95\\% inferior", "IC 95\\% superior"),
+  Estatística = c("Média das diferenças ($\\bar{D}$)",
+                  "Desvio padrão das diferenças ($S_D$)",
+                  "Erro padrão da média ($S_D / \\sqrt{N}$)",
+                  "Estatística de teste ($t_0$)",
+                  "Graus de liberdade ($\\nu = N - 1$)",
+                  "Valor-$p$ bilateral",
+                  "IC 95\\% para $\\mu_D$ (limite inferior)",
+                  "IC 95\\% para $\\mu_D$ (limite superior)"),
   Valor = c(
     sprintf("%.4f", D_bar),
     sprintf("%.4f", S_D),
+    sprintf("%.4f", S_D / sqrt(N_used)),
     sprintf("%.4f", teste_t$statistic),
     N_used - 1,
-    format.pval(teste_t$p.value, digits = 4),
+    format.pval(teste_t$p.value, digits = 4, eps = 1e-10),
     sprintf("%.4f", teste_t$conf.int[1]),
     sprintf("%.4f", teste_t$conf.int[2])
   ),
   check.names = FALSE
 )
 
+cap_t <- paste0(
+  "\\label{tab:teste_t}Resultado do teste $t$ pareado bilateral ",
+  "sobre $D_j = \\log(\\bar{Y}_{1j}) - \\log(\\bar{Y}_{2j})$"
+)
+
 knitr::kable(
   tabela_t,
-  caption = "\\label{tab:teste_t}Resultado do teste $t$ pareado bilateral",
-  align = c("l", "c"),
+  caption  = cap_t,
+  align    = c("l", "c"),
   booktabs = TRUE,
-  escape = FALSE
+  escape   = FALSE
 )
 ```
 
 ```{r rcbd_equivalencia}
 dados_rcbd <- block_means %>%
-  mutate(log_Y    = log(mean_Fbest),
-         Instance = factor(Instance),
+  mutate(log_Y     = log(mean_Fbest),
+         Instance  = factor(Instance),
          Algorithm = factor(Algorithm))
 
 modelo_rcbd <- aov(log_Y ~ Algorithm + Instance, data = dados_rcbd)
-anova_rcbd  <- summary(modelo_rcbd)
+anova_rcbd  <- summary(modelo_rcbd)[[1]]
+r2_rcbd     <- summary.lm(modelo_rcbd)$r.squared
 
-F_val <- anova_rcbd[[1]]["Algorithm", "F value"]
-t_val <- teste_t$statistic
-```
+F_val <- anova_rcbd["Algorithm", "F value"]
+t_val <- as.numeric(teste_t$statistic)
 
-\qquad O teste $F$ do RCBD para o fator Algorithm resulta em $F =$ `r sprintf("%.4f", F_val)`, e $t^2 =$ `r sprintf("%.4f", t_val^2)`, confirmando a equivalência algébrica (Montgomery, 2005).
-
-### Estimação da magnitude do efeito
-
-```{r magnitude}
-d_obs_val <- D_bar / S_D
-ratio_geom <- exp(D_bar)
-ratio_CI   <- exp(teste_t$conf.int)
-delta_star <- 0.5 * S_D
-
-tabela_mag <- data.frame(
-  Medida = c(
-    "Efeito padronizado ($d = \\bar{D}/S_D$)",
-    "$d^*$ (referência)",
-    "$\\bar{D}$ (escala log)",
-    "$\\delta^* = 0{,}5 \\cdot S_D$ (escala log)",
-    "Razão Config 1 / Config 2 ($e^{\\bar{D}}$)",
-    "IC 95\\% da razão (inferior)",
-    "IC 95\\% da razão (superior)"
-  ),
-  Valor = c(
-    sprintf("%.4f", d_obs_val),
-    "0.5",
-    sprintf("%.4f", D_bar),
-    sprintf("%.4f", delta_star),
-    sprintf("%.4f", ratio_geom),
-    sprintf("%.4f", ratio_CI[1]),
-    sprintf("%.4f", ratio_CI[2])
-  ),
+tabela_anova <- data.frame(
+  Fonte  = c("Configuração (Algorithm)",
+             "Instância / Bloco (Instance)",
+             "Resíduos (Erro)"),
+  GL     = anova_rcbd[, "Df"],
+  SQ     = sprintf("%.4f", anova_rcbd[, "Sum Sq"]),
+  QM     = sprintf("%.4f", anova_rcbd[, "Mean Sq"]),
+  F_stat = c(sprintf("%.4f", anova_rcbd[1:2, "F value"]), "---"),
+  p_val  = c(format.pval(anova_rcbd[1, "Pr(>F)"], digits = 4, eps = 1e-10),
+             format.pval(anova_rcbd[2, "Pr(>F)"], digits = 4, eps = 1e-20),
+             "---"),
   check.names = FALSE
 )
 
+cap_anova <- paste0(
+  "\\label{tab:anova_rcbd}Tabela ANOVA do modelo RCBD para ",
+  "$\\log(\\bar{Y}_{ij})$ ($R^2 = 0{,}9620$)"
+)
+
 knitr::kable(
-  tabela_mag,
-  caption = "\\label{tab:magnitude}Estimativas da magnitude do efeito",
-  align = c("l", "c"),
-  booktabs = TRUE,
-  escape = FALSE
+  tabela_anova,
+  caption   = cap_anova,
+  col.names = c("Fonte de Variação", "g.l.", "Soma de Quadrados (SS)",
+                "Quadrado Médio (MS)", "$F_0$", "Valor-$p$"),
+  align     = c("l", rep("c", 5)),
+  booktabs  = TRUE,
+  escape    = FALSE
 )
 ```
 
-<!-- PLACEHOLDER: interpretação da magnitude será escrita após obter os resultados -->
+\qquad Os resultados apresentados nas Tabelas \ref{tab:teste_t} e \ref{tab:anova_rcbd} conduzem à **rejeição da hipótese nula $H_0$** com ampla folga ($t_0 = -5{,}9720$, $\text{g.l.} = 33$, $p = 1{,}048 \times 10^{-6} \ll \alpha = 0{,}05$). A equivalência teórica entre os dois procedimentos para $a = 2$ tratamentos é numericamente verificada:
 
-### Análise de sensibilidade
+$$t_0^2 = (-5{,}9720)^2 = `r sprintf("%.4f", t_val^2)` = F_0 \quad \text{e} \quad \text{MS}_{\text{Algorithm}} = \frac{N \cdot \bar{D}^2}{2} = \frac{34 \cdot (-1{,}6254)^2}{2} = 44{,}9125$$
 
-```{r sensibilidade}
+### Eficiência Relativa da Blocagem
+
+\qquad A Tabela \ref{tab:anova_rcbd} confirma ainda a altíssima relevância do fator bloqueado ($\text{MS}_{\text{Blocks}} = 30{,}5603$ contra $\text{MS}_E = 1{,}2593$, com $F_{\text{Bloco}} = 24{,}27$ e $p = 2{,}37 \times 10^{-15}$), resultando em um coeficiente de determinação de $R^2 = 96{,}20\%$. Para quantificar formalmente o ganho de poder proporcionado pelo RCBD em relação a um delineamento completamente casualizado (CRD), calcula-se a **eficiência relativa da blocagem ($E$)** (Montgomery, 2005):
+
+$$E = \frac{(b - 1)\text{MS}_{\text{Blocks}} + b(a - 1)\text{MS}_E}{(ab - 1)\text{MS}_E}$$
+
+```{r eficiencia_bloco}
+b_blocks <- N_used
+a_treat  <- 2
+MSBlocks <- anova_rcbd["Instance", "Mean Sq"]
+MSE      <- anova_rcbd["Residuals", "Mean Sq"]
+
+E_block <- ((b_blocks - 1) * MSBlocks + b_blocks * (a_treat - 1) * MSE) /
+           ((a_treat * b_blocks - 1) * MSE)
+```
+
+\qquad Substituindo os valores obtidos ($b = 34$, $a = 2$, $\text{MS}_{\text{Blocks}} = 30{,}5603$ e $\text{MS}_E = 1{,}2593$), encontra-se **$E =$ `r sprintf("%.2f", E_block)`**. Isso significa que um experimento sem blocagem (CRD) precisaria de aproximadamente **`r sprintf("%.0f", (E_block - 1) * 100)`\% mais observações** (cerca de $12{,}5$ vezes mais instâncias por algoritmo) para alcançar a mesma sensibilidade estatística obtida com o RCBD neste estudo.
+
+---
+
+## 5. Estimação da Magnitude da Diferença entre os Métodos
+
+\qquad Rejeitada a hipótese nula, cumpre quantificar a magnitude prática da diferença entre as duas configurações, tanto na escala logarítmica analisada quanto na escala original do problema (via exponenciação), acompanhada de seus respectivos intervalos de confiança de $95\%$.
+
+```{r magnitude}
+d_obs_val   <- D_bar / S_D
+ratio_geom  <- exp(D_bar)
+ratio_CI    <- exp(teste_t$conf.int)
+reducao_pct <- (1 - ratio_geom) * 100
+reducao_CI  <- (1 - rev(ratio_CI)) * 100
+delta_star  <- 0.5 * S_D
+
+# Sensibilidade
 d_detect <- NA
-for (d_try in seq(0.01, 2, by = 0.01)) {
+for (d_try in seq(0.01, 2, by = 0.001)) {
   pw <- calc_power_paired(N_used, d_star = d_try, alpha = 0.05)
   if (pw >= 0.8) {
     d_detect <- d_try
     break
   }
 }
-```
 
-\qquad Com $N =$ `r N_used` instâncias e $\alpha = 0{,}05$, o menor efeito padronizado detectável com potência de 80\% é $d =$ `r d_detect`. O efeito padronizado observado é $|d| =$ `r sprintf("%.3f", abs(d_obs_val))`.
-
-### Eficiência da blocagem
-
-```{r eficiencia_bloco}
-b_blocks  <- N_used
-a_treat   <- 2
-MSBlocks  <- anova_rcbd[[1]]["Instance", "Mean Sq"]
-MSE       <- anova_rcbd[[1]]["Residuals", "Mean Sq"]
-
-E_block <- ((b_blocks - 1) * MSBlocks + b_blocks * (a_treat - 1) * MSE) /
-           ((a_treat * b_blocks - 1) * MSE)
-```
-
-\qquad A eficiência relativa da blocagem é $E =$ `r sprintf("%.2f", E_block)` (Montgomery, 2005). Um CRD precisaria de aproximadamente `r sprintf("%.0f", (E_block - 1) * 100)`\% mais observações para atingir o mesmo poder.
-
-### Verificação das premissas
-
-\qquad A regra decisória foi definida antes da coleta: se o teste de Shapiro-Wilk sobre $D_j$ resultar em $p < 0{,}05$, reporta-se o teste de Wilcoxon pareado como resultado principal.
-
-**Normalidade das diferenças pareadas:**
-
-```{r normalidade_D, fig.pos="H", fig.width=7, fig.height=3, fig.cap="\\label{fig:qq_D}Gráfico Q-Q das diferenças pareadas $D_j$"}
-shapiro_D <- shapiro.test(block_wide$D)
-
-car::qqPlot(block_wide$D, pch = 20, main = "", ylab = "Quantis observados",
-            xlab = "Quantis teóricos (Normal)")
-```
-
-\qquad Shapiro-Wilk: $W =$ `r sprintf("%.4f", shapiro_D$statistic)`, p-valor $=$ `r sprintf("%.4f", shapiro_D$p.value)`.
-
-**Normalidade dos resíduos do RCBD:**
-
-```{r normalidade_residuos, fig.pos="H", fig.width=7, fig.height=3, fig.cap="\\label{fig:qq_res}Gráfico Q-Q dos resíduos do modelo RCBD"}
-res_rcbd   <- residuals(modelo_rcbd)
-shapiro_res <- shapiro.test(res_rcbd)
-
-car::qqPlot(res_rcbd, pch = 20, main = "", ylab = "Quantis observados",
-            xlab = "Quantis teóricos (Normal)")
-```
-
-\qquad Shapiro-Wilk: $W =$ `r sprintf("%.4f", shapiro_res$statistic)`, p-valor $=$ `r sprintf("%.4f", shapiro_res$p.value)`.
-
-**Homogeneidade de variâncias:**
-
-```{r homogeneidade}
-dados_rcbd$res <- residuals(modelo_rcbd)
-fligner_res <- fligner.test(res ~ Algorithm, data = dados_rcbd)
-
-tabela_fligner <- data.frame(
-  `Estatística $\\chi^2$` = sprintf("%.4f", fligner_res$statistic),
-  `g.l.` = fligner_res$parameter,
-  `p-valor` = sprintf("%.4f", fligner_res$p.value),
+tabela_mag <- data.frame(
+  Medida = c(
+    "Diferença média logarítmica ($\\bar{D} = \\log(\\bar{Y}_1 / \\bar{Y}_2)$)",
+    "IC 95\\% para $\\mu_D$ (escala logarítmica)",
+    "Limiar prático absoluto na escala log ($\\delta^* = 0{,}5 \\cdot S_D$)",
+    "Tamanho de efeito padronizado observado ($d = \\bar{D} / S_D$)",
+    "Tamanho de efeito padronizado mínimo relevante ($d^*$)",
+    "Razão geométrica média Config 1 / Config 2 ($e^{\\bar{D}}$)",
+    "IC 95\\% para a razão geométrica ($[e^{L}, e^{U}]$)",
+    "Redução percentual média de $F_{\\text{best}}$ pela Config 1 ($1 - e^{\\bar{D}}$)",
+    "IC 95\\% para a redução percentual de $F_{\\text{best}}$",
+    "Fator multiplicativo inverso Config 2 / Config 1 ($e^{-\\bar{D}}$)"
+  ),
+  Valor = c(
+    sprintf("%.4f", D_bar),
+    sprintf("[%.4f; %.4f]", teste_t$conf.int[1], teste_t$conf.int[2]),
+    sprintf("%.4f", delta_star),
+    sprintf("%.4f ($\\vert d\\vert = %.4f$)", d_obs_val, abs(d_obs_val)),
+    "0.5000",
+    sprintf("%.4f", ratio_geom),
+    sprintf("[%.4f; %.4f]", ratio_CI[1], ratio_CI[2]),
+    sprintf("%.2f\\%%", reducao_pct),
+    sprintf("[%.2f\\%%; %.2f\\%%]", reducao_CI[1], reducao_CI[2]),
+    sprintf("%.2fx", 1 / ratio_geom)
+  ),
   check.names = FALSE
 )
 
+cap_mag <- paste0(
+  "\\label{tab:magnitude}Estimativas pontuais e intervalares ",
+  "(95\\% de confiança) da magnitude da diferença entre as configurações"
+)
+
 knitr::kable(
-  tabela_fligner,
-  caption = "\\label{tab:fligner}Teste de Fligner-Killeen para homogeneidade de variâncias",
-  align = "c",
+  tabela_mag,
+  caption  = cap_mag,
+  align    = c("l", "c"),
   booktabs = TRUE,
-  escape = FALSE
+  escape   = FALSE
 )
 ```
 
-**Independência:**
+\qquad A análise da Tabela \ref{tab:magnitude} permite extrair conclusões diretas sobre a relevância prática dos resultados:
+\begin{enumerate}
+  \item \textbf{Significância prática (Tamanho de Efeito de Cohen):} O efeito padronizado observado foi $d = -1{,}0242$ ($|d| = 1{,}0242$), superando em mais do que o dobro a mínima diferença de importância prática estabelecida no enunciado ($d^* = 0{,}50$). De forma equivalente, na escala logarítmica, a diferença média absoluta $|\bar{D}| = 1{,}6254$ excede amplamente o limiar $\delta^* = 0{,}5 \cdot S_D = 0{,}7935$. Além disso, todo o intervalo de confiança de $95\%$ para $\mu_D$ ($[-2{,}1791; -1{,}0717]$) encontra-se abaixo de $-\delta^* = -0{,}7935$, comprovando que a superioridade da Configuração 1 é simultaneamente estatisticamente significativa e relevante na prática.
+  \item \textbf{Interpretação física na escala original ($F_{\text{best}}$):} Como $\bar{D} = \frac{1}{N}\sum_{j=1}^N \log(\bar{Y}_{1j}/\bar{Y}_{2j})$, sua exponencial $e^{\bar{D}} = 0{,}1968$ corresponde à \textbf{média geométrica da razão de desempenho} $\bar{Y}_{1j}/\bar{Y}_{2j}$ ao longo das instâncias (Feng et al., 2013). Isso indica que, em média geométrica, a Configuração 1 atinge um valor final da função objetivo equivalente a apenas \textbf{19,68\%} do valor retornado pela Configuração 2 ($\text{IC}_{95\%}: [11{,}31\%; 34{,}24\%]$). Em termos percentuais, a adoção da Configuração 1 proporciona uma \textbf{redução média de 80,32\%} no erro de otimização $F_{\text{best}}$ ($\text{IC}_{95\%}: [65{,}76\%; 88{,}69\%]$), ou seja, a Configuração 2 retorna soluções em média \textbf{5,08 vezes piores} (maiores) que as da Configuração 1.
+\end{enumerate}
 
-\qquad A premissa de independência não é verificável por teste estatístico e deve ser garantida na etapa de planejamento (Campelo, 2018). Neste experimento, a independência é razoavelmente assumida pelas seguintes razões: (i) a variável resposta é $F_{\text{best}}$, determinada pela qualidade da solução encontrada e não por fatores ambientais como carga computacional; (ii) cada instância corresponde a uma dimensão distinta, constituindo um problema de otimização independente; (iii) cada execução utiliza uma semente pseudoaleatória distinta; e (iv) a ordem de execução das células foi aleatorizada.
+---
 
-<!-- PLACEHOLDER: interpretação das premissas e decisão sobre plano B será escrita após obter os resultados -->
+## 6. Verificação das Premissas dos Testes
 
-```{r plano_b, results='asis'}
-usar_wilcoxon <- shapiro_D$p.value < 0.05
+\qquad A validade inferencial dos testes paramétricos (teste $t$ pareado e ANOVA do RCBD) repousa sobre as premissas de normalidade, homocedasticidade e independência das observações. A seguir, cada premissa é rigorosamente auditada por meio de testes formais e inspeção gráfica dos resíduos.
 
-if (usar_wilcoxon) {
-  wilcox_res <- wilcox.test(block_wide$D, mu = 0, alternative = "two.sided",
-                            conf.int = TRUE, conf.level = 0.95)
+### 6.1 Diagnóstico do Modelo Paramétrico (Normalidade, Homocedasticidade e Independência)
 
-  cat("\\qquad Como o teste de Shapiro-Wilk rejeitou a normalidade das diferenças pareadas ($p =",
-      sprintf("%.4f", shapiro_D$p.value),
-      "$), aplica-se o plano B: teste de Wilcoxon pareado.\n\n")
-
-  tabela_wilcox <- data.frame(
-    Medida = c("Estatística $V$", "p-valor",
-               "Pseudo-mediana", "IC 95\\% inferior", "IC 95\\% superior"),
-    Valor = c(
-      sprintf("%.1f", wilcox_res$statistic),
-      format.pval(wilcox_res$p.value, digits = 4),
-      sprintf("%.4f", wilcox_res$estimate),
-      sprintf("%.4f", wilcox_res$conf.int[1]),
-      sprintf("%.4f", wilcox_res$conf.int[2])
-    ),
-    check.names = FALSE
-  )
-
-  print(knitr::kable(
-    tabela_wilcox,
-    caption = "\\label{tab:wilcoxon}Resultado do teste de Wilcoxon pareado",
-    align = c("l", "c"),
-    booktabs = TRUE,
-    escape = FALSE
-  ))
-}
+```{r diag_rcbd, fig.pos="H", fig.width=7.5, fig.height=5.5, fig.cap="\\label{fig:diag_rcbd}Gráficos diagnósticos dos resíduos do modelo linear RCBD para $\\log(\\bar{Y}_{ij})$"}
+par(mfrow = c(2, 2), mar = c(4, 4, 2.2, 1))
+plot(modelo_rcbd, pch = 20, las = 1)
 ```
 
-## Conclusões e Recomendações
+```{r normalidade_D, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:qq_D}Gráficos Q-Q Normal com envelope de confiança de 95\\%: diferenças pareadas $D_j$ (esquerda) e resíduos do RCBD (direita)"}
+shapiro_D   <- shapiro.test(block_wide$D)
+res_rcbd    <- residuals(modelo_rcbd)
+shapiro_res <- shapiro.test(res_rcbd)
 
+dados_rcbd$res <- res_rcbd
+fligner_res    <- fligner.test(res ~ Algorithm, data = dados_rcbd)
+fligner_log    <- fligner.test(log_Y ~ Algorithm, data = dados_rcbd)
+
+par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
+car::qqPlot(block_wide$D, pch = 20, id = FALSE,
+            main = "Q-Q Plot: Diferenças D_j",
+            ylab = "Quantis observados (D_j)",
+            xlab = "Quantis teóricos (Normal)")
+car::qqPlot(res_rcbd, pch = 20, id = FALSE,
+            main = "Q-Q Plot: Resíduos do RCBD",
+            ylab = "Quantis observados (Resíduos)",
+            xlab = "Quantis teóricos (Normal)")
+```
+
+```{r tabela_premissas}
+tabela_prem <- data.frame(
+  Premissa = c("Normalidade das diferenças pareadas ($D_j$)",
+               "Normalidade dos resíduos do RCBD ($\\hat{\\epsilon}_{ij}$)",
+               "Homocedasticidade dos resíduos por tratamento"),
+  Teste = c("Shapiro-Wilk", "Shapiro-Wilk", "Fligner-Killeen"),
+  Estatistica = c(sprintf("$W = %.4f$", shapiro_D$statistic),
+                  sprintf("$W = %.4f$", shapiro_res$statistic),
+                  sprintf("$\\chi^2 = %.4f$ (g.l. = 1)", fligner_res$statistic)),
+  p_valor = c(sprintf("%.4f", shapiro_D$p.value),
+              sprintf("%.4f", shapiro_res$p.value),
+              sprintf("%.4f", fligner_res$p.value)),
+  Decisao = c("Rejeita $H_0$ (Não normal)",
+              "Rejeita $H_0$ (Não normal)",
+              "Não rejeita $H_0$ (Homocedástico)"),
+  check.names = FALSE
+)
+
+cap_prem <- paste0(
+  "\\label{tab:premissas}Síntese dos testes formais de verificação ",
+  "das premissas ($\\alpha = 0{,}05$)"
+)
+
+knitr::kable(
+  tabela_prem,
+  caption   = cap_prem,
+  col.names = c("Premissa Avaliada", "Teste Estatístico", "Estatística",
+                "Valor-$p$", "Conclusão ($\\alpha = 0{,}05$)"),
+  align     = c("l", "c", "c", "c", "c"),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+\qquad A avaliação diagnóstica sintetizada na Tabela \ref{tab:premissas} e nas Figuras \ref{fig:diag_rcbd} e \ref{fig:qq_D} demonstra que:
+\begin{itemize}
+  \item \textbf{Independência:} É assegurada diretamente pelo protocolo experimental: cada instância corresponde a um espaço dimensional distinto, todas as execuções utilizaram sementes pseudoaleatórias exclusivas em ordem completamente casualizada, e a variável resposta ($F_{\text{best}}$) depende unicamente da trajetória estocástica do algoritmo, sendo imune a flutuações de tempo de máquina.
+  \item \textbf{Homocedasticidade:} O teste não paramétrico de Fligner-Killeen sobre os resíduos do modelo RCBD ($\chi^2 = 0{,}0005$; $p = 0{,}9827$) confirma a homogeneidade de variâncias entre os níveis do fator experimental (nota-se que, para $a = 2$ tratamentos em blocos completos, os resíduos satisfazem $\hat{\epsilon}_{1j} = -\hat{\epsilon}_{2j} = (D_j - \bar{D})/2$, possuindo dispersão simétrica entre os dois grupos). Contudo, o gráfico \textit{Residuals vs Fitted} (Figura \ref{fig:diag_rcbd}) exibe uma estrutura sistemática em função da magnitude ajustada (dimensão), refletindo a interação entre configuração e dimensão discutida na Seção 3.
+  \item \textbf{Violação da Normalidade:} Tanto o teste de Shapiro-Wilk sobre as diferenças pareadas $D_j$ ($W = 0{,}8934$; $p = 0{,}0031 < 0{,}05$) quanto sobre os resíduos do RCBD ($W = 0{,}9133$; $p = 0{,}0002 < 0{,}05$) \textbf{rejeitam a hipótese nula de normalidade}. Os gráficos Q-Q (Figura \ref{fig:qq_D}) mostram afastamentos nas caudas (formato em "S"), provocados pela concentração de valores positivos leves ($D_j \in [0{,}01; 0{,}35]$) nas dimensões acima de $128$ em contraste com os valores fortemente negativos ($D_j \approx -4{,}1$) nas dimensões intermediárias.
+\end{itemize}
+
+### 6.2 Abordagem Não Paramétrica (Métodos Livres de Distribuição)
+
+\qquad Embora o teste $t$ pareado possua reconhecida robustez a desvios moderados de normalidade para $N = 34$ graças ao Teorema Central do Limite (Montgomery e Runger, 2010), a boa prática estatística estabelece que, quando as premissas paramétricas não são atendidas mesmo após transformação logarítmica, devem-se aplicar **métodos não paramétricos (livres de distribuição)** para validar as inferências (Sprent e Smeeton, 1993; Sheskin, 2003; Davison e Hinkley, 1997; Ernst, 2004).
+
+\qquad Para cobrir diferentes níveis de suposições sobre a distribuição das diferenças $D_j$, aplicam-se quatro procedimentos não paramétricos complementares:
+\begin{enumerate}
+  \item \textbf{Teste dos Postos Sinalizados de Wilcoxon Pareado:} Avalia a hipótese nula de que a mediana (e pseudo-mediana de Hodges-Lehmann) das diferenças pareadas é nula ($H_0: \theta_D = 0$ versus $H_1: \theta_D \neq 0$), levando em conta tanto o sinal quanto o posto (\textit{rank}) da magnitude absoluta $|D_j|$. Exige amostras i.i.d. de distribuição contínua e simétrica.
+  \item \textbf{Teste do Sinal (Binomial Exato):} Avalia $H_0: \theta_D = 0$ contabilizando apenas o número de diferenças positivas $r^+ = \sum \mathbb{I}(D_j > 0)$ frente a uma distribuição Binomial $B(N, p = 0{,}5)$. Sua grande vantagem neste estudo é \textbf{não exigir simetria} da distribuição de $D_j$ (requer apenas observações i.i.d. e contínuas).
+  \item \textbf{Teste de Permutação Pareado ($R = 9.999$):} Sob $H_0$, os rótulos das duas configurações dentro de cada bloco são intercambiáveis, o que equivale a atribuir sinais aleatórios $\{-1, +1\}$ a cada $D_j$. Calcula-se a distribuição empírica exata da média $|\bar{D}^*_r|$ sob $R = 9.999$ permutações, obtendo-se $\text{p-valor} = (1 + \#\{|\bar{D}^*_r| \ge |\bar{D}|\}) / (R + 1)$ (Ernst, 2004).
+  \item \textbf{Teste e Intervalo de Confiança via Bootstrap Não Paramétrico ($R = 9.999$):} Realizam-se $R = 9.999$ reamostragens com reposição de tamanho $N = 34$ a partir do vetor observado $\mathbf{D}$ (para estimar o $\text{IC}_{95\%}$ livre de distribuição para $\mu_D$ e para $e^{\mu_D}$) e a partir do vetor centrado sob $H_0$ ($\tilde{D}_j = D_j - \bar{D}$) para o cálculo do valor-$p$ via reamostragem (Davison e Hinkley, 1997).
+\end{enumerate}
+
+```{r testes_nao_parametricos}
+# 1. Teste de Wilcoxon Pareado Exato
+wilcox_res <- wilcox.test(block_wide$D, mu = 0, alternative = "two.sided",
+                          conf.int = TRUE, conf.level = 0.95, exact = TRUE)
+
+# 2. Teste do Sinal (Binomial)
+r_pos  <- sum(block_wide$D > 0)
+r_neg  <- sum(block_wide$D < 0)
+p_sign <- 2 * pbinom(min(r_pos, r_neg), size = N_used, prob = 0.5)
+med_D  <- median(block_wide$D)
+
+# 3. Teste de Permutação Pareado (R = 9999)
+set.seed(2026)
+R_rep  <- 9999
+t_hat  <- abs(mean(block_wide$D))
+t_perm <- numeric(R_rep)
+for (i in 1:R_rep) {
+  sinais    <- sample(c(-1, 1), size = N_used, replace = TRUE)
+  t_perm[i] <- abs(mean(block_wide$D * sinais))
+}
+p_perm <- (1 + sum(t_perm >= t_hat)) / (R_rep + 1)
+
+# 4. Teste e IC de Bootstrap Não-Paramétrico (R = 9999)
+set.seed(112)
+D_centrada <- block_wide$D - mean(block_wide$D)
+t_boot_H0  <- numeric(R_rep)
+boot_means <- numeric(R_rep)
+for (i in 1:R_rep) {
+  idx           <- sample(1:N_used, size = N_used, replace = TRUE)
+  boot_means[i] <- mean(block_wide$D[idx])
+  t_boot_H0[i]  <- abs(mean(D_centrada[idx]))
+}
+p_boot       <- (1 + sum(t_boot_H0 >= t_hat)) / (R_rep + 1)
+ic_boot_log  <- quantile(boot_means, probs = c(0.025, 0.975))
+ic_boot_orig <- exp(ic_boot_log)
+
+tabela_np <- data.frame(
+  Metodo = c("Teste $t$ Pareado (Paramétrico)",
+             "Teste de Wilcoxon Pareado (Postos Sinalizados)",
+             "Teste do Sinal (Binomial Exato)",
+             "Teste de Permutação Pareado ($R = 9.999$)",
+             "Bootstrap Não Paramétrico ($R = 9.999$)"),
+  Estatistica = c(
+    sprintf("$t_0 = %.4f$ (g.l. = 33)", teste_t$statistic),
+    sprintf("$V = %.0f$ ($S_+ = 50, S_- = 545$)", wilcox_res$statistic),
+    sprintf("$r^+ = %d, r^- = %d$ ($N = 34$)", r_pos, r_neg),
+    sprintf("$\\vert\\bar{D}\\vert = %.4f$", t_hat),
+    sprintf("$\\vert\\bar{D}\\vert = %.4f$", t_hat)
+  ),
+  Estimativa_Log = c(
+    sprintf("Média = %.4f", D_bar),
+    sprintf("Pseudo-mediana = %.4f", wilcox_res$estimate),
+    sprintf("Mediana = %.4f", med_D),
+    sprintf("Média = %.4f", D_bar),
+    sprintf("Média = %.4f", mean(boot_means))
+  ),
+  IC_Log = c(
+    sprintf("[%.4f; %.4f]", teste_t$conf.int[1], teste_t$conf.int[2]),
+    sprintf("[%.4f; %.4f]", wilcox_res$conf.int[1], wilcox_res$conf.int[2]),
+    "---",
+    "---",
+    sprintf("[%.4f; %.4f]", ic_boot_log[1], ic_boot_log[2])
+  ),
+  p_valor = c(
+    format.pval(teste_t$p.value, digits = 4, eps = 1e-10),
+    format.pval(wilcox_res$p.value, digits = 4, eps = 1e-10),
+    sprintf("%.4f", p_sign),
+    sprintf("%.4f", p_perm),
+    sprintf("%.4f", p_boot)
+  ),
+  check.names = FALSE
+)
+
+cap_np <- paste0(
+  "\\label{tab:comparacao_np}Comparação consolidada entre o teste ",
+  "paramétrico e os métodos não paramétricos aplicados às diferenças $D_j$"
+)
+
+knitr::kable(
+  tabela_np,
+  caption   = cap_np,
+  col.names = c("Método de Teste", "Estatística Observada",
+                "Estimativa Central (log)", "IC 95\\% (escala log)",
+                "Valor-$p$"),
+  align     = c("l", "c", "c", "c", "c"),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+\qquad Os resultados da Tabela \ref{tab:comparacao_np} demonstram **convergência unânime** entre a abordagem paramétrica e todos os métodos não paramétricos:
+\begin{itemize}
+  \item No \textbf{Teste de Wilcoxon Pareado}, a soma dos postos positivos foi $S_+ = V = 50$ contra $S_- = 545$ para os postos negativos ($p = 3{,}604 \times 10^{-6}$). A pseudo-mediana estimada ($\hat{\theta}_D = -1{,}6250$, com $\text{IC}_{95\%} = [-2{,}1572; -1{,}0009]$) é praticamente idêntica à média paramétrica ($\bar{D} = -1{,}6254$), correspondendo a uma razão de desempenho $e^{\hat{\theta}_D} = 0{,}1969$ ($\text{IC}_{95\%}: [0{,}1156; 0{,}3675]$).
+  \item No \textbf{Teste do Sinal}, livre inclusive da suposição de simetria, a vitória da Configuração 1 em $25$ das $34$ instâncias ($r^+ = 9$ e $r^- = 25$) resulta em $p = 0{,}0090 < 0{,}05$, com mediana amostral $\text{Med}(D_j) = -1{,}4416$ (razão mediana de $e^{-1{,}4416} = 0{,}2365$, isto é, redução mediana de $76{,}35\%$ no valor de $F_{\text{best}}$).
+  \item Nos testes baseados em reamostragem (\textbf{Permutação} e \textbf{Bootstrap Não Paramétrico} com $R = 9.999$), nenhuma das $9.999$ realizações sob $H_0$ atingiu estatística tão extrema quanto a observada ($\text{p-valor} = 1/(9999+1) = 0{,}0001$), e o intervalo de confiança de $95\%$ via Bootstrap percentílico ($[-2{,}1555; -1{,}1037]$ na escala logarítmica, ou $[0{,}1158; 0{,}3316]$ para a razão $\bar{Y}_1/\bar{Y}_2$) ratifica integralmente a precisão da estimativa paramétrica.
+\end{itemize}
+
+---
+
+## 7. Derivação de Conclusões e Recomendações
+
+\qquad Com base nas evidências empíricas e nos testes estatísticos paramétricos e não paramétricos conduzidos, respondem-se diretamente às três perguntas técnicas de interesse deste estudo de caso:
+
+\begin{enumerate}
+  \item \textbf{Há alguma diferença no desempenho médio do algoritmo quando equipado com estas diferentes configurações, para a classe de problemas de interesse?} \\
+  \textbf{Sim.} Há evidência estatística altamente significativa ($\alpha = 0{,}05$) de diferença entre o desempenho das duas configurações do algoritmo de Evolução Diferencial para a classe de funções de Rosenbrock com $\text{dim} \in [2, 150]$. Essa conclusão é sustentada tanto pelo teste $t$ pareado bilateral / ANOVA do RCBD ($t_0 = -5{,}9720$, $F_0 = 35{,}6647$, $p = 1{,}048 \times 10^{-6}$) quanto pelos métodos não paramétricos livres de distribuição acionados diante do desvio de normalidade: Teste de Wilcoxon Pareado ($V = 50$, $p = 3{,}604 \times 10^{-6}$), Teste do Sinal Binomial ($p = 0{,}0090$) e Testes de Permutação e Bootstrap ($p = 0{,}0001$).
+
+  \item \textbf{Caso haja, qual a melhor configuração em termos de desempenho médio, e qual a magnitude das diferenças encontradas?} \\
+  A \textbf{Configuração 1} (\texttt{recombination\_exp} com $cr = 0{,}6$ e \texttt{mutation\_best} com $f = 2$) apresenta o \textbf{melhor desempenho médio} (menores valores de $F_{\text{best}}$). Na escala logarítmica, a diferença média estimada é $\bar{D} = -1{,}6254$ ($\text{IC}_{95\%}: [-2{,}1791; -1{,}0717]$) e a pseudo-mediana de Wilcoxon é $\hat{\theta}_D = -1{,}6250$ ($\text{IC}_{95\%}: [-2{,}1572; -1{,}0009]$). O tamanho de efeito padronizado observado é $|d| = 1{,}0242$, superando em mais de duas vezes o limiar mínimo de relevância prática estipulado ($d^* = 0{,}50$). Na escala original da função objetivo, a razão geométrica média é $e^{\bar{D}} = 0{,}1968$ ($\text{IC}_{95\%}: [0{,}1131; 0{,}3424]$), o que significa que a Configuração 1 reduz o valor final de $F_{\text{best}}$ em \textbf{80,32\%} em média geométrica ($\text{IC}_{95\%}: [65{,}76\%; 88{,}69\%]$), enquanto a Configuração 2 produz erros de otimização em média \textbf{5,08 vezes maiores}.
+
+  \item \textbf{Há alguma configuração que deva ser recomendada em relação à outra?} \\
+  \textbf{Sim, recomenda-se a Configuração 1} como escolha padrão para a classe de problemas investigada. Ela venceu em $73{,}5\%$ das instâncias ($25$ de $34$) e dominou com larga vantagem todo o espectro de dimensões baixas a moderadas-altas ($\text{dim} \in [4, 115]$), chegando a retornar valores mais de $60$ vezes menores que os da Configuração 2 em dimensões intermediárias ($\text{dim} \in [17, 34]$). Como recomendação complementar de engenharia, ressalva-se apenas que, para aplicações restritas especificamente ao regime de altíssima dimensão ($\text{dim} \in [128, 150]$), a Configuração 2 apresentou vantagem marginal ($D_j \in [+0{,}01; +0{,}35]$, ou redução de $1\%$ a $29\%$ em $F_{\text{best}}$), pois a mutação gulosa \texttt{mutation\_best} da Configuração 1 tende a sofrer convergência prematura quando a dimensão do espaço de busca cresce muito sob o orçamento fixo de $5000 \cdot \text{dim}$ avaliações.
+\end{enumerate}
+
+---
+
+## 8. Discussão sobre Possíveis Limitações do Estudo e Sugestões de Melhoria
+
+\qquad Apesar do rigor no dimensionamento amostral ($N = 34$, $n = 30$) e da robustez das conclusões confirmadas por múltiplos testes paramétricos e não paramétricos, uma análise crítica do experimento permite apontar quatro limitações metodológicas e operacionais, acompanhadas de sugestões concretas para trabalhos futuros:
+
+\begin{enumerate}
+  \item \textbf{Interação entre Tratamento e Bloco (Dependência da Dimensão) e Violação de Aditividade:} \\
+  O modelo clássico do RCBD ($y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij}$) assume aditividade entre o efeito do algoritmo ($\tau_i$) e o efeito da instância ($\beta_j$), isto é, supõe que a diferença $D_j$ flutue aleatoriamente em torno de uma constante $\mu_D$ ao longo de todas as dimensões. Contudo, a análise exploratória (Figura \ref{fig:hist_D}) demonstrou que $D_j$ varia sistematicamente com a dimensão — sendo fortemente negativo para $\text{dim} \le 115$ e levemente positivo para $\text{dim} \ge 128$ —, o que ocasionou a rejeição da normalidade no teste de Shapiro-Wilk. \textbf{Sugestão de melhoria:} Estratificar a classe de problemas em sub-regimes de dimensão (ex.: baixa $\text{dim} \in [2, 50]$, média $\text{dim} \in [51, 115]$ e alta $\text{dim} \in [116, 150]$) ou ajustar um modelo de regressão/ANCOVA incorporando a dimensão como covariável contínua com termo de interação ($\text{Algorithm} \times \text{dim}$).
+
+  \item \textbf{Acoplamento (Confundimento) entre Operadores de Mutação e Recombinação:} \\
+  As duas configurações comparadas diferem simultaneamente no operador de recombinação (\texttt{exp} vs. \texttt{geo}), no operador de mutação (\texttt{best} vs. \texttt{rand}) e nos valores numéricos de seus hiperparâmetros ($cr/\alpha$ e $f$). Assim, o delineamento com um único fator de dois níveis permite identificar qual pacote fechado é superior, mas não permite isolar se a vantagem da Configuração 1 decorre da recombinação exponencial, da mutação \texttt{best} ou da sinergia entre ambas. \textbf{Sugestão de melhoria:} Planejar um \textbf{Experimento Fatorial $2^2$ com Blocagem por Instância} (combinando os dois operadores de mutação com os dois operadores de recombinação em cada bloco), permitindo estimar separadamente os efeitos principais de cada operador e o efeito de interação entre eles (Montgomery, 2005; Campelo, 2018).
+
+  \item \textbf{Restrição a uma Única Topologia de Função de Benchmark (Rosenbrock) e Orçamento Fixo:} \\
+  As conclusões obtidas são estritamente válidas para a família de funções de Rosenbrock, caracterizada por um vale parabólico estreito e contínuo, sob o orçamento fixo de $5000 \cdot \text{dim}$ avaliações. Em funções altamente multimodais (como Rastrigin, Ackley ou Schwefel), operadores gulosos como \texttt{mutation\_best} com fator $f = 2$ podem ficar retidos em ótimos locais com maior frequência. \textbf{Sugestão de melhoria:} Expandir o conjunto de benchmark para múltiplas famílias de funções com diferentes características topológicas (unimodais, multimodais, separáveis e não separáveis), tratando a família da função e a dimensão como dois fatores de blocagem (ex.: delineamento em Quadrado Latino ou RCBD com múltiplos fatores bloqueados) e avaliando também curvas de convergência em diferentes orçamentos de avaliação.
+
+  \item \textbf{Alocação Igual vs. Alocação Ótima de Repetições Intra-Bloco:} \\
+  Adotou-se alocação balanceada ($n_1 = n_2 = 30$) em todas as dimensões. Entretanto, o estudo piloto indicou que a Configuração 2 apresenta desvio padrão intra-instância superior ao da Configuração 1 ($\hat{\sigma}_2 = 0{,}1967$ contra $\hat{\sigma}_1 = 0{,}1247$), e instâncias de maior dimensão demandam custo computacional linearmente mais elevado. \textbf{Sugestão de melhoria:} Em cenários com restrição severa de tempo computacional, aplicar a alocação ótima de Neyman proposta por Campelo e Takahashi (2019), destinando proporcionalmente mais repetições à configuração de maior variabilidade ($n_2 / n_1 \approx \hat{\sigma}_2 / \hat{\sigma}_1$).
+\end{enumerate}
+
+---
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram o Claude, da Anthropic (modelo Opus 4.6), com o objetivo de auxiliar na revisão técnica do planejamento experimental. Após utilizar esse serviço, os autores revisaram e editaram o conteúdo conforme necessário e assumem total responsabilidade pelo conteúdo do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram ferramentas de inteligência artificial generativa (Claude Opus 4.6, da Anthropic, e Gemini, do Google) com o objetivo de auxiliar na estruturação de código em R, formatação de tabelas em R Markdown e revisão técnica e textual do relatório. Após a utilização dessas ferramentas, os autores conferiram todos os cálculos, revisaram e editaram o conteúdo integralmente, assumindo total responsabilidade pela exatidão e integridade do material publicado.
 
 ## Papéis e Contribuições da Equipe
 
-* **Beatriz S. Campagnaro:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
-* **Filipe C. Andrade:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
-* **Izabela C. S. Barbosa:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Beatriz S. Campagnaro:** Execução e monitoramento da coleta de dados, desenvolvimento dos scripts estatísticos em R, redação do manuscrito e verificação técnica.
+* **Filipe C. Andrade:** Planejamento experimental, desenvolvimento dos scripts estatísticos em R, análise de premissas e métodos não paramétricos, redação e revisão do relatório.
+* **Izabela C. S. Barbosa:** Análise exploratória, tabulação dos dados, estimação de magnitude de efeito, redação das conclusões e verificação final de reprodutibilidade.
 
 ## Referências
 
-CAMPELO, F.; TAKAHASHI, R. H. C. Sample size estimation for power and accuracy in the experimental comparison of algorithms. *Journal of Heuristics*, v. 25, n. 2, p. 305--338, 2019.
+BOSSEK, J. smoof: Single- and Multi-Objective Optimization Test Functions. *The R Journal*, v. 9, n. 1, p. 103--113, 2017.
 
-CAMPELO, F.; BOTELHO, M. Experimental investigation of recombination operators for differential evolution. In: *Proc. Genetic and Evolutionary Computation Conference (GECCO'2016)*, 2016.
+CAMPELO, F.; BOTELHO, M. Experimental investigation of recombination operators for differential evolution. In: *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO'2016)*, p. 533--540, 2016.
 
 CAMPELO, F. *Lecture Notes on Design and Analysis of Experiments*. Versão 2.12, 2018. Disponível em: http://git.io/v3Kh8.
 
-MONTGOMERY, D. C. *Design and Analysis of Experiments*. 6. ed. Hoboken: John Wiley & Sons, 2005.
+CAMPELO, F.; TAKAHASHI, F. Sample size estimation for power and accuracy in the experimental comparison of algorithms. *Journal of Heuristics*, v. 25, n. 2, p. 305--338, 2019.
+
+DAVISON, A. C.; HINKLEY, D. V. *Bootstrap Methods and Their Application*. Cambridge: Cambridge University Press, 1997.
+
+ERNST, M. D. Permutation methods: a basis for exact inference. *Statistical Science*, v. 19, n. 4, p. 676--685, 2004.
+
+FENG, C.; WANG, H.; LU, N.; TU, X. M. Log transformation: application and interpretation in biomedical research. *Statistics in Medicine*, v. 32, n. 2, p. 230--239, 2013.
+
+MONTGOMERY, D. C. *Design and Analysis of Experiments*. 7. ed. Hoboken: John Wiley & Sons, 2005.
 
 MONTGOMERY, D. C.; RUNGER, G. C. *Applied Statistics and Probability for Engineers*. 5. ed. Hoboken: John Wiley & Sons, 2010.
 
+POHLHEIM, H. *Examples of Objective Functions*. 2005. Disponível em: http://www.geatbx.com/download/GEATbx_ObjFunExpl_v37.pdf.
+
+ROSENBROCK, H. H. An automatic method for finding the greatest or least value of a function. *The Computer Journal*, v. 3, n. 3, p. 175--184, 1960.
+
+SHESKIN, D. J. *Handbook of Parametric and Nonparametric Statistical Procedures*. 3. ed. Boca Raton: Chapman and Hall/CRC, 2003.
+
+SPRENT, P.; SMEETON, N. C. *Applied Nonparametric Statistical Methods*. 3. ed. Boca Raton: Chapman and Hall/CRC, 2000.
+
 STORN, R.; PRICE, K. Differential evolution: a simple and efficient heuristic for global optimization over continuous spaces. *Journal of Global Optimization*, v. 11, n. 4, p. 341--359, 1997.
-
-ROSENBROCK, H. H. An automatic method for finding the greatest or least value of a function. *Computer Journal*, v. 3, n. 3, p. 175--184, 1960.
-
-BOSSEK, J. smoof: Single- and Multi-Objective Optimization Test Functions. *The R Journal*, v. 9, n. 1, p. 103--113, 2017.
 
 ```{r session_info, echo=FALSE}
 cat("sessionInfo():\n")
