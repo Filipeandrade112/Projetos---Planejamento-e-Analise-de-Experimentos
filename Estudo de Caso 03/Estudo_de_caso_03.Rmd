@@ -1,7 +1,7 @@
 ---
 title: 'Estudo de Caso 03: Comparação de desempenho de duas configurações de um algoritmo de otimização'
 author: "Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa"
-date: "18 de Outubro de 2026"
+date: "18 de outubro de 2026"
 output:
   pdf_document:
     fig_caption: yes
@@ -54,7 +54,7 @@ if (!require(kableExtra, quietly = TRUE)){
 
 ## Resumo
 
-\qquad Este estudo compara o desempenho de duas configurações do algoritmo de evolução diferencial (DE) aplicadas à classe de funções Rosenbrock com dimensão entre 2 e 150. O delineamento adotado é um experimento em blocos completos casualizados (RCBD), em que cada instância (dimensão) constitui um bloco e as duas configurações são os tratamentos. A variável resposta é a média do melhor valor da função objetivo ($F_{\text{best}}$) sobre as repetições em cada célula, transformada pela função logaritmo para estabilizar a escala entre instâncias. O teste principal é o teste $t$ pareado sobre as diferenças dos logaritmos das médias de bloco, equivalente ao teste $F$ do RCBD quando há dois tratamentos. Os resultados da análise, lorem lroem lorem.
+\qquad Este estudo compara o desempenho de duas configurações do algoritmo de Evolução Diferencial (DE) aplicadas à classe de funções Rosenbrock, com dimensões entre 2 e 150, visando identificar diferenças de desempenho médio, estimar sua magnitude e estabelecer recomendações técnicas. Adotou-se um delineamento em blocos completos casualizados (RCBD), no qual 34 dimensões selecionadas aleatoriamente constituíram os blocos, com 30 execuções independentes de cada configuração por instância, totalizando 2.040 execuções. A variável resposta foi definida como o logaritmo da média dos melhores valores finais da função objetivo (Fbest) em cada combinação de configuração e instância. A comparação estatística foi realizada por meio do teste t pareado bilateral, equivalente ao teste F da ANOVA do RCBD para dois tratamentos, com nível de significância de 5%. Os resultados indicaram diferença estatisticamente significativa entre as configurações ((t=-5,9720); $(p=1,048\times10^{-6})$), com diferença média logarítmica de (-1,6254) e intervalo de confiança de 95% de ($[-2,1791;-1,0717]$), favorecendo a Configuração 1. A razão geométrica média dos desempenhos foi aproximadamente 0,197, correspondente a uma redução relativa de 80,3% segundo a medida adotada. Embora os testes de normalidade tenham identificado desvios da distribuição normal, a análise de sensibilidade por bootstrap não paramétrico apresentou intervalos de confiança próximos ao paramétrico, reforçando a estabilidade da conclusão sobre a diferença média. Entretanto, a análise exploratória revelou dependência do desempenho relativo em relação à dimensão: a Configuração 1 apresentou melhores resultados nas 25 instâncias amostradas de dimensões entre 4 e 115, enquanto a Configuração 2 foi favorecida nas nove instâncias de dimensões entre 128 e 150. Conclui-se que a Configuração 1 apresenta vantagem média global na medida de desempenho considerada, mas que a recomendação de seu uso deve considerar a dimensionalidade do problema, uma vez que a superioridade observada não é uniforme ao longo da classe investigada.
 
 ## Introdução
 
@@ -67,7 +67,7 @@ if (!require(kableExtra, quietly = TRUE)){
   \item \textbf{Configuração 2:} operador de recombinação geométrica (\texttt{recombination\_geo}, com $\alpha = 0{,}6$) combinado ao operador de mutação aleatória (\texttt{mutation\_rand}, com $f = 1{,}2$).
 \end{itemize}
 
-\qquad Os demais parâmetros operacionais são mantidos fixos e idênticos para ambas as configurações em cada dimensão $\text{dim}$: seleção padrão (\texttt{selection\_standard}), tamanho da população $N_{\text{pop}} = 5 \cdot \text{dim}$, e critério de parada por orçamento máximo de avaliações da função objetivo ($\text{maxevals} = 5000 \cdot \text{dim}$ ou $\text{maxiter} = 100 \cdot \text{dim}$). O indicador de desempenho de cada execução é o melhor valor da função objetivo encontrado ao final da busca ($F_{\text{best}}$), de modo que menores valores indicam melhor desempenho do algoritmo.
+\qquad Os demais parâmetros operacionais são mantidos fixos e idênticos para ambas as configurações em cada dimensão $\text{dim}$: seleção padrão (\texttt{selection\_standard}), tamanho da população $N_{\text{pop}} = 5 \cdot \text{dim}$, e critério de parada por orçamento máximo de avaliações da função objetivo ($\text{maxevals} = 5000 \cdot \text{dim}$). O indicador de desempenho de cada execução é o melhor valor da função objetivo encontrado ao final da busca ($F_{\text{best}}$), sendo que menores valores indicam melhor desempenho do algoritmo.
 
 \qquad A investigação é conduzida para responder às três questões propostas: (i) verificar se há diferença estatisticamente significativa no desempenho médio do algoritmo equipado com as duas configurações na classe de problemas de interesse; (ii) caso exista, identificar qual é a melhor configuração e estimar a magnitude dessa diferença; e (iii) estabelecer se alguma configuração deve ser recomendada em relação à outra. O relatório está estruturado sequencialmente nas oito etapas metodológicas preconizadas para o planejamento e a análise do experimento.
 
@@ -91,7 +91,7 @@ $$D_j = y_{1j} - y_{2j} = \log(\bar{Y}_{1j}) - \log(\bar{Y}_{2j}) = \log\left(\f
 
 $$\begin{cases} H_0: \mu_D = 0 \\ H_1: \mu_D \neq 0 \end{cases}$$
 
-\noindent onde $\mu_D = E[D_j]$ representa a diferença média populacional na escala logarítmica. Complementarmente, estabelece-se a priori que, caso a premissa de normalidade das diferenças $D_j$ seja rejeitada ($\alpha = 0{,}05$), serão empregados métodos não paramétricos pareados (Teste dos Postos Sinalizados de Wilcoxon, Teste do Sinal e Testes de Permutação/Bootstrap), cujas hipóteses avaliam a localização central (mediana ou pseudo-mediana $\theta_D$) da distribuição das diferenças: $H_0: \theta_D = 0$ versus $H_1: \theta_D \neq 0$.
+\noindent em que $\mu_D=E[D_j]$ representa a diferença média populacional na escala logarítmica. A inferência principal será conduzida por meio do teste t pareado bilateral. Embora a normalidade das diferenças seja necessária para a validade exata da distribuição de referência desse teste, o procedimento apresenta robustez a determinados desvios dessa premissa. Assim, a adequação da inferência paramétrica será avaliada por meio de testes de normalidade e inspeção gráfica. Caso sejam identificados desvios de normalidade, será realizada uma análise complementar de sensibilidade por bootstrap não paramétrico, com estimação de intervalos de confiança para ($\mu_D$), visando avaliar a estabilidade da inferência sobre a diferença média. Opta-se por não empregar os testes dos Postos Sinalizados de Wilcoxon e do Sinal como substitutos do teste principal, uma vez que esses procedimentos investigam hipóteses distintas, relacionadas à localização central ou à distribuição dos sinais das diferenças, e não necessariamente à média populacional, que constitui o parâmetro de interesse deste estudo.
 
 ## 2. Cálculo dos Tamanhos Amostrais
 
@@ -328,7 +328,7 @@ mostra_df <- block_wide[idx_mostra, ] %>%
 
 cap_mostra <- paste0(
   "\\label{tab:amostra_blocos}Tabulação das médias de bloco e diferenças ",
-  "pareadas para 10 instâncias representativas dentre as 34 avaliadas"
+  "pareadas para 10 instâncias selecionadas para ilustração dentre as 34 avaliadas"
 )
 
 knitr::kable(
@@ -348,7 +348,7 @@ knitr::kable(
 
 \qquad A inspeção conjunta das Tabelas \ref{tab:resumo_descritivo} e \ref{tab:amostra_blocos} mostra por que a transformação logarítmica é indispensável: na escala original, as médias $\bar{Y}_{ij}$ variam de $1{,}07$ ($\text{dim} = 6$) a $741.361{,}35$ ($\text{dim} = 150$), abrangendo seis ordens de grandeza. Na escala logarítmica, a dispersão é estabilizada e permite comparar diretamente a proporção entre o desempenho das configurações em cada bloco.
 
-```{r exploratoria_boxplot, fig.pos="H", fig.width=7, fig.height=3.3, fig.cap="\\label{fig:boxplot_log}Distribuição de $\\log(\\bar{Y}_{ij})$ por configuração ao longo das 34 instâncias"}
+```{r exploratoria_boxplot, fig.pos="H", fig.width=7, fig.height=3.3, fig.cap="\\label{fig:boxplot_log}Distribuição de $\\log(\\bar{Y}_{ij})$ por configuração ao longo das 34 instâncias."}
 block_long <- block_wide %>%
   select(Instance, log_C1, log_C2) %>%
   pivot_longer(cols      = c(log_C1, log_C2),
@@ -363,13 +363,15 @@ ggplot(block_long, aes(x = Config, y = log_mean, fill = Config)) +
   geom_jitter(width = 0.12, size = 1.8, alpha = 0.7) +
   scale_fill_manual(values = c("Configuração 1 (exp + best)" = "steelblue",
                                "Configuração 2 (geo + rand)" = "tomato")) +
-  labs(x = "Tratamento (Configuração do DE)",
+  labs(title = "Distribuição do Desempenho por Configuração",
+       x = "Tratamento (Configuração do DE)",
        y = expression(log(bar(Y)[ij]))) +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5))
 ```
 
-```{r exploratoria_perfil, fig.pos="H", fig.width=7.5, fig.height=3.6, fig.cap="\\label{fig:perfil}Perfil de desempenho por bloco (instância): $\\log(\\bar{Y}_{ij})$ para cada configuração em função da dimensão"}
+```{r exploratoria_perfil, fig.pos="H", fig.width=7.5, fig.height=3.6, fig.cap="\\label{fig:perfil}Perfil de desempenho por bloco (instância): $\\log(\\bar{Y}_{ij})$ para cada configuração em função da dimensão."}
 ggplot(block_wide, aes(x = Instance)) +
   geom_line(aes(y = log_C1, color = "Configuração 1 (exp + best)"),
             linetype = "dashed", linewidth = 0.7) +
@@ -383,19 +385,21 @@ ggplot(block_wide, aes(x = Instance)) +
                alpha = 0.35, color = "gray40") +
   scale_color_manual(values = c("Configuração 1 (exp + best)" = "steelblue",
                                 "Configuração 2 (geo + rand)" = "tomato")) +
-  labs(x     = "Dimensão da Instância (Bloco)",
+  labs(title = "Perfil de Desempenho por Dimensão",
+       x     = "Dimensão da Instância (Bloco)",
        y     = expression(log(bar(Y)[ij])),
        color = "Tratamento") +
   theme_minimal() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
 ```
 
-```{r exploratoria_diff, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:hist_D}Esquerda: Histograma das diferenças pareadas $D_j$. Direita: Evolução de $D_j$ em função da dimensão"}
+```{r exploratoria_diff, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:hist_D}Esquerda: Histograma das diferenças pareadas $D_j$. Direita: Evolução de $D_j$ em função da dimensão."}
 par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
 
 # Painel 1: Histograma de D_j
 hist(block_wide$D, breaks = 10, col = "steelblue", border = "white",
-     main = "Distribuição de D_j",
+     main = expression("Distribuição de " * D[j]),
      xlab = expression(D[j] == log(bar(Y)[1*j]) - log(bar(Y)[2*j])),
      ylab = "Frequência")
 abline(v = 0, col = "red", lwd = 2, lty = 2)
@@ -407,7 +411,7 @@ legend("topleft", legend = c("H0 (D = 0)", "Média (-1,63)"),
 # Painel 2: D_j versus Dimensão
 cores_pts <- ifelse(block_wide$D < 0, "steelblue", "tomato")
 plot(block_wide$Instance, block_wide$D, pch = 19, col = cores_pts,
-     main = "Diferença Pareada vs. Dimensão",
+     main = expression("Diferença Pareada vs. Dimensão"),
      xlab = "Dimensão da Instância",
      ylab = expression(D[j]))
 abline(h = 0, col = "red", lwd = 2, lty = 2)
@@ -420,7 +424,7 @@ legend("bottomright",
 \begin{enumerate}
   \item \textbf{Superioridade global da Configuração 1:} Na Figura \ref{fig:boxplot_log}, a distribuição de $\log(\bar{Y}_{1j})$ apresenta mediana ($10{,}15$) e média ($8{,}87$) visivelmente inferiores às da Configuração 2 (mediana de $11{,}90$ e média de $10{,}50$), além de um deslocamento consistente para valores menores no gráfico de perfil por bloco (Figura \ref{fig:perfil}).
   \item \textbf{Forte efeito de bloco (dimensão):} A Figura \ref{fig:perfil} mostra que ambas as curvas crescem acentuadamente com a dimensão do problema, confirmando que a blocagem por instância pode ser usada para isolar o efeito da dimensão do efeito dos operadores do algoritmo.
-  \item \textbf{Mudança de regime em dimensões muito altas:} O painel direito da Figura \ref{fig:hist_D} mostra o comportamento das diferenças $D_j$ ao longo das dimensões. Nas primeiras \textbf{25 instâncias} ($\text{dim} \in [4, 115]$, correspondendo a $73{,}5\%$ dos blocos), tem-se $D_j < 0$, com vantagem expressiva da Configuração 1 (atingindo $D_j = -4{,}16$ em $\text{dim} = 34$, onde $\bar{Y}_{1} = 314{,}22$ contra $\bar{Y}_{2} = 20.205{,}54$). A partir de $\text{dim} = 128$ (nas $9$ instâncias finais, $\text{dim} \in [128, 150]$), ocorre uma leve inversão ($D_j \in [+0{,}01; +0{,}35]$), na qual a Configuração 2 passa a obter valores ligeiramente menores. Esse comportamento em "U" explica a concentração de observações próxima a zero no histograma de $D_j$ (painel esquerdo da Figura \ref{fig:hist_D}).
+  \item \textbf{Mudança de regime em dimensões muito altas:} O painel direito da Figura \ref{fig:hist_D} mostra o comportamento das diferenças $D_j$ ao longo das dimensões. Nas primeiras \textbf{25 instâncias} ($\text{dim} \in [4, 115]$, correspondendo a $73{,}5\%$ dos blocos), tem-se $D_j < 0$, com vantagem expressiva da Configuração 1 (atingindo $D_j = -4{,}16$ em $\text{dim} = 34$, onde $\bar{Y}_{1} = 314{,}22$ contra $\bar{Y}_{2} = 20.205{,}54$). A partir de $\text{dim} = 128$ (nas $9$ instâncias finais, $\text{dim} \in [128, 150]$), ocorre uma leve inversão ($D_j \in [+0{,}01; +0{,}35]$), na qual a Configuração 2 passa a obter valores ligeiramente menores. Esse padrão é compatível com a concentração de observações próxima a zero no histograma de $D_j$ (painel esquerdo da Figura \ref{fig:hist_D}).
 \end{enumerate}
 
 ## 4. Teste das Hipóteses
@@ -516,7 +520,7 @@ $$t_0^2 = (-5{,}9720)^2 = `r sprintf("%.4f", t_val^2)` = F_0 \quad \text{e} \qua
 
 ### Eficiência Relativa da Blocagem
 
-\qquad A Tabela \ref{tab:anova_rcbd} confirma a importancia do fator bloqueado ($\text{MS}_{\text{Blocks}} = 30{,}5603$ contra $\text{MS}_E = 1{,}2593$, com $F_{\text{Bloco}} = 24{,}27$ e $p = 2{,}37 \times 10^{-15}$), resultando em um coeficiente de determinação de $R^2 = 96{,}20\%$. Para quantificar formalmente o ganho de poder proporcionado pelo RCBD em relação a um delineamento completamente casualizado (CRD), calcula-se a eficiência relativa da blocagem ($E$) (Montgomery, 2005):
+\qquad A Tabela \ref{tab:anova_rcbd} confirma a importância do fator bloqueado ($\text{MS}_{\text{Blocks}} = 30{,}5603$ contra $\text{MS}_E = 1{,}2593$, com $F_{\text{Bloco}} = 24{,}27$ e $p = 2{,}37 \times 10^{-15}$), resultando em um coeficiente de determinação de $R^2 = 96{,}20\%$. Para quantificar formalmente o ganho de poder proporcionado pelo RCBD em relação a um delineamento completamente casualizado (CRD), calcula-se a eficiência relativa da blocagem ($E$) (Montgomery, 2005):
 
 $$E = \frac{(b - 1)\text{MS}_{\text{Blocks}} + b(a - 1)\text{MS}_E}{(ab - 1)\text{MS}_E}$$
 
@@ -535,31 +539,27 @@ E_block <- ((b_blocks - 1) * MSBlocks + b_blocks * (a_treat - 1) * MSE) /
 
 ## 5. Verificação das Premissas dos Testes
 
-\qquad A validade inferencial dos testes paramétricos (teste $t$ pareado e ANOVA do RCBD) repousa sobre as premissas de normalidade, homocedasticidade e independência das observações. A seguir, cada premissa é verificado por meio de testes formais e inspeção gráfica dos resíduos.
+\qquad  A adequação dos procedimentos inferenciais é avaliada considerando as premissas estatísticas pertinentes ao delineamento adotado. São examinadas principalmente a distribuição das diferenças pareadas, a independência das observações e os diagnósticos do modelo em blocos, com atenção às particularidades decorrentes da presença de apenas dois tratamentos.
 
-### 5.1 Diagnóstico do Modelo Paramétrico (Normalidade, Homocedasticidade e Independência)
+### 5.1 Diagnóstico do Modelo Paramétrico (Normalidade e Independência)
 
-```{r diag_rcbd, fig.pos="H", fig.width=7.5, fig.height=5.5, fig.cap="\\label{fig:diag_rcbd}Gráficos diagnósticos dos resíduos do modelo linear RCBD para $\\log(\\bar{Y}_{ij})$"}
+```{r diag_rcbd, fig.pos="H", fig.width=7.5, fig.height=5.5, fig.cap="\\label{fig:diag_rcbd}Gráficos diagnósticos dos resíduos do modelo linear RCBD para $\\log(\\bar{Y}_{ij}).$"}
 par(mfrow = c(2, 2), mar = c(4, 4, 2.2, 1))
 plot(modelo_rcbd, pch = 20, las = 1)
 ```
 
-```{r normalidade_D, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:qq_D}Gráficos Q-Q Normal com envelope de confiança de 95\\%: diferenças pareadas $D_j$ (esquerda) e resíduos do RCBD (direita)"}
+```{r normalidade_D, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:qq_D}Gráficos Q-Q Normal com envelope de confiança de 95\\%: diferenças pareadas $D_j$ (esquerda) e resíduos do RCBD (direita)."}
 shapiro_D   <- shapiro.test(block_wide$D)
 res_rcbd    <- residuals(modelo_rcbd)
 shapiro_res <- shapiro.test(res_rcbd)
 
-dados_rcbd$res <- res_rcbd
-fligner_res    <- fligner.test(res ~ Algorithm, data = dados_rcbd)
-fligner_log    <- fligner.test(log_Y ~ Algorithm, data = dados_rcbd)
-
 par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
 car::qqPlot(block_wide$D, pch = 20, id = FALSE,
-            main = "Q-Q Plot: Diferenças D_j",
-            ylab = "Quantis observados (D_j)",
+            main = expression("Q-Q Plot: Diferenças " * D[j]),
+            ylab = expression("Quantis observados " * (D[j])),
             xlab = "Quantis teóricos (Normal)")
 car::qqPlot(res_rcbd, pch = 20, id = FALSE,
-            main = "Q-Q Plot: Resíduos do RCBD",
+            main = expression("Q-Q Plot: Resíduos do RCBD"),
             ylab = "Quantis observados (Resíduos)",
             xlab = "Quantis teóricos (Normal)")
 ```
@@ -567,18 +567,14 @@ car::qqPlot(res_rcbd, pch = 20, id = FALSE,
 ```{r tabela_premissas}
 tabela_prem <- data.frame(
   Premissa = c("Normalidade das diferenças pareadas ($D_j$)",
-               "Normalidade dos resíduos do RCBD ($\\hat{\\epsilon}_{ij}$)",
-               "Homocedasticidade dos resíduos por tratamento"),
-  Teste = c("Shapiro-Wilk", "Shapiro-Wilk", "Fligner-Killeen"),
+               "Normalidade dos resíduos do RCBD ($\\hat{\\epsilon}_{ij}$)"),
+  Teste = c("Shapiro-Wilk", "Shapiro-Wilk"),
   Estatistica = c(sprintf("$W = %.4f$", shapiro_D$statistic),
-                  sprintf("$W = %.4f$", shapiro_res$statistic),
-                  sprintf("$\\chi^2 = %.4f$ (g.l. = 1)", fligner_res$statistic)),
+                  sprintf("$W = %.4f$", shapiro_res$statistic)),
   p_valor = c(sprintf("%.4f", shapiro_D$p.value),
-              sprintf("%.4f", shapiro_res$p.value),
-              sprintf("%.4f", fligner_res$p.value)),
+              sprintf("%.4f", shapiro_res$p.value)),
   Decisao = c("Rejeita $H_0$ (Não normal)",
-              "Rejeita $H_0$ (Não normal)",
-              "Não rejeita $H_0$ (Homocedástico)"),
+              "Rejeita $H_0$ (Não normal)"),
   check.names = FALSE
 )
 
@@ -598,24 +594,167 @@ knitr::kable(
 )
 ```
 
-A avaliação é sintetizada na Tabela \ref{tab:premissas} e nas Figuras \ref{fig:diag_rcbd} e \ref{fig:qq_D} demonstra que:
+A avaliação sintetizada na Tabela \ref{tab:premissas} e nas Figuras \ref{fig:diag_rcbd} e \ref{fig:qq_D} demonstra que:
 
 \begin{itemize}
   \item \textbf{Independência:} É assegurada diretamente pelo protocolo experimental: cada instância corresponde a um espaço dimensional distinto, todas as execuções utilizaram sementes pseudoaleatórias, e a variável resposta ($F_{\text{best}}$) depende unicamente da trajetória estocástica do algoritmo, sendo imune a flutuações de tempo de máquina.
-  \item \textbf{Homocedasticidade:} O teste não paramétrico de Fligner-Killeen sobre os resíduos do modelo RCBD ($\chi^2 = 0{,}0005$; $p = 0{,}9827$) confirma a homogeneidade de variâncias entre os níveis do fator experimental (nota-se que, para $a = 2$ tratamentos em blocos completos, os resíduos satisfazem $\hat{\epsilon}_{1j} = -\hat{\epsilon}_{2j} = (D_j - \bar{D})/2$, possuindo dispersão simétrica entre os dois grupos). Contudo, o gráfico \textit{Residuals vs Fitted} (Figura \ref{fig:diag_rcbd}) exibe uma estrutura sistemática em função da magnitude ajustada (dimensão), refletindo a interação entre configuração e dimensão discutida na Seção 3.
+
   \item \textbf{Violação da Normalidade:} Tanto o teste de Shapiro-Wilk sobre as diferenças pareadas $D_j$ ($W = 0{,}8934$; $p = 0{,}0031 < 0{,}05$) quanto sobre os resíduos do RCBD ($W = 0{,}9133$; $p = 0{,}0002 < 0{,}05$) \textbf{rejeitam a hipótese nula de normalidade}. Os gráficos Q-Q (Figura \ref{fig:qq_D}) mostram afastamentos nas caudas (formato em "S"), provocados pela concentração de valores positivos leves ($D_j \in [0{,}01; 0{,}35]$) nas dimensões acima de $128$ em contraste com os valores fortemente negativos ($D_j \approx -4{,}1$) nas dimensões intermediárias.
 \end{itemize}
 
+\qquad Embora a homocedasticidade constitua uma premissa do modelo clássico de ANOVA, a comparação entre os dois tratamentos neste delineamento em blocos completos é algebricamente equivalente ao teste t pareado. Como a inferência principal é conduzida sobre as diferenças intra-bloco, não se exige igualdade das variâncias marginais dos tratamentos. Adicionalmente, os resíduos dos dois tratamentos possuem sinais opostos e igual magnitude em cada bloco, tornando não informativa a aplicação de testes de homogeneidade de variâncias entre esses conjuntos residuais, como o teste de Fligner-Killeen. Dessa forma, a avaliação das premissas concentra-se nas propriedades das diferenças pareadas.
+
+### 5.2. Análise de Robustez do Teste t Pareado por Bootstrap
+
+\qquad Diante da rejeição da hipótese de normalidade das diferenças pareadas pelo teste de Shapiro-Wilk, realizou-se uma análise complementar de sensibilidade por bootstrap não paramétrico, com o objetivo de avaliar a estabilidade da inferência sobre a diferença média entre as configurações. Foram realizadas 20.000 reamostragens com reposição das 34 diferenças pareadas, preservando-se a instância como unidade amostral. Estimaram-se intervalos de confiança de 95% pelo método percentílico e pelo método BCa (bias-corrected and accelerated), comparando-os ao intervalo paramétrico obtido pelo teste t pareado.
+
+``` {r analise_bootstrap}
+
+# Diferenças logarítmicas entre as configurações
+D <- block_wide$D
+N <- length(D)
+
+stopifnot(N == 34, all(is.finite(D)))
+
+# Estatística de interesse: média das diferenças
+estatistica_media <- function(dados, indices) {
+  mean(dados[indices])
+}
+
+# Bootstrap não paramétrico
+set.seed(2026)
+B <- 20000
+
+boot_result <- boot::boot(
+  data = D,
+  statistic = estatistica_media,
+  R = B
+)
+
+# Intervalo percentílico e BCa
+intervalos_boot <- boot::boot.ci(
+  boot_result,
+  conf = 0.95,
+  type = c("perc", "bca")
+)
+
+IC_percentil <- intervalos_boot$percent[1, 4:5]
+IC_BCa <- intervalos_boot$bca[1, 4:5]
+
+# Intervalo paramétrico já utilizado no estudo
+IC_t <- t.test(D, conf.level = 0.95)$conf.int
+
+# Tabela comparativa
+tabela_bootstrap <- data.frame(
+  Metodo = c(
+    "Teste t pareado",
+    "Bootstrap percentílico",
+    "Bootstrap BCa"
+  ),
+  Media = rep(mean(D), 3),
+  Limite_inferior = c(
+    IC_t[1], IC_percentil[1], IC_BCa[1]
+  ),
+  Limite_superior = c(
+    IC_t[2], IC_percentil[2], IC_BCa[2]
+  )
+)
+
+knitr::kable(
+  tabela_bootstrap,
+  caption = paste0(
+    "\\label{tab:bootstrap}",
+    "Comparação dos intervalos de confiança de 95\\% ",
+    "para a média das diferenças pareadas"
+  ),
+  col.names = c(
+    "Método",
+    "Média de D",
+    "Limite inferior",
+    "Limite superior"
+  ),
+  digits = 4,
+  align = "c",
+  booktabs = TRUE
+)
+```
+
+
+```{r grafico_bootstrap, fig.width=6, fig.height=3.5, out.width="75%", fig.align="center", fig.cap="Distribuição bootstrap da média das diferenças pareadas, obtida com 20.000 reamostragens."}
+
+# Diagnóstico visual da distribuição bootstrap
+hist(
+  boot_result$t[, 1],
+  breaks = 40,
+  col = "steelblue",
+  border = "white",
+  main = "Distribuição bootstrap da média",
+  xlab = expression(bar(D)),
+  ylab = "Frequência",
+  xlim = c(min(boot_result$t[, 1]) - 0.1, 0.15),
+  cex.main = 0.95
+)
+
+# Linhas de referência
+abline(v = mean(D), col = "darkblue", lwd = 2)
+abline(v = 0, col = "red", lwd = 2, lty = 2)
+
+# Legenda das linhas
+legend(
+  "topright",
+  legend = c(
+    sprintf("Média observada (%.2f)", mean(D)),
+    "Valor nulo (D = 0)"
+  ),
+  col = c("darkblue", "red"),
+  lty = c(1, 2),
+  lwd = 2,
+  cex = 0.75,
+  bty = "n"
+)
+```
+
+\qquad Os resultados apresentados na Tabela 9 indicam elevada concordância entre os intervalos de confiança paramétrico e bootstrap para a diferença média logarítmica entre as configurações. O intervalo paramétrico de 95% foi de [-2,1791; -1,0717], enquanto os intervalos bootstrap percentílico e BCa foram, respectivamente, [-2,1586; -1,0989] e [-2,1635; -1,1017]. As diferenças entre os limites dos intervalos foram pequenas, e ambos os métodos bootstrap produziram estimativas de incerteza semelhantes às obtidas pelo teste *t* pareado.
+
+\qquad Todos os intervalos permaneceram integralmente abaixo de zero, sustentando uma diferença média logarítmica negativa e, portanto, favorável à Configuração 1. A distribuição empírica das médias bootstrap, apresentada na Figura 6, mostrou-se aproximadamente unimodal e simétrica em torno da média observada $(\bar D=-1,6254)$, sem assimetria acentuada.
+
+\qquad Esses resultados indicam que a conclusão sobre o sinal da diferença média é pouco sensível à substituição do intervalo paramétrico por intervalos bootstrap não paramétricos. Embora a rejeição da normalidade das diferenças pareadas impeça assumir a validade exata da distribuição *t* sob o modelo normal, a concordância entre os intervalos fornece evidência adicional de robustez da inferência sobre a média. Ressalta-se, contudo, que o bootstrap não comprova a normalidade dos dados nem elimina as demais hipóteses de amostragem envolvidas na análise.
 
 ## 6. Derivação de Conclusões e Recomendações
 
+Os resultados obtidos permitem concluir que existe diferença estatisticamente significativa entre os desempenhos médios das duas configurações do algoritmo de Evolução Diferencial na classe de problemas investigada, considerando a diferença média logarítmica como medida principal de comparação. O teste t pareado bilateral resultou em $t_0=-5,9720$, com 33 graus de liberdade e $p=1,048\times10^{-6}$, conduzindo à rejeição da hipótese nula de igualdade das médias ao nível de significância de 5%. A ANOVA do delineamento em blocos completos apresentou resultado equivalente $(F_0=35,6647)$, conforme esperado para um experimento com dois tratamentos.
+
+A diferença média observada foi $\bar{D}=-1,6254$, com intervalo de confiança paramétrico de 95% igual a $[-2,1791;-1,0717]$. Como valores negativos de $D_j$ indicam melhor desempenho da Configuração 1, os resultados favorecem essa configuração na comparação global. A magnitude padronizada observada, $d_{\mathrm{obs}}=\bar{D}/S_D\approx-1,02$, supera, em valor absoluto, a mínima diferença de importância prática estabelecida no planejamento $(d^*=0,5)$, embora essa comparação pontual não constitua, isoladamente, um teste formal de relevância prática.
+
+Na escala original, a exponenciação da diferença média logarítmica fornece $e^{\bar{D}}\approx0,197$, correspondente à média geométrica das razões entre os valores médios de Fbest das configurações em cada instância. Assim, a razão geométrica média observada indica valores aproximadamente 80,3% inferiores para a Configuração 1, segundo essa medida de desempenho relativo. Esse resultado não deve ser interpretado como uma redução de mesma magnitude na média aritmética global de Fbest, uma vez que as duas medidas atribuem pesos diferentes às diferenças entre instâncias.
+
+Embora os testes de normalidade tenham identificado desvios em relação à distribuição normal das diferenças pareadas, a análise de sensibilidade por bootstrap apresentou resultados consistentes com a inferência paramétrica. Os intervalos de confiança percentílico e BCa permaneceram integralmente abaixo de zero e apresentaram limites próximos aos do teste t. Essa concordância reforça a estabilidade da conclusão sobre o sinal da diferença média diante da utilização de procedimentos distintos de estimação intervalar, sem implicar que a normalidade das observações tenha sido satisfeita.
+
+Entretanto, a análise exploratória demonstrou que a vantagem da Configuração 1 não é uniforme ao longo das dimensões avaliadas. Nas 25 instâncias amostradas com dimensões de 4 a 115, a Configuração 1 apresentou menores valores médios de Fbest, enquanto nas nove instâncias amostradas com dimensões de 128 a 150 observou-se uma inversão, com vantagem da Configuração 2. Essa mudança de comportamento evidencia a influência da dimensionalidade sobre o desempenho relativo das configurações e indica que a superioridade média global não deve ser interpretada como superioridade em todas as instâncias da classe de interesse.
+
+Dessa forma, recomenda-se a Configuração 1 quando o objetivo for obter melhor desempenho médio relativo sobre a classe de problemas investigada, conforme a medida logarítmica adotada. Contudo, essa recomendação deve ser condicionada à dimensionalidade: os resultados indicam que a Configuração 2 pode constituir uma alternativa mais favorável em problemas de maior dimensão. Como não foram realizados testes inferenciais específicos para diferentes faixas dimensionais, essa indicação permanece baseada nas tendências descritivas observadas, não permitindo estabelecer um limiar de transição ou afirmar superioridade estatística da Configuração 2 em todas as instâncias de alta dimensão.
+
+Conclui-se, portanto, que a Configuração 1 apresenta vantagem estatisticamente sustentada na comparação média global, mas que a escolha entre as configurações deve considerar a dimensão do problema e a medida de desempenho utilizada. A análise conjunta dos resultados inferenciais e exploratórios permite, assim, formular uma recomendação fundamentada sem desconsiderar a heterogeneidade observada entre as instâncias.
 
 ## 7. Discussão sobre Possíveis Limitações do Estudo e Sugestões de Melhoria
 
+Apesar das evidências obtidas, algumas características do delineamento experimental e da análise estatística delimitam o alcance das conclusões e indicam possibilidades de aprimoramento.
+
+A primeira limitação refere-se à classe de problemas considerada. Embora tenham sido avaliadas diferentes dimensões, todas as instâncias pertencem à família de funções Rosenbrock, com domínio das variáveis fixado em [-5,10]. Dessa forma, a variabilidade entre os problemas está associada principalmente à dimensionalidade, não abrangendo diferentes famílias de funções objetivo ou outras características que possam influenciar o comportamento dos operadores. Consequentemente, os resultados não permitem generalizar a superioridade observada para problemas de otimização com propriedades distintas. Uma ampliação do estudo poderia contemplar outras famílias de funções de teste, mantendo o controle experimental das condições de comparação.
+
+Outra limitação está relacionada à interpretação dos efeitos dos operadores. As duas configurações diferem simultaneamente nos operadores de mutação e recombinação, bem como em seus respectivos parâmetros. Portanto, embora o experimento permita comparar o desempenho das configurações completas, não é possível determinar isoladamente a contribuição de cada operador ou parâmetro para as diferenças encontradas. Uma investigação posterior poderia empregar um delineamento fatorial ou comparações adicionais, variando os componentes separadamente para identificar seus efeitos individuais e possíveis interações.
+
+A relação observada entre a dimensão das instâncias e a diferença de desempenho constitui uma limitação importante à interpretação de um efeito médio global. O modelo RCBD adotado representa o efeito dos tratamentos por meio de uma componente aditiva, enquanto os resultados exploratórios indicam que a vantagem relativa das configurações varia sistematicamente com a dimensão, chegando a apresentar inversão nas maiores instâncias. Embora essa heterogeneidade não impeça a estimação da diferença média pareada, ela limita a aplicação de uma recomendação uniforme à classe de problemas. Estudos futuros poderiam investigar explicitamente a relação entre a dimensão e a diferença de desempenho, utilizando modelos de regressão ou análises estratificadas por faixas dimensionais. A inclusão de mais instâncias próximas à região em que ocorre a inversão observada também permitiria caracterizar melhor essa mudança de comportamento.
+
+No aspecto estatístico, os testes de Shapiro-Wilk identificaram desvios de normalidade nas diferenças pareadas, contrariando uma das condições para a validade exata da inferência paramétrica. A análise bootstrap apresentou intervalos de confiança próximos aos obtidos pelo teste t, fornecendo evidência complementar de estabilidade da conclusão sobre a diferença média. Entretanto, essa concordância não elimina as limitações decorrentes da distribuição observada nem garante a validade de todas as hipóteses probabilísticas envolvidas. Além disso, o bootstrap convencional empregado realiza reamostragens com reposição das dimensões, enquanto a seleção original das instâncias ocorreu sem reposição de um conjunto finito. Caso o objetivo seja realizar inferência especificamente sobre essa população finita de dimensões, procedimentos que incorporem explicitamente o plano amostral poderiam fornecer uma análise mais adequada.
+
+Por fim, o indicador de desempenho utilizado foi exclusivamente o melhor valor da função objetivo ao término de cada execução, sob o orçamento de avaliações estabelecido. Essa medida é adequada para avaliar a qualidade final das soluções obtidas nas condições do experimento, mas não permite comparar diretamente o tempo computacional, a velocidade de convergência ou a evolução do desempenho ao longo da busca. A incorporação de curvas de convergência e medidas de custo computacional permitiria caracterizar outras dimensões do desempenho dos algoritmos, especialmente em aplicações nas quais o tempo de processamento constitui uma restrição relevante.
+
+Em síntese, as limitações identificadas não anulam a diferença média observada entre as configurações nas condições experimentais investigadas, mas restringem sua generalização e evidenciam a importância de considerar a dimensionalidade e a medida de desempenho na interpretação dos resultados. As principais oportunidades de aprimoramento concentram-se na ampliação da diversidade de problemas, na investigação separada dos efeitos dos operadores e na caracterização da mudança de desempenho em função da dimensão.
 
 ## Declaração de uso de IA generativa e tecnologias assistidas por IA
 
-\qquad Durante a preparação deste trabalho, os autores utilizaram ferramentas de inteligência artificial generativa (Claude Opus 4.6, da Anthropic, e Gemini, do Google) com o objetivo de auxiliar na estruturação de código em R, formatação de tabelas em R Markdown e revisão técnica e textual do relatório. Após a utilização dessas ferramentas, os autores conferiram todos os cálculos, revisaram e editaram o conteúdo integralmente, assumindo total responsabilidade pela exatidão e integridade do material publicado.
+\qquad Durante a preparação deste trabalho, os autores utilizaram ferramentas de inteligência artificial generativa (Claude Opus 4.6, da Anthropic, Gemini, do Google, e ChatGPT, da OpenAI) com o objetivo de auxiliar na estruturação de código em R, formatação de tabelas em R Markdown e revisão técnica e textual do relatório. Após a utilização dessas ferramentas, os autores conferiram todos os cálculos, revisaram e editaram o conteúdo integralmente, assumindo total responsabilidade pela exatidão e integridade do material publicado.
 
 ## Papéis e Contribuições da Equipe
 
