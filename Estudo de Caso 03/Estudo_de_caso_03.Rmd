@@ -562,7 +562,8 @@ tab_mag <- data.frame(
 )
 
 knitr::kable(tab_mag,
-  caption   = "\\label{tab:magnitude}Magnitude da diferença entre as configurações (IC 95\\% paramétrico)",
+  caption   = "\\label{tab:magnitude}Magnitude da diferença entre as configurações 
+  (IC 95\\% paramétrico)",
   col.names = c("Medida", "Estimativa", "IC 95\\%"),
   align = c("l", "c", "c"), booktabs = TRUE, escape = FALSE)
 ```
@@ -583,7 +584,8 @@ faixas <- block_wide %>%
             Razao = exp(mean(D)), .groups = "drop")
 
 knitr::kable(faixas, digits = c(0, 0, 0, 4, 3),
-  caption   = "\\label{tab:faixas}Resumo descritivo por faixa de dimensão (exploratório, sem inferência)",
+  caption   = "\\label{tab:faixas}Resumo descritivo por faixa de dimensão 
+  (exploratório, sem inferência)",
   col.names = c("Faixa de dimensão", "Instâncias", "Instâncias com $D_j < 0$",
                 "$\\bar{D}$ na faixa", "$e^{\\bar{D}}$"),
   align = "c", booktabs = TRUE, escape = FALSE)
