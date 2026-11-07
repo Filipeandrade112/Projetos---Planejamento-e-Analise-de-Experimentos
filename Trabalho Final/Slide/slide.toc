@@ -1,0 +1,6 @@
+\babel@toc {portuguese}{}\relax 
+\beamer@sectionintoc {1}{Importância da Simulação Eletromagnética e Problema}{3}{0}{1}
+\beamer@sectionintoc {2}{Métodos Avaliados e Objetivo do Experimento}{5}{0}{2}
+\beamer@sectionintoc {3}{Dispositivos de Teste: Os 5 Circuitos de RF}{6}{0}{3}
+\beamer@sectionintoc {4}{Metodologia Planejada e Continuidade do Trabalho}{8}{0}{4}
+\beamer@sectionintoc {5}{Referências}{11}{0}{5}

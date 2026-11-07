@@ -1,0 +1,505 @@
+% !TeX root = ./slide.tex
+% !TeX program = pdflatex
+\documentclass[aspectratio=169,xcolor=table]{beamer}
+\usetheme{Madrid}
+
+% Definindo a cor vermelha institucional e aplicando ao tema
+\definecolor{meuvermelho}{RGB}{180, 20, 20}
+\usecolortheme[named=meuvermelho]{structure}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usepackage{tcolorbox}
+\usepackage{amsmath,amssymb}
+
+% Paleta oficial do experimento
+\definecolor{corHFSS}{HTML}{1B9E77}
+\definecolor{corTidy}{HTML}{D95F02}
+\definecolor{corAnalitico}{HTML}{7570B3}
+\definecolor{corBloco}{HTML}{E7298A}
+\definecolor{azulclaro}{HTML}{E6F2FF}
+\definecolor{verdeclaro}{HTML}{EAFAEA}
+
+% Moldura padronizada para as imagens dos 5 circuitos de RF
+\newcommand{\fotocircuito}[2]{%
+    \begin{tcolorbox}[
+        colback=white, colframe=meuvermelho!80!black, boxrule=0.8pt, arc=3pt,
+        boxsep=1.5pt, left=2pt, right=2pt, top=2pt, bottom=2pt
+    ]
+        \centering
+        \includegraphics[width=0.98\textwidth, height=3.15cm, keepaspectratio]{Imagens/#1}\\[2pt]
+        \tiny \textit{#2}
+    \end{tcolorbox}%
+}
+
+% Moldura para as imagens de aplicações no Slide 3
+\newcommand{\fotoapp}[3]{%
+    \begin{tcolorbox}[
+        colback=white, colframe=meuvermelho!80!black, boxrule=0.75pt, arc=3pt,
+        boxsep=1.5pt, left=2pt, right=2pt, top=2pt, bottom=2pt
+    ]
+        \centering
+        \includegraphics[width=0.98\textwidth, height=#2, keepaspectratio]{Imagens/#1}\\[2pt]
+        \tiny \textbf{#3}
+    \end{tcolorbox}%
+}
+
+% ==========================================
+% CONFIGURAÇÃO DE TÍTULO E AUTORES
+% ==========================================
+\title[Comparação HFSS, Tidy3D e Analítico]{Comparação entre HFSS, Tidy3D e Modelo Analítico em Circuitos de Radiofrequência }
+\subtitle{Proposta de Trabalho Final --- Planejamento Experimental em Blocos}
+
+\author[PPGEE / UFMG]{
+    Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa
+}
+
+\institute[]{
+    Disciplina: Planejamento e Análise de Experimentos \\
+    Programa de Pós-Graduação em Engenharia Elétrica (PPGEE) --- UFMG
+}
+\date[10 de Novembro 2026]{10 de Novembro de 2026}
+
+% Configuração das logos na parte inferior da capa
+\titlegraphic{
+    \begin{tikzpicture}[remember picture,overlay]
+        % Logo da UFMG no canto inferior esquerdo
+        \node[anchor=south west, yshift=0.5cm, xshift=1cm] at (current page.south west) {
+            \includegraphics[height=1.4cm]{Imagens/logo_ufmg.jpg}
+        };
+        % Logo da Engenharia no canto inferior direito
+        \node[anchor=south east, yshift=0.5cm, xshift=-1cm] at (current page.south east) {
+            \includegraphics[height=1.6cm]{Imagens/logo_eng.png}
+        };
+    \end{tikzpicture}
+}
+
+\begin{document}
+
+% ==========================================
+% CAPA E ROTEIRO
+% ==========================================
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Roteiro da Apresentação}
+    \tableofcontents
+\end{frame}
+
+% ==========================================
+% SEÇÃO 1: CONTEXTUALIZAÇÃO E PROBLEMA DE PESQUISA
+% ==========================================
+\section{Importância da Simulação Eletromagnética e Problema}
+
+\begin{frame}{Importância e Aplicações da Simulação Eletromagnética}
+    \begin{columns}[c]
+        % Coluna esquerda: apenas tópicos diretos
+        \begin{column}{0.43\textwidth}
+            \begin{block}{\footnotesize Aplicações e Relevância}
+                \footnotesize
+                \begin{itemize}\setlength{\itemsep}{6pt}
+                    \item \textbf{Telecomunicações e RF:}
+                    \begin{itemize}\scriptsize
+                        \item Torres de transmissão, radares e enlaces 5G/6G.
+                        \item Radiação de antenas em dispositivos móveis.
+                    \end{itemize}
+                    \item \textbf{Análise de Campos e Modos:}
+                    \begin{itemize}\scriptsize
+                        \item Visualização de modos ressonantes e distribuição de campo elétrico/magnético.
+                        \item Compatibilidade eletromagnética (EMC).
+                    \end{itemize}
+                    \item \textbf{Prototipagem Virtual:}
+                    \begin{itemize}\scriptsize
+                        \item Previsão de acoplamentos e perdas antes da fabricação física.
+                        \item Redução de custo e tempo de bancada.
+                    \end{itemize}
+                \end{itemize}
+            \end{block}
+        \end{column}
+
+        % Coluna direita: imagens reais organizadas
+        \begin{column}{0.54\textwidth}
+            \begin{columns}[c]
+                \begin{column}{0.44\textwidth}
+                    \fotoapp{pngtree-electronic-radar-signal-antenna-tower-png-image_6938657.png}{4.8cm}{Torres de Comunicação e Radar}
+                \end{column}
+                \begin{column}{0.53\textwidth}
+                    \fotoapp{antena_celular.png}{2.2cm}{Irradiação em Dispositivos Móveis}
+                    \vspace{0.08cm}
+                    \fotoapp{cavidade.jpeg}{2.2cm}{Distribuição de Campos e Modos}
+                \end{column}
+            \end{columns}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{O Problema de Pesquisa: Evolução das Ferramentas}
+    \centering
+    % Linha do tempo / contraste visual entre os paradigmas
+    \begin{tikzpicture}[scale=0.92, transform shape,
+        pbox/.style={draw, line width=1pt, rounded corners=4pt, text width=3.9cm, minimum height=2.25cm, align=center, inner sep=5pt},
+        arr/.style={-{Stealth[length=2.5mm]}, line width=1.2pt, draw=meuvermelho}
+    ]
+        \node[pbox, draw=corAnalitico!90!black, fill=corAnalitico!10] (p1) at (-5.05, 0.9) {
+            \textcolor{corAnalitico!90!black}{\textbf{\small Teoria Clássica}}\\[3pt]
+            \footnotesize \textbf{Modelo Analítico}\\[2pt]
+            \scriptsize Dimensionamento rápido,\\mas despreza efeitos 3D
+        };
+
+        \node[pbox, draw=corHFSS!85!black, fill=corHFSS!10] (p2) at (0, 0.9) {
+            \textcolor{corHFSS!85!black}{\textbf{\small Consolidado (1990)}}\\[3pt]
+            \footnotesize \textbf{Ansys HFSS (FEM)}\\[2pt]
+            \scriptsize Padrão-ouro da indústria\\para simulação de RF
+        };
+
+        \node[pbox, draw=corTidy!90!black, fill=corTidy!10] (p3) at (5.05, 0.9) {
+            \textcolor{corTidy!90!black}{\textbf{\small Nova Geração (2021)}}\\[3pt]
+            \footnotesize \textbf{Tidy3D (FDTD em GPU)}\\[2pt]
+            \scriptsize Criado para óptica/fotônica;\\\textbf{suporte a RF no último ano}
+        };
+
+        \draw[arr] (p1.east) -- (p2.west);
+        \draw[arr] (p2.east) -- (p3.west);
+    \end{tikzpicture}
+
+    \vspace{0.35cm}
+    \begin{block}{Questão Central do Estudo}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{5pt}
+            \item \textbf{Lacuna de Validação:} O suporte recém-lançado de RF no \textbf{Tidy3D} entrega resultados equivalentes ao consolidado \textbf{HFSS} e ao \textbf{Modelo Analítico}?
+            \item \textbf{Abordagem:} Comparar estatisticamente as \textbf{3 ferramentas} em \textbf{5 circuitos clássicos de RF}, isolando o efeito de cada circuito por meio de \textbf{blocos}.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% ==========================================
+% SEÇÃO 2: FERRAMENTAS AVALIADAS E OBJETIVO
+% ==========================================
+\section{Métodos Avaliados e Objetivo do Experimento}
+
+\begin{frame}{Comparação entre as 3 Abordagens e Objetivo}
+    \centering
+    % Diagrama visual com fonte maior nos blocos e maior espaçamento até o objetivo
+    \begin{tikzpicture}[scale=0.92, transform shape,
+        card/.style={draw, line width=1.1pt, rounded corners=4pt, minimum width=4.45cm, minimum height=3.1cm, align=center, inner sep=5pt},
+        arrow/.style={-{Stealth[length=2.6mm]}, line width=1.2pt, draw=meuvermelho}
+    ]
+        % Card 1: HFSS
+        \node[card, draw=corHFSS!85!black, fill=corHFSS!8] (hfss) at (-4.9, 0.5) {
+            \textcolor{corHFSS!85!black}{\textbf{\normalsize 1. Ansys HFSS}}\\[3pt]
+            \footnotesize \textbf{Elementos Finitos (FEM)}\\[5pt]
+            \scriptsize $\bullet$ Usado desde \textbf{1990}\\
+            \scriptsize $\bullet$ Domínio da frequência\\
+            \scriptsize $\bullet$ Malha tetraédrica adaptativa\\
+            \scriptsize $\bullet$ Padrão de mercado em RF
+        };
+
+        % Card 2: Tidy3D
+        \node[card, draw=corTidy!90!black, fill=corTidy!8] (tidy) at (0, 0.5) {
+            \textcolor{corTidy!90!black}{\textbf{\normalsize 2. Tidy3D}}\\[3pt]
+            \footnotesize \textbf{Diferenças Finitas (FDTD)}\\[5pt]
+            \scriptsize $\bullet$ Criado em \textbf{2021} (óptica/fotônica)\\
+            \scriptsize $\bullet$ Domínio do tempo via GPU\\
+            \scriptsize $\bullet$ Malha cartesiana estruturada\\
+            \scriptsize $\bullet$ \textbf{Último ano:} compatível com RF
+        };
+
+        % Card 3: Analítico
+        \node[card, draw=corAnalitico!90!black, fill=corAnalitico!8] (ana) at (4.9, 0.5) {
+            \textcolor{corAnalitico!90!black}{\textbf{\normalsize 3. Modelo Analítico}}\\[3pt]
+            \footnotesize \textbf{Equações Fechadas}\\[5pt]
+            \scriptsize $\bullet$ Literatura clássica de RF\\
+            \scriptsize $\bullet$ Linhas de transmissão e modos\\
+            \scriptsize $\bullet$ Cálculo teórico imediato\\
+            \scriptsize $\bullet$ Referência inicial de projeto
+        };
+
+        % Caixa central de objetivo mais abaixo (maior distância dos quadros)
+        \node[draw=meuvermelho, line width=1.1pt, fill=gray!6, rounded corners=4pt, minimum width=14.2cm, minimum height=1.45cm, align=center] (obj) at (0, -2.55) {
+            \small \textbf{Objetivo do Experimento: Comparar os Softwares/Métodos ($a = 3$ níveis)}\\[3pt]
+            \footnotesize Isolar o efeito dos \textbf{5 circuitos de RF} para testar se há diferença significativa entre \textbf{HFSS}, \textbf{Tidy3D} e \textbf{Analítico}.
+        };
+
+        \draw[arrow] (hfss.south) -- (hfss.south |- obj.north);
+        \draw[arrow] (tidy.south) -- (tidy.south |- obj.north);
+        \draw[arrow] (ana.south)  -- (ana.south  |- obj.north);
+    \end{tikzpicture}
+\end{frame}
+
+% ==========================================
+% SEÇÃO 3: OS 5 CIRCUITOS DE RF (BLOCOS)
+% ==========================================
+\section{Dispositivos de Teste: Os 5 Circuitos de RF}
+
+\begin{frame}{Dispositivos Avaliados (Parte I): Guias e Estruturas Ressonantes}
+    \begin{columns}[T]
+        % Circuito 1
+        \begin{column}{0.32\textwidth}
+            \begin{block}{\scriptsize 1. Cavidade Ressonante Retangular}
+                \fotocircuito{cavidade.jpg}{Estrutura metálica fechada 3D}
+                \scriptsize
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \textbf{Física:} Modos $\text{TE}/\text{TM}$.
+                    \item \textbf{Métrica:} Ressonância ($f_{101}$).
+                \end{itemize}
+            \end{block}
+        \end{column}
+
+        % Circuito 2
+        \begin{column}{0.32\textwidth}
+            \begin{block}{\scriptsize 2. Linha de Transmissão Microfita}
+                \fotocircuito{microfita.jpg}{Guia planar quase-TEM}
+                \scriptsize
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \textbf{Física:} Guia em substrato.
+                    \item \textbf{Métrica:} Impedância ($Z_0$) e $|S_{21}|$.
+                \end{itemize}
+            \end{block}
+        \end{column}
+
+        % Circuito 3
+        \begin{column}{0.32\textwidth}
+            \begin{block}{\scriptsize 3. Divisor de Potência de Wilkinson}
+                \fotocircuito{wilkinson.jpg}{Divisor de 3 portas ($-3\text{ dB}$)}
+                \scriptsize
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \textbf{Física:} Divisão igualitária.
+                    \item \textbf{Métrica:} $|S_{11}|$, $|S_{21}|$ e $|S_{23}|$.
+                \end{itemize}
+            \end{block}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Dispositivos Avaliados (Parte II): Radiação, Acoplamento e Isolamento}
+    \begin{columns}[T]
+        % Circuito 4
+        \begin{column}{0.32\textwidth}
+            \begin{block}{\scriptsize 4. Antena de Microfita (\textit{Patch})}
+                \fotocircuito{antena.jpg}{Elemento radiante planar}
+                \scriptsize
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \textbf{Física:} Radiação aberta.
+                    \item \textbf{Métrica:} Frequência ($f_r$) e $|S_{11}|$.
+                \end{itemize}
+            \end{block}
+        \end{column}
+
+        % Circuito 5
+        \begin{column}{0.32\textwidth}
+            \begin{block}{\scriptsize 5. Acoplador Híbrido \textit{Branch-Line}}
+                \fotocircuito{branchline.jpg}{Acoplador em quadratura ($90^\circ$)}
+                \scriptsize
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \textbf{Física:} Acoplamento $3\text{ dB}$.
+                    \item \textbf{Métrica:} Amplitude e fase ($90^\circ$).
+                \end{itemize}
+            \end{block}
+        \end{column}
+
+        % Diagrama visual do isolamento
+        \begin{column}{0.32\textwidth}
+            \begin{tcolorbox}[
+                colback=azulclaro!45, colframe=meuvermelho, boxrule=0.9pt, arc=3pt,
+                boxsep=3pt, left=3pt, right=3pt, top=4pt, bottom=4pt,
+                title={\scriptsize \textbf{Por que Usar Blocos?}}
+            ]
+                \centering
+                \vspace{0.18cm}
+                \begin{tikzpicture}[
+                    bnode/.style={draw=meuvermelho!80!black, rounded corners=3pt, fill=white, minimum width=3.65cm, minimum height=0.82cm, align=center, font=\scriptsize},
+                    arr/.style={-{Stealth[length=2mm]}, thick, draw=meuvermelho}
+                ]
+                    \node[bnode] (c1) at (0, 1.4) {\textbf{5 Topologias Distintas}\\Fenômenos físicos diferentes};
+                    \node[bnode, fill=verdeclaro] (c2) at (0, 0) {\textbf{Isolamento em Blocos ($b=5$)}\\Remove o efeito do circuito};
+                    \node[bnode, fill=corTidy!15] (c3) at (0, -1.4) {\textbf{Foco nos Métodos ($a=3$)}\\HFSS vs. Tidy3D vs. Analítico};
+
+                    \draw[arr] (c1) -- (c2);
+                    \draw[arr] (c2) -- (c3);
+                \end{tikzpicture}\par
+                \vspace{0.18cm}
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% SEÇÃO 4: METODOLOGIA E CONTINUIDADE DO TRABALHO
+% ==========================================
+\section{Metodologia Planejada e Continuidade do Trabalho}
+
+\begin{frame}{Metodologia Planejada: Experimento em Blocos Completos (RCBD)}
+    \begin{columns}[c]
+        % Coluna 1: Fluxograma do Experimento
+        \begin{column}{0.46\textwidth}
+            \centering
+            \begin{tcolorbox}[
+                colback=white, colframe=meuvermelho, boxrule=0.8pt, arc=3pt,
+                boxsep=2pt, left=2pt, right=2pt, top=3pt, bottom=3pt,
+                title={\scriptsize \textbf{Estrutura de Controle do Experimento}}
+            ]
+                \centering
+                \begin{tikzpicture}[scale=0.85, transform shape,
+                    box/.style={draw=meuvermelho, thick, rounded corners=3pt, fill=gray!8, minimum width=2.9cm, minimum height=1.1cm, align=center, font=\scriptsize},
+                    arrow/.style={-{Stealth[length=2.2mm]}, thick, draw=black!80}
+                ]
+                    \node[box, fill=verdeclaro] (proc) at (0,0) {\textbf{Resolução do}\\\textbf{Circuito de RF}};
+
+                    \node[align=center, font=\tiny, draw=corHFSS!85!black, fill=corHFSS!12, rounded corners=2pt, inner sep=3.5pt] (fat) at (0, 1.65) {
+                        \textbf{Fator de Interesse ($a=3$ Métodos):}\\
+                        HFSS (FEM) $|$ Tidy3D (FDTD) $|$ Analítico
+                    };
+
+                    \node[align=center, font=\tiny, draw=corBloco!85!black, fill=corBloco!12, rounded corners=2pt, inner sep=3.5pt] (bloc) at (0, -1.65) {
+                        \textbf{Fator de Bloco ($b=5$ Circuitos):}\\
+                        Controla a variabilidade entre dispositivos
+                    };
+
+                    \node[align=center, font=\tiny, draw=black!50, fill=gray!10, rounded corners=2pt, inner sep=3pt] (in) at (-2.75, 0) {\textbf{Geometria}\\Fixa};
+                    \node[align=center, font=\tiny, draw=meuvermelho, fill=azulclaro, rounded corners=2pt, inner sep=3pt] (out) at (2.75, 0) {\textbf{Resposta}\\$y_{ij}$};
+
+                    \draw[arrow] (in) -- (proc);
+                    \draw[arrow] (proc) -- (out);
+                    \draw[arrow] (fat) -- (proc);
+                    \draw[arrow] (bloc) -- (proc);
+                \end{tikzpicture}
+            \end{tcolorbox}
+        \end{column}
+
+        % Coluna 2: Matriz Bloco x Tratamento
+        \begin{column}{0.51\textwidth}
+            \centering
+            \scriptsize \textbf{Matriz Experimental ($b = 5$ Blocos $\times$ $a = 3$ Métodos)}
+            \vspace{0.1cm}
+
+            \renewcommand{\arraystretch}{1.3}
+            \resizebox{\textwidth}{!}{%
+            \begin{tabular}{l | c c c}
+                \toprule
+                \textbf{Bloco (Dispositivo de RF)} & \textcolor{corHFSS}{\textbf{HFSS}} & \textcolor{corTidy}{\textbf{Tidy3D}} & \textcolor{corAnalitico}{\textbf{Analítico}} \\
+                \midrule
+                \textbf{1. Cavidade Ressonante} & $y_{11}$ & $y_{21}$ & $y_{31}$ \\
+                \rowcolor{gray!10}
+                \textbf{2. Linha de Microfita} & $y_{12}$ & $y_{22}$ & $y_{32}$ \\
+                \textbf{3. Divisor de Wilkinson} & $y_{13}$ & $y_{23}$ & $y_{33}$ \\
+                \rowcolor{gray!10}
+                \textbf{4. Antena de Microfita} & $y_{14}$ & $y_{24}$ & $y_{34}$ \\
+                \textbf{5. Acoplador \textit{Branch-Line}} & $y_{15}$ & $y_{25}$ & $y_{35}$ \\
+                \midrule
+                \rowcolor{azulclaro!60}
+                \textbf{Média do Método ($\bar{y}_{i\cdot}$)} & $\bar{y}_{1\cdot}$ & $\bar{y}_{2\cdot}$ & $\bar{y}_{3\cdot}$ \\
+                \bottomrule
+            \end{tabular}%
+            }
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Modelagem Estatística em Blocos e Hipóteses}
+    \footnotesize
+    Para isolar a variabilidade estrutural entre os \textbf{5 circuitos de RF} e avaliar apenas a diferença entre os \textbf{3 métodos}, adota-se o modelo linear aditivo em blocos completos (RCBD):
+
+    \vspace{0.5cm}
+    \centering
+    % Fluxograma da decomposição do modelo e soma de quadrados
+    \begin{tikzpicture}[scale=0.85, transform shape,
+        eqbox/.style={draw=meuvermelho, line width=1pt, rounded corners=4pt, fill=gray!6, inner sep=5.5pt, align=center},
+        partbox/.style={draw, line width=0.9pt, rounded corners=3pt, minimum width=4.1cm, minimum height=1.5cm, align=center, inner sep=4pt},
+        arr/.style={-{Stealth[length=2.3mm]}, line width=1pt, draw=meuvermelho!85!black}
+    ]
+        % Equação principal no topo
+        \node[eqbox, minimum width=13.3cm] (mod) at (0, 1.5) {
+            \small $y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij}, \qquad \epsilon_{ij} \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)$\\[3pt]
+            \scriptsize $\mu$: Média global \quad$|$\quad $\tau_i$: Efeito do Método ($i=1,2,3$) \quad$|$\quad $\beta_j$: Efeito do Circuito/Bloco ($j=1,\dots,5$)
+        };
+
+        % Três caixas da partição da variância
+        \node[partbox, draw=corHFSS!85!black, fill=verdeclaro] (ssm) at (-4.6, -0.5) {
+            \scriptsize \textbf{Efeito dos Métodos ($\tau_i$)}\\[2pt]
+            \footnotesize $SS_{\text{Métodos}}$ \scriptsize ($a-1 = 2\text{ GL}$)\\[2pt]
+            \tiny Variabilidade entre HFSS, Tidy3D e Analítico
+        };
+
+        \node[partbox, draw=corBloco!85!black, fill=corBloco!10] (ssb) at (0, -0.5) {
+            \scriptsize \textbf{Efeito dos Circuitos ($\beta_j$)}\\[2pt]
+            \footnotesize $SS_{\text{Blocos}}$ \scriptsize ($b-1 = 4\text{ GL}$)\\[2pt]
+            \tiny Variabilidade isolada dos 5 dispositivos
+        };
+
+        \node[partbox, draw=black!60, fill=gray!12] (sse) at (4.6, -0.5) {
+            \scriptsize \textbf{Erro Residual ($\epsilon_{ij}$)}\\[2pt]
+            \footnotesize $SS_{\text{Erro}}$ \scriptsize ($(a-1)(b-1) = 8\text{ GL}$)\\[2pt]
+            \tiny Variância residual livre do efeito de bloco
+        };
+
+        \draw[arr] (ssm.north |- mod.south) -- (ssm.north);
+        \draw[arr] (ssb.north |- mod.south) -- (ssb.north);
+        \draw[arr] (sse.north |- mod.south) -- (sse.north);
+
+        % Hipóteses na base
+        \node[draw=meuvermelho, line width=0.9pt, fill=azulclaro!50, rounded corners=4pt, minimum width=13.3cm, inner sep=5pt, align=center] (hip) at (0, -2.25) {
+            \footnotesize \textbf{Hipóteses do Teste ANOVA em Blocos ($F_0 = MS_{\text{Métodos}} / MS_{\text{Erro}}$):}\\[2pt]
+            \footnotesize $H_0: \tau_{\text{HFSS}} = \tau_{\text{Tidy3D}} = \tau_{\text{Analítico}} = 0$ \quad (Métodos equivalentes) \qquad vs. \qquad $H_1: \exists\, \tau_i \neq 0$ \quad (Há diferença entre os métodos)
+        };
+
+        \draw[arr] (ssm.south) -- (ssm.south |- hip.north);
+        \draw[arr] (sse.south) -- (sse.south |- hip.north);
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Continuidade do Trabalho e Resultados Esperados}
+    \begin{table}[]
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.45}
+    \begin{tabular}{|c|l|l|}
+    \hline
+    \rowcolor{gray!15}
+    \textbf{\textcolor{meuvermelho}{Etapa}} & \textbf{\textcolor{meuvermelho}{Conteúdo}} & \textbf{\textcolor{meuvermelho}{Descrição}} \\ \hline
+    \textbf{\#1} & Modelagem e Simulação & Execução dos 5 circuitos no HFSS, Tidy3D e Modelo Analítico \\ \hline
+    \textbf{\#2} & Estruturação em Blocos & Tabulação das respostas padronizadas ($y_{ij}$) nos $b=5$ blocos \\ \hline
+    \textbf{\#3} & Análise e Decisão & ANOVA em blocos (RCBD), teste $F_0$ e comparação entre métodos \\ \hline
+    \end{tabular}
+    \end{table}
+
+    \vspace{0.25cm}
+    \begin{block}{Metodologia de Avaliação e Resultados Esperados}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{4pt}
+            \item \textbf{Isolamento Experimental:} 5 blocos (dispositivos de RF) avaliados nos 3 métodos sob as mesmas especificações físicas.
+            \item \textbf{Resultado Esperado:} Isolar a variação entre circuitos ($SS_{\text{Blocos}}$) e verificar se o recente módulo de RF do \textbf{Tidy3D} apresenta equivalência estatística frente ao \textbf{HFSS} e ao \textbf{Modelo Analítico}.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{Referências}
+
+\begin{frame}{Referências Bibliográficas}
+    \footnotesize
+    \begin{thebibliography}{99}
+        \bibitem{pozar}
+        D.~M.~Pozar, \emph{Microwave Engineering}, 4th~ed.\hskip 1em plus 0.5em minus 0.4em\relax Hoboken, NJ: John Wiley \& Sons, 2012. ISBN: 978-0-470-63155-3.
+
+        \bibitem{hfss}
+        Ansys Inc., ``Ansys HFSS: 3D High Frequency Electromagnetic Simulation Software,'' 2024. [Online]. Disponível em: \url{https://ansys.synopsys.com/products/electronics/ansys-hfss}.
+
+        \bibitem{tidy3d}
+        Flexcompute Inc., ``Tidy3D: Fast GPU-accelerated FDTD Electromagnetic Solver,'' 2024. [Online]. Disponível em: \url{https://tidy3d.simulation.cloud}.
+
+        \bibitem{wiley_article}
+        \emph{International Journal of Antennas and Propagation}, ``Electromagnetic and RF Circuit Analysis,'' Wiley/Hindawi. [Online]. DOI: \url{https://doi.org/10.1155/ijap/2733569}.
+
+        \bibitem{leaky_wave}
+        F.~Ghasemifard et~al., ``Silicon-based optical leaky wave antenna with narrow beam radiation,'' 2011. [Online]. Disponível em: \url{https://www.researchgate.net/publication/51193354}.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}
