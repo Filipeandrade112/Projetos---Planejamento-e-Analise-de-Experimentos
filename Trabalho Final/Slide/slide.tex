@@ -171,11 +171,11 @@
     \end{tikzpicture}
 
     \vspace{0.35cm}
-    \begin{block}{Questão Central do Estudo}
+    \begin{block}{Motivação e Pergunta do Experimento}
         \footnotesize
         \begin{itemize}\setlength{\itemsep}{5pt}
-            \item \textbf{Lacuna de Validação:} O suporte recém-lançado de RF no \textbf{Tidy3D} entrega resultados equivalentes ao consolidado \textbf{HFSS} e ao \textbf{Modelo Analítico}?
-            \item \textbf{Abordagem:} Comparar estatisticamente as \textbf{3 ferramentas} em \textbf{5 circuitos clássicos de RF}, isolando o efeito de cada circuito por meio de \textbf{blocos}.
+            \item \textbf{Motivação (Lacuna):} Recente expansão do \textbf{Tidy3D} (FDTD) para problemas de RF, coexistindo com o consolidado \textbf{HFSS} (FEM) e o \textbf{Modelo Analítico}.
+            \item \textbf{Pergunta do Experimento:} \textit{``Os três métodos (\textbf{HFSS}, \textbf{Tidy3D} e \textbf{Modelo Analítico}) produzem resultados estatisticamente equivalentes na resolução de circuitos de RF?''}
         \end{itemize}
     \end{block}
 \end{frame}
@@ -223,9 +223,10 @@
         };
 
         % Caixa central de objetivo mais abaixo (maior distância dos quadros)
-        \node[draw=meuvermelho, line width=1.1pt, fill=gray!6, rounded corners=4pt, minimum width=14.2cm, minimum height=1.45cm, align=center] (obj) at (0, -2.55) {
-            \small \textbf{Objetivo do Experimento: Comparar os Softwares/Métodos ($a = 3$ níveis)}\\[3pt]
-            \footnotesize Isolar o efeito dos \textbf{5 circuitos de RF} para testar se há diferença significativa entre \textbf{HFSS}, \textbf{Tidy3D} e \textbf{Analítico}.
+        \node[draw=meuvermelho, line width=1.1pt, fill=gray!6, rounded corners=4pt, minimum width=13.9cm, minimum height=1.45cm, align=center, inner sep=4pt] (obj) at (0, -2.55) {
+            \small \textbf{Objetivo do Experimento: Testar a Equivalência entre os 3 Métodos ($a = 3$)}\\[3pt]
+            \footnotesize Avaliar simultaneamente se \textbf{HFSS}, \textbf{Tidy3D} e \textbf{Analítico} são equivalentes ({$H_0: \tau_1 = \tau_2 = \tau_3 = 0$}),\\
+            \footnotesize isolando os \textbf{5 circuitos} em blocos ($b = 5$) com \textbf{2 réplicas dielétricas} por bloco ($N = 30$).
         };
 
         \draw[arrow] (hfss.south) -- (hfss.south |- obj.north);
@@ -247,8 +248,8 @@
                 \fotocircuito{cavidade.jpg}{Estrutura metálica fechada 3D}
                 \scriptsize
                 \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Física:} Modos $\text{TE}/\text{TM}$.
-                    \item \textbf{Métrica:} Ressonância ($f_{101}$).
+                    \item \textbf{Réplicas ($n=2$):} Ar e Rutila.
+                    \item \textbf{Métrica ($M_{i1k}$):} Freq.\ $f_{101}$ ($\text{GHz}$).
                 \end{itemize}
             \end{block}
         \end{column}
@@ -259,8 +260,8 @@
                 \fotocircuito{microfita.jpg}{Guia planar quase-TEM}
                 \scriptsize
                 \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Física:} Guia em substrato.
-                    \item \textbf{Métrica:} Impedância ($Z_0$) e $|S_{21}|$.
+                    \item \textbf{Réplicas ($n=2$):} FR-4 e RO3010.
+                    \item \textbf{Métrica ($M_{i2k}$):} Impedância $Z_0$ ($\Omega$).
                 \end{itemize}
             \end{block}
         \end{column}
@@ -271,15 +272,15 @@
                 \fotocircuito{wilkinson.jpg}{Divisor de 3 portas ($-3\text{ dB}$)}
                 \scriptsize
                 \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Física:} Divisão igualitária.
-                    \item \textbf{Métrica:} $|S_{11}|$, $|S_{21}|$ e $|S_{23}|$.
+                    \item \textbf{Réplicas ($n=2$):} FR-4 e RO3010.
+                    \item \textbf{Métrica ($M_{i3k}$):} Transmissão $|S_{21}|$ ($\text{dB}$).
                 \end{itemize}
             \end{block}
         \end{column}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Dispositivos Avaliados (Parte II): Radiação, Acoplamento e Isolamento}
+\begin{frame}{Dispositivos Avaliados (Parte II): Radiação, Acoplamento e Padronização}
     \begin{columns}[T]
         % Circuito 4
         \begin{column}{0.32\textwidth}
@@ -287,8 +288,8 @@
                 \fotocircuito{antena.jpg}{Elemento radiante planar}
                 \scriptsize
                 \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Física:} Radiação aberta.
-                    \item \textbf{Métrica:} Frequência ($f_r$) e $|S_{11}|$.
+                    \item \textbf{Réplicas ($n=2$):} FR-4 e RO3010.
+                    \item \textbf{Métrica ($M_{i4k}$):} Freq.\ central $f_r$ ($\text{GHz}$).
                 \end{itemize}
             \end{block}
         \end{column}
@@ -299,33 +300,33 @@
                 \fotocircuito{branchline.jpg}{Acoplador em quadratura ($90^\circ$)}
                 \scriptsize
                 \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Física:} Acoplamento $3\text{ dB}$.
-                    \item \textbf{Métrica:} Amplitude e fase ($90^\circ$).
+                    \item \textbf{Réplicas ($n=2$):} FR-4 e RO3010.
+                    \item \textbf{Métrica ($M_{i5k}$):} Acoplamento $|S_{31}|$ ($\text{dB}$).
                 \end{itemize}
             \end{block}
         \end{column}
 
-        % Diagrama visual do isolamento
+        % Diagrama visual do isolamento, réplicas e normalização
         \begin{column}{0.32\textwidth}
             \begin{tcolorbox}[
                 colback=azulclaro!45, colframe=meuvermelho, boxrule=0.9pt, arc=3pt,
                 boxsep=3pt, left=3pt, right=3pt, top=4pt, bottom=4pt,
-                title={\scriptsize \textbf{Por que Usar Blocos?}}
+                title={\scriptsize \textbf{Blocos, Réplicas e Normalização}}
             ]
                 \centering
-                \vspace{0.18cm}
+                \vspace{0.15cm}
                 \begin{tikzpicture}[
-                    bnode/.style={draw=meuvermelho!80!black, rounded corners=3pt, fill=white, minimum width=3.65cm, minimum height=0.82cm, align=center, font=\scriptsize},
+                    bnode/.style={draw=meuvermelho!80!black, rounded corners=3pt, fill=white, minimum width=3.45cm, minimum height=0.82cm, inner sep=2pt, align=center, font=\scriptsize},
                     arr/.style={-{Stealth[length=2mm]}, thick, draw=meuvermelho}
                 ]
-                    \node[bnode] (c1) at (0, 1.4) {\textbf{5 Topologias Distintas}\\Fenômenos físicos diferentes};
-                    \node[bnode, fill=verdeclaro] (c2) at (0, 0) {\textbf{Isolamento em Blocos ($b=5$)}\\Remove o efeito do circuito};
-                    \node[bnode, fill=corTidy!15] (c3) at (0, -1.4) {\textbf{Foco nos Métodos ($a=3$)}\\HFSS vs. Tidy3D vs. Analítico};
+                    \node[bnode] (c1) at (0, 1.4) {\textbf{5 Blocos $\times$ 2 Dielétricos ($n=2$)}\\Amplia os dados ($N=30$ ensaios)};
+                    \node[bnode, fill=verdeclaro] (c2) at (0, 0) {\textbf{Normalização Adimensional ($y_{ijk}$)}\\Mesma escala + $15\text{ GL}$ no resíduo};
+                    \node[bnode, fill=corTidy!15] (c3) at (0, -1.4) {\textbf{Comparação Global ($a=3$)}\\HFSS vs.\ Tidy3D vs.\ Analítico};
 
                     \draw[arr] (c1) -- (c2);
                     \draw[arr] (c2) -- (c3);
                 \end{tikzpicture}\par
-                \vspace{0.18cm}
+                \vspace{0.15cm}
             \end{tcolorbox}
         \end{column}
     \end{columns}
@@ -336,35 +337,42 @@
 % ==========================================
 \section{Metodologia Planejada e Continuidade do Trabalho}
 
-\begin{frame}{Metodologia Planejada: Experimento em Blocos Completos (RCBD)}
+\begin{frame}{Metodologia Planejada: RCBD com Réplicas Dentro do Bloco}
     \begin{columns}[c]
-        % Coluna 1: Fluxograma do Experimento
-        \begin{column}{0.46\textwidth}
+        % Coluna 1: Estrutura do Experimento e Padronização
+        \begin{column}{0.44\textwidth}
             \centering
             \begin{tcolorbox}[
                 colback=white, colframe=meuvermelho, boxrule=0.8pt, arc=3pt,
                 boxsep=2pt, left=2pt, right=2pt, top=3pt, bottom=3pt,
-                title={\scriptsize \textbf{Estrutura de Controle do Experimento}}
+                title={\scriptsize \textbf{Estrutura de Controle ($N = 30$ Simulações)}}
             ]
                 \centering
-                \begin{tikzpicture}[scale=0.85, transform shape,
-                    box/.style={draw=meuvermelho, thick, rounded corners=3pt, fill=gray!8, minimum width=2.9cm, minimum height=1.1cm, align=center, font=\scriptsize},
-                    arrow/.style={-{Stealth[length=2.2mm]}, thick, draw=black!80}
+                \begin{tikzpicture}[scale=0.78, transform shape,
+                    box/.style={draw=meuvermelho, thick, rounded corners=3pt, fill=gray!8, minimum width=2.5cm, minimum height=1.0cm, align=center, font=\scriptsize},
+                    arrow/.style={-{Stealth[length=2.0mm]}, thick, draw=black!80}
                 ]
                     \node[box, fill=verdeclaro] (proc) at (0,0) {\textbf{Resolução do}\\\textbf{Circuito de RF}};
 
-                    \node[align=center, font=\tiny, draw=corHFSS!85!black, fill=corHFSS!12, rounded corners=2pt, inner sep=3.5pt] (fat) at (0, 1.65) {
+                    \node[align=center, font=\tiny, draw=corHFSS!85!black, fill=corHFSS!12, rounded corners=2pt, inner sep=3pt] (fat) at (0, 1.65) {
                         \textbf{Fator de Interesse ($a=3$ Métodos):}\\
                         HFSS (FEM) $|$ Tidy3D (FDTD) $|$ Analítico
                     };
 
-                    \node[align=center, font=\tiny, draw=corBloco!85!black, fill=corBloco!12, rounded corners=2pt, inner sep=3.5pt] (bloc) at (0, -1.65) {
+                    \node[align=center, font=\tiny, draw=corBloco!85!black, fill=corBloco!12, rounded corners=2pt, inner sep=3pt] (bloc) at (0, -1.65) {
                         \textbf{Fator de Bloco ($b=5$ Circuitos):}\\
-                        Controla a variabilidade entre dispositivos
+                        Isola a variabilidade entre geometrias
                     };
 
-                    \node[align=center, font=\tiny, draw=black!50, fill=gray!10, rounded corners=2pt, inner sep=3pt] (in) at (-2.75, 0) {\textbf{Geometria}\\Fixa};
-                    \node[align=center, font=\tiny, draw=meuvermelho, fill=azulclaro, rounded corners=2pt, inner sep=3pt] (out) at (2.75, 0) {\textbf{Resposta}\\$y_{ij}$};
+                    \node[align=center, font=\tiny, draw=black!50, fill=gray!10, rounded corners=2pt, inner sep=2.5pt] (in) at (-2.85, 0) {
+                        \textbf{Réplicas ($n=2$):}\\[1pt]
+                        FR-4 / RO3010\\
+                        \textit{(Ar / Rutila)}
+                    };
+                    \node[align=center, font=\tiny, draw=meuvermelho, fill=azulclaro, rounded corners=2pt, inner sep=3pt] (out) at (2.75, 0) {
+                        \textbf{Resposta Norm.}\\[1pt]
+                        $y_{ijk}$ (Adim.)
+                    };
 
                     \draw[arrow] (in) -- (proc);
                     \draw[arrow] (proc) -- (out);
@@ -372,30 +380,53 @@
                     \draw[arrow] (bloc) -- (proc);
                 \end{tikzpicture}
             \end{tcolorbox}
+
+            \vspace{0.10cm}
+            \begin{tcolorbox}[colback=gray!8, colframe=meuvermelho!75!black, boxrule=0.6pt, arc=2pt, boxsep=2pt, left=2pt, right=2pt, top=2pt, bottom=2pt]
+                \centering \tiny
+                \textbf{Padronização Adimensional e Resíduo ($15\text{ GL}$):}\\[2pt]
+                $y_{ijk} = \dfrac{M_{ijk} - M_{\text{ref},jk}}{M_{\text{ref},jk}}$ \quad $\Rightarrow$ \quad $y_{ijk} = \mu + \tau_i + \beta_j + (\tau\beta)_{ij} + \epsilon_{ijk}$
+            \end{tcolorbox}
         \end{column}
 
-        % Coluna 2: Matriz Bloco x Tratamento
-        \begin{column}{0.51\textwidth}
+        % Coluna 2: Matriz Experimental com Réplicas
+        \begin{column}{0.54\textwidth}
             \centering
-            \scriptsize \textbf{Matriz Experimental ($b = 5$ Blocos $\times$ $a = 3$ Métodos)}
+            \scriptsize \textbf{Matriz Experimental ($b = 5$ Blocos $\times$ $a = 3$ Métodos $\times$ $n = 2$ Dielétricos)}
             \vspace{0.1cm}
 
-            \renewcommand{\arraystretch}{1.3}
+            \renewcommand{\arraystretch}{1.18}
             \resizebox{\textwidth}{!}{%
-            \begin{tabular}{l | c c c}
+            \begin{tabular}{l l | c c c}
                 \toprule
-                \textbf{Bloco (Dispositivo de RF)} & \textcolor{corHFSS}{\textbf{HFSS}} & \textcolor{corTidy}{\textbf{Tidy3D}} & \textcolor{corAnalitico}{\textbf{Analítico}} \\
+                \textbf{Bloco ($M_j$)} & \textbf{Dielétrico ($k$)} & \textcolor{corHFSS}{\textbf{HFSS ($y_{1jk}$)}} & \textcolor{corTidy}{\textbf{Tidy3D ($y_{2jk}$)}} & \textcolor{corAnalitico}{\textbf{Analítico ($y_{3jk}$)}} \\
                 \midrule
-                \textbf{1. Cavidade Ressonante} & $y_{11}$ & $y_{21}$ & $y_{31}$ \\
+                \multirow{2}{*}{\textbf{1. Cavidade ($f_{101}$)}} 
+                    & $k_1$: Ar ($\varepsilon_r \approx 1$)           & $y_{111}$ & $y_{211}$ & $y_{311}$ \\
+                    & $k_2$: Rutila ($\varepsilon_r \approx 82$)    & $y_{112}$ & $y_{212}$ & $y_{312}$ \\
+                \midrule
                 \rowcolor{gray!10}
-                \textbf{2. Linha de Microfita} & $y_{12}$ & $y_{22}$ & $y_{32}$ \\
-                \textbf{3. Divisor de Wilkinson} & $y_{13}$ & $y_{23}$ & $y_{33}$ \\
+                & $k_1$: FR-4 ($\varepsilon_r \approx 4{,}4$)    & $y_{121}$ & $y_{221}$ & $y_{321}$ \\
                 \rowcolor{gray!10}
-                \textbf{4. Antena de Microfita} & $y_{14}$ & $y_{24}$ & $y_{34}$ \\
-                \textbf{5. Acoplador \textit{Branch-Line}} & $y_{15}$ & $y_{25}$ & $y_{35}$ \\
+                \multirow{-2}{*}{\textbf{2. Microfita ($Z_0$)}}
+                    & $k_2$: RO3010 ($\varepsilon_r = 10{,}2$)       & $y_{122}$ & $y_{222}$ & $y_{322}$ \\
+                \midrule
+                \multirow{2}{*}{\textbf{3. Wilkinson ($|S_{21}|$)}} 
+                    & $k_1$: FR-4 ($\varepsilon_r \approx 4{,}4$)    & $y_{131}$ & $y_{231}$ & $y_{331}$ \\
+                    & $k_2$: RO3010 ($\varepsilon_r = 10{,}2$)       & $y_{132}$ & $y_{232}$ & $y_{332}$ \\
+                \midrule
+                \rowcolor{gray!10}
+                & $k_1$: FR-4 ($\varepsilon_r \approx 4{,}4$)    & $y_{141}$ & $y_{241}$ & $y_{341}$ \\
+                \rowcolor{gray!10}
+                \multirow{-2}{*}{\textbf{4. Patch ($f_r$)}}
+                    & $k_2$: RO3010 ($\varepsilon_r = 10{,}2$)       & $y_{142}$ & $y_{242}$ & $y_{342}$ \\
+                \midrule
+                \multirow{2}{*}{\textbf{5. Branch-Line ($|S_{31}|$)}} 
+                    & $k_1$: FR-4 ($\varepsilon_r \approx 4{,}4$)    & $y_{151}$ & $y_{251}$ & $y_{351}$ \\
+                    & $k_2$: RO3010 ($\varepsilon_r = 10{,}2$)       & $y_{152}$ & $y_{252}$ & $y_{352}$ \\
                 \midrule
                 \rowcolor{azulclaro!60}
-                \textbf{Média do Método ($\bar{y}_{i\cdot}$)} & $\bar{y}_{1\cdot}$ & $\bar{y}_{2\cdot}$ & $\bar{y}_{3\cdot}$ \\
+                \multicolumn{2}{l|}{\textbf{Média Adimensional ($\bar{y}_{i\cdot\cdot}$)}} & $\bar{y}_{1\cdot\cdot}$ & $\bar{y}_{2\cdot\cdot}$ & $\bar{y}_{3\cdot\cdot}$ \\
                 \bottomrule
             \end{tabular}%
             }
@@ -405,49 +436,60 @@
 
 \begin{frame}{Modelagem Estatística em Blocos e Hipóteses}
     \footnotesize
-    Para isolar a variabilidade estrutural entre os \textbf{5 circuitos de RF} e avaliar apenas a diferença entre os \textbf{3 métodos}, adota-se o modelo linear aditivo em blocos completos (RCBD):
+    Com as respostas normalizadas ($y_{ijk}$) e $n=2$ réplicas dielétricas por bloco ($N = 30$), adota-se o modelo RCBD com interação método-bloco para testar simultaneamente os \textbf{3 métodos}:
 
-    \vspace{0.5cm}
+    \vspace{0.18cm}
     \centering
     % Fluxograma da decomposição do modelo e soma de quadrados
-    \begin{tikzpicture}[scale=0.85, transform shape,
-        eqbox/.style={draw=meuvermelho, line width=1pt, rounded corners=4pt, fill=gray!6, inner sep=5.5pt, align=center},
-        partbox/.style={draw, line width=0.9pt, rounded corners=3pt, minimum width=4.1cm, minimum height=1.5cm, align=center, inner sep=4pt},
-        arr/.style={-{Stealth[length=2.3mm]}, line width=1pt, draw=meuvermelho!85!black}
+    \begin{tikzpicture}[scale=0.84, transform shape,
+        eqbox/.style={draw=meuvermelho, line width=1pt, rounded corners=4pt, fill=gray!6, inner sep=5pt, align=center},
+        partbox/.style={draw, line width=0.9pt, rounded corners=3pt, minimum width=3.15cm, minimum height=1.5cm, align=center, inner sep=3.5pt},
+        arr/.style={-{Stealth[length=2.2mm]}, line width=1pt, draw=meuvermelho!85!black}
     ]
         % Equação principal no topo
-        \node[eqbox, minimum width=13.3cm] (mod) at (0, 1.5) {
-            \small $y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij}, \qquad \epsilon_{ij} \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)$\\[3pt]
-            \scriptsize $\mu$: Média global \quad$|$\quad $\tau_i$: Efeito do Método ($i=1,2,3$) \quad$|$\quad $\beta_j$: Efeito do Circuito/Bloco ($j=1,\dots,5$)
+        \node[eqbox, minimum width=13.6cm] (mod) at (0, 1.5) {
+            \small $y_{ijk} = \mu + \tau_i + \beta_j + (\tau\beta)_{ij} + \epsilon_{ijk}, \qquad \epsilon_{ijk} \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)$\\[3pt]
+            \scriptsize $\tau_i$: Método ($i=1,2,3$) \;$|$\; $\beta_j$: Bloco/Circuito ($j=1,\dots,5$) \;$|$\; $(\tau\beta)_{ij}$: Interação \;$|$\; $k=1,2$: Réplicas (Dielétricos)
         };
 
-        % Três caixas da partição da variância
-        \node[partbox, draw=corHFSS!85!black, fill=verdeclaro] (ssm) at (-4.6, -0.5) {
-            \scriptsize \textbf{Efeito dos Métodos ($\tau_i$)}\\[2pt]
-            \footnotesize $SS_{\text{Métodos}}$ \scriptsize ($a-1 = 2\text{ GL}$)\\[2pt]
-            \tiny Variabilidade entre HFSS, Tidy3D e Analítico
+        % Quatro caixas da partição da variância (Total = 29 GL)
+        \node[partbox, draw=corHFSS!85!black, fill=verdeclaro] (ssm) at (-5.1, -0.5) {
+            \scriptsize \textbf{Métodos ($\tau_i$)}\\[2pt]
+            \footnotesize $SS_{\text{Métodos}}$ \scriptsize ($2\text{ GL}$)\\[2pt]
+            \tiny Efeito global entre\\[-1pt]
+            \tiny HFSS, Tidy3D e Analítico
         };
 
-        \node[partbox, draw=corBloco!85!black, fill=corBloco!10] (ssb) at (0, -0.5) {
-            \scriptsize \textbf{Efeito dos Circuitos ($\beta_j$)}\\[2pt]
-            \footnotesize $SS_{\text{Blocos}}$ \scriptsize ($b-1 = 4\text{ GL}$)\\[2pt]
-            \tiny Variabilidade isolada dos 5 dispositivos
+        \node[partbox, draw=corBloco!85!black, fill=corBloco!10] (ssb) at (-1.7, -0.5) {
+            \scriptsize \textbf{Blocos ($\beta_j$)}\\[2pt]
+            \footnotesize $SS_{\text{Blocos}}$ \scriptsize ($4\text{ GL}$)\\[2pt]
+            \tiny Variabilidade isolada\\[-1pt]
+            \tiny dos 5 circuitos de RF
         };
 
-        \node[partbox, draw=black!60, fill=gray!12] (sse) at (4.6, -0.5) {
-            \scriptsize \textbf{Erro Residual ($\epsilon_{ij}$)}\\[2pt]
-            \footnotesize $SS_{\text{Erro}}$ \scriptsize ($(a-1)(b-1) = 8\text{ GL}$)\\[2pt]
-            \tiny Variância residual livre do efeito de bloco
+        \node[partbox, draw=corTidy!90!black, fill=corTidy!10] (ssint) at (1.7, -0.5) {
+            \scriptsize \textbf{Interação ($(\tau\beta)_{ij}$)}\\[2pt]
+            \footnotesize $SS_{\text{Interação}}$ \scriptsize ($8\text{ GL}$)\\[2pt]
+            \tiny Sensibilidade do método\\[-1pt]
+            \tiny à topologia do circuito
+        };
+
+        \node[partbox, draw=black!60, fill=gray!12] (sse) at (5.1, -0.5) {
+            \scriptsize \textbf{Resíduo ($\epsilon_{ijk}$)}\\[2pt]
+            \footnotesize $SS_{\text{Erro}}$ \scriptsize ($15\text{ GL}$)\\[2pt]
+            \tiny Erro puro nas $n=2$\\[-1pt]
+            \tiny réplicas ($ab(n-1)$)
         };
 
         \draw[arr] (ssm.north |- mod.south) -- (ssm.north);
         \draw[arr] (ssb.north |- mod.south) -- (ssb.north);
+        \draw[arr] (ssint.north |- mod.south) -- (ssint.north);
         \draw[arr] (sse.north |- mod.south) -- (sse.north);
 
         % Hipóteses na base
-        \node[draw=meuvermelho, line width=0.9pt, fill=azulclaro!50, rounded corners=4pt, minimum width=13.3cm, inner sep=5pt, align=center] (hip) at (0, -2.25) {
-            \footnotesize \textbf{Hipóteses do Teste ANOVA em Blocos ($F_0 = MS_{\text{Métodos}} / MS_{\text{Erro}}$):}\\[2pt]
-            \footnotesize $H_0: \tau_{\text{HFSS}} = \tau_{\text{Tidy3D}} = \tau_{\text{Analítico}} = 0$ \quad (Métodos equivalentes) \qquad vs. \qquad $H_1: \exists\, \tau_i \neq 0$ \quad (Há diferença entre os métodos)
+        \node[draw=meuvermelho, line width=0.9pt, fill=azulclaro!50, rounded corners=4pt, minimum width=13.6cm, inner sep=5pt, align=center] (hip) at (0, -2.25) {
+            \footnotesize \textbf{Hipóteses do Teste ANOVA Global ($F_0 = MS_{\text{Métodos}} / MS_{\text{Erro}}$):}\\[2pt]
+            \footnotesize $H_0: \tau_{\text{HFSS}} = \tau_{\text{Tidy3D}} = \tau_{\text{Analítico}} = 0$ \quad (Os 3 métodos são equivalentes) \qquad vs. \qquad $H_1: \exists\, \tau_i \neq 0$ \quad (Ao menos um difere)
         };
 
         \draw[arr] (ssm.south) -- (ssm.south |- hip.north);
@@ -464,9 +506,9 @@
     \hline
     \rowcolor{gray!15}
     \textbf{\textcolor{meuvermelho}{Etapa}} & \textbf{\textcolor{meuvermelho}{Conteúdo}} & \textbf{\textcolor{meuvermelho}{Descrição}} \\ \hline
-    \textbf{\#1} & Modelagem e Simulação & Execução dos 5 circuitos no HFSS, Tidy3D e Modelo Analítico \\ \hline
-    \textbf{\#2} & Estruturação em Blocos & Tabulação das respostas padronizadas ($y_{ij}$) nos $b=5$ blocos \\ \hline
-    \textbf{\#3} & Análise e Decisão & ANOVA em blocos (RCBD), teste $F_0$ e comparação entre métodos \\ \hline
+    \textbf{\#1} & Modelagem ($N=30$) & Simulação dos 5 circuitos $\times$ 2 dielétricos nos 3 métodos \\ \hline
+    \textbf{\#2} & Normalização e Blocos & Padronização adimensional ($y_{ijk}$) das métricas nos $b=5$ blocos \\ \hline
+    \textbf{\#3} & Análise e Decisão & ANOVA em blocos ($15\text{ GL}$ no resíduo), teste $F_0$ e pós-teste \\ \hline
     \end{tabular}
     \end{table}
 
@@ -474,8 +516,8 @@
     \begin{block}{Metodologia de Avaliação e Resultados Esperados}
         \footnotesize
         \begin{itemize}\setlength{\itemsep}{4pt}
-            \item \textbf{Isolamento Experimental:} 5 blocos (dispositivos de RF) avaliados nos 3 métodos sob as mesmas especificações físicas.
-            \item \textbf{Resultado Esperado:} Isolar a variação entre circuitos ($SS_{\text{Blocos}}$) e verificar se o recente módulo de RF do \textbf{Tidy3D} apresenta equivalência estatística frente ao \textbf{HFSS} e ao \textbf{Modelo Analítico}.
+            \item \textbf{Padronização e Réplicas ($N=30$):} Uso de 1 métrica normalizada ($y_{ijk}$) por circuito e $n=2$ dielétricos por bloco, garantindo escala adimensional única ($\bar{y}_{i\cdot\cdot}$) e $15\text{ GL}$ para o erro residual.
+            \item \textbf{Resultado Esperado:} Isolar o efeito dos circuitos ($SS_{\text{Blocos}}$) e testar simultaneamente se os \textbf{3 métodos} (\textbf{HFSS}, \textbf{Tidy3D} e \textbf{Modelo Analítico}) são estatisticamente equivalentes entre si.
         \end{itemize}
     \end{block}
 \end{frame}

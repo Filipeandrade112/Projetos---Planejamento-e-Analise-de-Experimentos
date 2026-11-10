@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2026.8.14)  7 NOV 2026 08:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2026.8.14)  9 NOV 2026 19:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1278,77 +1278,81 @@ Package pdftex.def Info: Imagens/cavidade.jpeg  used on input line 142.
 
  <./Imagens/pngtree-electronic-radar-signal-antenna-tower-png-image_6938657.png
 > <./Imagens/antena_celular.png> <./Imagens/cavidade.jpeg>]
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <9> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 181.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <9> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 181.
+
+
 
 [4
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 235.
+(Font)              <5> on input line 236.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <5> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 235.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 236.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 235.
+(Font)              <10> on input line 236.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 235.
+(Font)              <7> on input line 236.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 235.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 236.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <7> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 235.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 236.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 236.
 
 
 [5
 
 {C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}
-{C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}]
-<Imagens/cavidade.jpg, id=239, 1098.1025pt x 807.015pt>
+{C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/
+Users/filip/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}]
+<Imagens/cavidade.jpg, id=243, 1098.1025pt x 807.015pt>
 File: Imagens/cavidade.jpg Graphic file (type jpg)
 <use Imagens/cavidade.jpg>
-Package pdftex.def Info: Imagens/cavidade.jpg  used on input line 280.
+Package pdftex.def Info: Imagens/cavidade.jpg  used on input line 281.
 (pdftex.def)             Requested size: 121.94778pt x 89.62158pt.
-<Imagens/microfita.jpg, id=252, 1098.1025pt x 807.015pt>
+<Imagens/microfita.jpg, id=256, 1098.1025pt x 807.015pt>
 File: Imagens/microfita.jpg Graphic file (type jpg)
 <use Imagens/microfita.jpg>
-Package pdftex.def Info: Imagens/microfita.jpg  used on input line 280.
+Package pdftex.def Info: Imagens/microfita.jpg  used on input line 281.
 (pdftex.def)             Requested size: 121.94778pt x 89.62158pt.
-<Imagens/wilkinson.jpg, id=265, 1098.1025pt x 807.015pt>
+<Imagens/wilkinson.jpg, id=269, 1098.1025pt x 807.015pt>
 File: Imagens/wilkinson.jpg Graphic file (type jpg)
 <use Imagens/wilkinson.jpg>
-Package pdftex.def Info: Imagens/wilkinson.jpg  used on input line 280.
+Package pdftex.def Info: Imagens/wilkinson.jpg  used on input line 281.
 (pdftex.def)             Requested size: 121.94778pt x 89.62158pt.
 
 
 [6
 
-{C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}
  <./Imagens/cavidade.jpg> <./Imagens/microfita.jpg> <./Imagens/wilkinson.jpg>]
-<Imagens/antena.jpg, id=308, 1098.1025pt x 807.015pt>
+<Imagens/antena.jpg, id=312, 1098.1025pt x 807.015pt>
 File: Imagens/antena.jpg Graphic file (type jpg)
 <use Imagens/antena.jpg>
-Package pdftex.def Info: Imagens/antena.jpg  used on input line 332.
+Package pdftex.def Info: Imagens/antena.jpg  used on input line 333.
 (pdftex.def)             Requested size: 121.94778pt x 89.62158pt.
-<Imagens/branchline.jpg, id=321, 1098.1025pt x 807.015pt>
+<Imagens/branchline.jpg, id=325, 1098.1025pt x 807.015pt>
 File: Imagens/branchline.jpg Graphic file (type jpg)
 <use Imagens/branchline.jpg>
-Package pdftex.def Info: Imagens/branchline.jpg  used on input line 332.
+Package pdftex.def Info: Imagens/branchline.jpg  used on input line 333.
 (pdftex.def)             Requested size: 121.94778pt x 89.62158pt.
+
+Overfull \hbox (1.85962pt too wide) in paragraph at lines 333--333
+ [][] 
+ []
+
 
 
 [7
 
  <./Imagens/antena.jpg> <./Imagens/branchline.jpg>]
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <8> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 404.
-
-
 
 [8
 
 ]
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 456.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <9> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 456.
-
 
 [9
 
@@ -1358,7 +1362,7 @@ LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <9> not available
 
 ]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 5
-03.
+45.
  (C:\Users\filip\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1385,34 +1389,36 @@ Package rerunfilecheck Info: File `slide.out' has not changed.
 (rerunfilecheck)             Checksum: 044EE96C40BB43BFD4D2E5862C7EA8EB;1279.
  ) 
 Here is how much of TeX's memory you used:
- 30222 strings out of 473530
- 624921 string characters out of 5714794
- 1005055 words of memory out of 5000000
- 52808 multiletter control sequences out of 15000+600000
+ 30223 strings out of 473530
+ 624903 string characters out of 5714794
+ 1028769 words of memory out of 5000000
+ 52809 multiletter control sequences out of 15000+600000
  654093 words of font info for 100 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,15n,123p,399b,1277s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 128i,16n,123p,399b,1277s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pf
-b><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi8.pfb
-><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi9.pfb>
-<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss10.pfb>
-<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss12.pfb>
-<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss8.pfb><
-C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss9.pfb><C
-:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbo10.pfb>
-<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbx10.pf
-b><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso10.p
-fb><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso8.p
-fb><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso9.p
-fb><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.p
-fb><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy5.pf
-b><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy6.pfb
-><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy8.pfb>
-<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><
-C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb>
-Output written on slide.pdf (11 pages, 1726423 bytes).
+b><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi5.pfb
+><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi6.pfb>
+<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi8.pfb><
+C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi9.pfb><C
+:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss10.pfb><C
+:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss12.pfb><C
+:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss8.pfb><C:
+/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss9.pfb><C:/
+Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbo10.pfb><C
+:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbx10.pfb>
+<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso10.pfb
+><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso8.pfb
+><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso9.pfb
+><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb
+><C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy5.pfb>
+<C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy6.pfb><
+C:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy8.pfb><C
+:/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:
+/Users/filip/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb>
+Output written on slide.pdf (11 pages, 1744474 bytes).
 PDF statistics:
- 597 PDF objects out of 1000 (max. 8388607)
+ 607 PDF objects out of 1000 (max. 8388607)
  33 named destinations out of 1000 (max. 500000)
  481 words of extra memory for PDF output out of 10000 (max. 10000000)
 
