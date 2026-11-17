@@ -1,0 +1,423 @@
+---
+title: 'Trabalho Final: Comparação entre HFSS, Tidy3D e Modelo Analítico em Circuitos de Radiofrequência'
+author: "Beatriz S. Campagnaro, Filipe C. Andrade e Izabela C. S. Barbosa"
+date: "17 de novembro de 2026"
+output:
+  pdf_document:
+    fig_caption: yes
+  html_document:
+    df_print: paged
+header-includes:
+  - \usepackage{float}
+  - \usepackage{amsmath}
+  - \usepackage{booktabs}
+  - \usepackage{multirow}
+  - \renewcommand{\figurename}{Figura}
+  - \renewcommand{\tablename}{Tabela}
+---
+
+```{r setup, results='hide', warning=FALSE, echo=FALSE, message=FALSE}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+if (!require(car, quietly = TRUE)){
+      install.packages("car")
+      library(car)
+}
+if (!require(ggplot2, quietly = TRUE)){
+      install.packages("ggplot2")
+      library(ggplot2)
+}
+if (!require(dplyr, quietly = TRUE)){
+      install.packages("dplyr")
+      library(dplyr)
+}
+if (!require(tidyr, quietly = TRUE)){
+      install.packages("tidyr")
+      library(tidyr)
+}
+if (!require(knitr, quietly = TRUE)){
+      install.packages("knitr")
+      library(knitr)
+}
+if (!require(kableExtra, quietly = TRUE)){
+      install.packages("kableExtra")
+      library(kableExtra)
+}
+```
+
+## Resumo
+
+A simulação eletromagnética desempenha papel essencial na prototipagem virtual de dispositivos de radiofrequência (RF) e micro-ondas, permitindo prever frequências de ressonância, acoplamentos e perdas de retorno antes da fabricação física. Este trabalho investiga se três abordagens de resolução eletromagnética — o simulador comercial Ansys HFSS (baseado no Método dos Elementos Finitos, FEM, no domínio da frequência), o solucionador acelerado por GPU Tidy3D (baseado no Método das Diferenças Finitas no Domínio do Tempo, FDTD, recentemente expandido para RF) e o Modelo Analítico clássico — produzem resultados estatisticamente equivalentes na análise de circuitos de RF.
+
+## Introdução
+
+### 1. Formulação das Hipóteses de Teste
+
+Para avaliar o desempenho dos solucionadores eletromagnéticos de forma objetiva, o estudo é estruturado como um Experimento Fatorial Completo $3 \times 5$ com $n = 2$ réplicas. O planejamento experimental consiste em:
+
+* **Fator A (Método de Resolução):** $a = 3$ níveis (HFSS, Tidy3D e Analítico).
+* **Fator B (Topologia do Circuito):** $b = 5$ níveis (Acoplador *Branch-Line*, Cavidade Ressonante, Antena *Patch*, Divisor Wilkinson e Linha de Transmissão).
+* **Réplicas:** $n = 2$ meios dielétricos contrastantes por combinação.
+
+A variável de resposta $y_{ijk}$ é o desvio relativo de cada simulação em relação ao modelo analítico. O modelo estatístico linear para este experimento fatorial de dois fatores é dado por:
+
+$$ y_{ijk} = \mu + \tau_i + \beta_j + (\tau\beta)_{ij} + \epsilon_{ijk} $$
+
+Onde $\mu$ é a média global, $\tau_i$ é o efeito do Fator A (Método), $\beta_j$ é o efeito do Fator B (Circuito), $(\tau\beta)_{ij}$ é a interação entre Método e Circuito, e $\epsilon_{ijk}$ é o resíduo aleatório. 
+
+A Análise de Variância (ANOVA) testará três conjuntos de hipóteses:
+
+**1. Efeito Principal do Fator A (Método de Resolução)**
+$$ \begin{cases} 
+H_0: \tau_i = 0, \forall i \quad \text{(Não há diferença significativa entre os métodos)} \\ 
+H_1: \exists \tau_i \neq 0 \quad \text{(Pelo menos um método apresenta resultado diferente)} 
+\end{cases} $$
+
+**2. Efeito Principal do Fator B (Topologia do Circuito)**
+$$ \begin{cases} 
+H_0: \beta_j = 0, \forall j \quad \text{(Não há diferença significativa entre as topologias)} \\ 
+H_1: \exists \beta_j \neq 0 \quad \text{(Pelo menos um circuito apresenta resultado diferente)} 
+\end{cases} $$
+
+**3. Efeito da Interação (Método $\times$ Circuito)**
+$$ \begin{cases} 
+H_0: (\tau\beta)_{ij} = 0, \forall i, j \quad \text{(O desempenho relativo dos métodos independe do circuito)} \\ 
+H_1: \exists (\tau\beta)_{ij} \neq 0 \quad \text{(O desempenho de pelo menos um método é afetado pelo circuito)} 
+\end{cases} $$
+
+## 2. Cálculo dos Tamanhos Amostrais
+
+Em um planejamento fatorial com $a = 3$ métodos e $b = 5$ circuitos, existem $3 \times 5 = 15$ combinações de tratamentos. A realização de apenas uma execução ($n = 1$) resulta em zero graus de liberdade para o erro puro ($\nu_E = 0$), o que impossibilita testar a interação entre os fatores separadamente do resíduo.
+
+Para viabilizar a análise estatística completa e o cálculo do quadrado médio do erro (MSE), é necessário adotar $n \ge 2$ réplicas. Optou-se por $n = 2$ réplicas dielétricas por combinação, totalizando $N = 30$ observações. Os graus de liberdade (GL) do modelo são particionados da seguinte forma:
+
+* **Fator A (Métodos):** $\nu_A = a - 1 = 2\text{ GL}$
+* **Fator B (Circuitos):** $\nu_B = b - 1 = 4\text{ GL}$
+* **Interação A $\times$ B:** $\nu_{AB} = (a - 1)(b - 1) = 8\text{ GL}$
+* **Resíduo (Erro Puro):** $\nu_E = ab(n - 1) = 15\text{ GL}$
+
+```{r calculo_tamanho_amostral, echo=FALSE, message=FALSE, warning=FALSE}
+# Avaliação da potência do teste F fatorial para o Fator A (Métodos)
+calc_poder_F_fatorial <- function(n_r, f_val, a = 3, b = 5, alpha = 0.05) {
+  N_tot <- a * b * n_r
+  df1   <- a - 1
+  df2   <- if (n_r == 1) (a - 1) * (b - 1) else a * b * (n_r - 1)
+  ncp   <- N_tot * (f_val^2)
+  f_cri <- qf(1 - alpha, df1, df2)
+  1 - pf(f_cri, df1, df2, ncp)
+}
+
+f_efeito <- c(0.40, 0.50, 0.60, 0.75, 1.00)
+
+tab_amostral <- data.frame(
+  Efeito_f = sprintf("%.2f", f_efeito),
+  Poder_n1 = sprintf("%.4f", sapply(f_efeito, function(f) calc_poder_F_fatorial(1, f))),
+  Poder_n2 = sprintf("%.4f", sapply(f_efeito, function(f) calc_poder_F_fatorial(2, f))),
+  Poder_n3 = sprintf("%.4f", sapply(f_efeito, function(f) calc_poder_F_fatorial(3, f)))
+)
+
+cap_amostral <- paste0(
+  "\\label{tab:gl_anova}Potência estatística ($1 - \\beta$) do teste $F_A$ na ANOVA Fatorial $3 \\times 5$ ",
+  "em função do número de réplicas dielétricas $n$ ($\\alpha = 0{,}05$)"
+)
+
+knitr::kable(
+  tab_amostral,
+  caption   = cap_amostral,
+  col.names = c("Tamanho de Efeito ($f$)",
+                "$n = 1$ ($N = 15$)",
+                "$n = 2$ ($N = 30$, $\\nu_E = 15$)",
+                "$n = 3$ ($N = 45$, $\\nu_E = 30$)"),
+  align     = "c",
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+\qquad Conforme apresentado na Tabela \ref{tab:gl_anova}, o dimensionamento com $n = 2$ réplicas dielétricas ($N = 30$) garante $15\text{ GL}$ para o erro puro e viabiliza o teste explícito da interação $A \times B$ ($8\text{ GL}$). Adicionalmente, assegura um poder estatístico de aproximadamente $76\%$ ($\pi = 0{,}7602$) para efeitos fatoriais da ordem de $f = 0{,}60$, e superior a $92\%$ ($\pi = 0{,}9221$) para efeitos grandes da ordem de $f = 0{,}75$. Essa configuração justifica-se como o ponto de equilíbrio ideal: garante alta confiabilidade para detectar variações substanciais entre os solucionadores (mitigando falsos negativos), ao mesmo tempo que otimiza o esforço computacional, superando a limitação analítica de ensaios sem réplicas ($n = 1$) e prevenindo o custo de réplicas excedentes ($n = 3$).
+
+### 3. Coleta e Tabulação dos Dados
+
+\qquad Os resultados das simulações no Ansys HFSS, no Tidy3D e no Modelo Analítico para os cinco circuitos nas duas réplicas dielétricas foram reunidos e tabulados no arquivo único `dados_rf_consolidados.txt` ($N = 30$ linhas, sendo $15$ do Conjunto 1 em FR-4/Ar e $15$ do Conjunto 2 em Rogers RO3010/Rutila). A leitura e a construção das matrizes experimentais $5 \times 3$ são realizadas diretamente a partir desse arquivo.
+
+```{r coleta_rf, message=FALSE, warning=FALSE}
+# Leitura direta a partir do arquivo consolidado único
+dados_rf <- read.delim("dados_rf_consolidados.txt", sep = "\t", stringsAsFactors = FALSE)
+
+# Matriz 5x3 (15 elementos) - Réplica 1: FR-4 (er = 4.4) e Ar (er = 1.0)
+mat_fr4 <- dados_rf %>%
+  filter(Conjunto == "FR4") %>%
+  select(Circuito, Dieletrico, Unidade, Metodo, Valor) %>%
+  pivot_wider(names_from = Metodo, values_from = Valor) %>%
+  select(Circuito, Dieletrico, Unidade, HFSS, Tidy3D, Analitico)
+
+knitr::kable(
+  mat_fr4,
+  caption   = "\\label{tab:mat_fr4}Matriz experimental $5 \\times 3$ (15 elementos) --- Réplica $k = 1$: Substrato FR-4 ($\\varepsilon_r = 4{,}4$) e Cavidade a Ar ($\\varepsilon_r = 1{,}0$)",
+  col.names = c("Fator B (Circuito)", "Dielétrico ($k=1$)", "Unid.", "HFSS", "Tidy3D", "Analítico"),
+  digits    = 4,
+  align     = c("l", "c", "c", "c", "c", "c"),
+  booktabs  = TRUE
+)
+```
+
+```{r tab_ro3010, message=FALSE, warning=FALSE}
+# Matriz 5x3 (15 elementos) - Réplica 2: Rogers RO3010 (er = 10.2) e Rutila (er = 82.0)
+mat_ro3010 <- dados_rf %>%
+  filter(Conjunto == "RO3010") %>%
+  select(Circuito, Dieletrico, Unidade, Metodo, Valor) %>%
+  pivot_wider(names_from = Metodo, values_from = Valor) %>%
+  select(Circuito, Dieletrico, Unidade, HFSS, Tidy3D, Analitico)
+
+knitr::kable(
+  mat_ro3010,
+  caption   = "\\label{tab:mat_ro3010}Matriz experimental $5 \\times 3$ (15 elementos) --- Réplica $k = 2$: Substrato Rogers RO3010 ($\\varepsilon_r = 10{,}2$) e Cavidade com Rutila ($\\varepsilon_r = 82{,}0$)",
+  col.names = c("Fator B (Circuito)", "Dielétrico ($k=2$)", "Unid.", "HFSS", "Tidy3D", "Analítico"),
+  digits    = 4,
+  align     = c("l", "c", "c", "c", "c", "c"),
+  booktabs  = TRUE
+)
+```
+
+\qquad As Tabelas \ref{tab:mat_fr4} e \ref{tab:mat_ro3010} exibem as duas matrizes $5 \times 3$ ($15$ elementos cada), enquanto a Tabela \ref{tab:tabulacao_normalizada} apresenta a tabulação fatorial consolidada dos $N = 30$ ensaios com as respostas adimensionais normalizadas $y_{ijk} = (M_{ijk} - M_{\text{ref},jk}) / |M_{\text{ref},jk}|$.
+
+```{r tabulacao_normalizada, message=FALSE, warning=FALSE}
+tab_norm <- dados_rf %>%
+  select(Conjunto, Circuito, Dieletrico, Metodo, Valor, Erro_Pct) %>%
+  pivot_wider(names_from = Metodo, values_from = c(Valor, Erro_Pct)) %>%
+  transmute(
+    Circuito   = Circuito,
+    Dieletrico = Dieletrico,
+    HFSS_raw   = sprintf("%.4f", Valor_HFSS),
+    Tidy_raw   = sprintf("%.4f", Valor_Tidy3D),
+    Ana_raw    = sprintf("%.4f", Valor_Analitico),
+    y_HFSS_pct = sprintf("%+.4f", Erro_Pct_HFSS),
+    y_Tidy_pct = sprintf("%+.4f", Erro_Pct_Tidy3D)
+  )
+
+knitr::kable(
+  tab_norm,
+  caption   = "\\label{tab:tabulacao_normalizada}Tabulação fatorial consolidada dos $N = 30$ ensaios ($a = 3$ métodos $\\times$ $b = 5$ circuitos $\\times$ $n = 2$ réplicas)",
+  col.names = c("Fator B (Circuito)", "Réplica ($k$)", "$M_{1jk}$ (HFSS)",
+                "$M_{2jk}$ (Tidy3D)", "$M_{3jk}$ (Analítico)",
+                "$y_{1jk}$ (HFSS \\%)", "$y_{2jk}$ (Tidy3D \\%)"),
+  align     = c("l", "c", "c", "c", "c", "c", "c"),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+### Análise Exploratória dos Dados
+
+\qquad A inspeção conjunta das Tabelas \ref{tab:mat_fr4} a \ref{tab:tabulacao_normalizada} evidencia por que a padronização pelo desvio relativo percentual ($y_{ijk}$) é indispensável: na escala original, os resultados combinam grandezas físicas distintas e ordens de magnitude heterogêneas, abrangendo frequências de ressonância estreitas entre $2{,}9737\text{ GHz}$ e $3{,}6855\text{ GHz}$ (Circuitos 1 a 4) e níveis profundos de perda de retorno logarítmica entre $-74{,}7871\text{ dB}$ e $-37{,}9438\text{ dB}$ (Circuito 5). Na escala padronizada, a resposta torna-se adimensional e centrada na referência teórica ($y_{3jk} = 0\%$), permitindo avaliar diretamente a precisão e o viés relativo dos métodos numéricos em cada topologia. A Tabela \ref{tab:resumo_descritivo_rf} sintetiza as estatísticas descritivas da variável resposta $y_{ijk}$ (em $\%$) por método e por subconjunto de circuitos.
+
+```{r resumo_descritivo_rf, echo=FALSE, message=FALSE, warning=FALSE}
+# Cálculo de estatísticas descritivas de Erro_Pct por grupo
+calc_stats <- function(x) {
+  c(Min = min(x),
+    Q1  = unname(quantile(x, 0.25)),
+    Med = median(x),
+    Media = mean(x),
+    Q3  = unname(quantile(x, 0.75)),
+    Max = max(x),
+    DP  = sd(x))
+}
+
+hfss_all <- dados_rf$Erro_Pct[dados_rf$Metodo == "HFSS"]
+tidy_all <- dados_rf$Erro_Pct[dados_rf$Metodo == "Tidy3D"]
+ana_all  <- dados_rf$Erro_Pct[dados_rf$Metodo == "Analitico"]
+hfss_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "HFSS" & dados_rf$Unidade == "GHz"]
+tidy_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "Tidy3D" & dados_rf$Unidade == "GHz"]
+
+stats_mat <- rbind(
+  calc_stats(hfss_all),
+  calc_stats(tidy_all),
+  calc_stats(ana_all),
+  calc_stats(hfss_ghz),
+  calc_stats(tidy_ghz)
+)
+
+resumo_rf_df <- data.frame(
+  Grupo = c("HFSS --- Global ($n = 10$)",
+            "Tidy3D --- Global ($n = 10$)",
+            "Analítico --- Referência ($n = 10$)",
+            "HFSS --- Circuitos Ressonantes em GHz ($n = 8$)",
+            "Tidy3D --- Circuitos Ressonantes em GHz ($n = 8$)"),
+  stats_mat,
+  row.names = NULL
+)
+
+knitr::kable(
+  resumo_rf_df,
+  caption   = "\\label{tab:resumo_descritivo_rf}Estatísticas descritivas do desvio relativo percentual $y_{ijk}$ (\\%) global e nos circuitos ressonantes",
+  col.names = c("Subconjunto / Método", "Mín.", "1º Quartil", "Mediana",
+                "Média", "3º Quartil", "Máx.", "Desvio Padrão"),
+  digits    = 4,
+  align     = c("l", rep("c", 7)),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+```{r exploratoria_rf, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.4, fig.cap="\\label{fig:exploratoria_rf}Comparação das frequências de ressonância e do modo dominante $\\text{TE}_{101}$ (em GHz) obtidas pelos três métodos nas duas réplicas dielétricas."}
+df_long_freq <- dados_rf %>%
+  filter(Unidade == "GHz") %>%
+  mutate(
+    Metodo = factor(Metodo, levels = c("HFSS", "Tidy3D", "Analitico"),
+                    labels = c("HFSS", "Tidy3D", "Analítico")),
+    Circuito_Rep = paste0(Circuito, "\n[", sub("\\s*\\(.*", "", Dieletrico), "]")
+  )
+
+ggplot(df_long_freq, aes(x = Circuito_Rep, y = Valor, fill = Metodo)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.7) +
+  coord_cartesian(ylim = c(2.85, 3.80)) +
+  scale_fill_manual(values = c("HFSS" = "steelblue",
+                               "Tidy3D" = "tomato",
+                               "Analítico" = "gray45")) +
+  labs(title = "Frequências de Ressonância / Modo TE101 por Circuito e Réplica",
+       x = "Fator B (Circuito de RF) e Réplica Dielétrica",
+       y = "Frequência (GHz)",
+       fill = "Fator A (Método)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1, size = 8.5),
+        legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 10.5))
+```
+
+```{r exploratoria_perfil_rf, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.5, fig.cap="\\label{fig:perfil_rf}Perfil de interação fatorial: desvio relativo médio $y_{ij\\cdot}$ (\\%) para cada método ao longo dos cinco circuitos avaliados."}
+perfil_df <- dados_rf %>%
+  mutate(Metodo = factor(Metodo, levels = c("HFSS", "Tidy3D", "Analitico"),
+                         labels = c("HFSS (FEM)", "Tidy3D (FDTD)", "Analítico (Ref.)"))) %>%
+  group_by(Metodo, Circuito) %>%
+  summarise(Media_y = mean(Erro_Pct), .groups = "drop")
+
+ggplot(perfil_df, aes(x = Circuito, y = Media_y, color = Metodo, group = Metodo)) +
+  geom_line(linetype = "dashed", linewidth = 0.8) +
+  geom_point(size = 2.6) +
+  scale_color_manual(values = c("HFSS (FEM)" = "steelblue",
+                                "Tidy3D (FDTD)" = "tomato",
+                                "Analítico (Ref.)" = "gray40")) +
+  labs(title = "Perfil de Desempenho Relativo por Topologia de Circuito (Interação A x B)",
+       x = "Fator B (Topologia do Circuito de RF)",
+       y = "Desvio Relativo Médio (%)",
+       color = "Fator A (Método)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1),
+        legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 10.5))
+```
+
+```{r exploratoria_painel_rf, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:box_rf}Esquerda: Distribuição global de $y_{ijk}$ (\\%) incluindo a Linha de Transmissão ($N = 30$). Direita: Zoom nos quatro circuitos ressonantes avaliados em GHz ($N = 24$)."}
+par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2.2, 1))
+
+dados_rf$Metodo_lbl <- factor(dados_rf$Metodo,
+                              levels = c("HFSS", "Tidy3D", "Analitico"),
+                              labels = c("HFSS", "Tidy3D", "Analítico"))
+
+# Painel 1: Todos os circuitos (escala global)
+boxplot(Erro_Pct ~ Metodo_lbl, data = dados_rf,
+        col = c("steelblue", "tomato", "gray70"),
+        main = "Global: Todos os Circuitos (N = 30)",
+        xlab = "Fator A (Método)",
+        ylab = "Desvio Relativo y_ijk (%)")
+abline(h = 0, col = "red", lwd = 1.5, lty = 2)
+
+# Painel 2: Apenas circuitos ressonantes em GHz
+dados_ghz <- subset(dados_rf, Unidade == "GHz")
+boxplot(Erro_Pct ~ Metodo_lbl, data = dados_ghz,
+        col = c("steelblue", "tomato", "gray70"),
+        main = "Apenas Ressonantes em GHz (N = 24)",
+        xlab = "Fator A (Método)",
+        ylab = "Desvio Relativo y_ijk (%)")
+abline(h = 0, col = "red", lwd = 1.5, lty = 2)
+```
+
+\qquad A análise conjunta da Tabela \ref{tab:resumo_descritivo_rf} e das Figuras \ref{fig:exploratoria_rf} a \ref{fig:box_rf} destaca três comportamentos principais:
+\begin{enumerate}
+  \item \textbf{Concordância nos circuitos ressonantes (Circuitos 1 a 4):} Nas topologias avaliadas em $\text{GHz}$, os resultados do HFSS, Tidy3D e Modelo Analítico são praticamente idênticos (Figura \ref{fig:exploratoria_rf} e painel direito da Figura \ref{fig:box_rf}). Os desvios relativos restringem-se à faixa de $-0{,}88\%$ a $+0{,}15\%$, com médias e medianas próximas de zero.
+  \item \textbf{Discrepância no Circuito 5 e interação Método $\times$ Circuito:} As curvas de perfil são paralelas e nulas nos quatro primeiros circuitos, mas divergem acentuadamente na Linha de Transmissão (Figura \ref{fig:perfil_rf}). Isso decorre da sensibilidade da escala logarítmica ($\text{dB}$) sob casamento profundo ($-38\text{ dB}$ a $-75\text{ dB}$), onde pequenas variações numéricas de malha geram desvios percentuais elevados (até $+39{,}22\%$ no HFSS e $+42{,}84\%$ no Tidy3D).
+  \item \textbf{Assimetria e inflação da variância global:} Exclusivamente devido à Linha de Transmissão, a média global desloca-se para $+3{,}82\%$ no HFSS ($\text{DP} = 12{,}44\%$) e $+6{,}65\%$ no Tidy3D ($\text{DP} = 14{,}61\%$), embora as medianas permaneçam nulas (painel esquerdo da Figura \ref{fig:box_rf}). Esse comportamento antecipa desvios de normalidade e homoscedasticidade nos resíduos globais.
+\end{enumerate}
+
+## 6. Verificação das Premissas dos Testes
+
+\qquad A validade da inferência paramétrica na ANOVA Fatorial fundamenta-se na premissa de que os resíduos do modelo são independentes e identicamente distribuídos segundo uma distribuição normal com variância constante, $\epsilon_{ijk} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)$. Nesta seção, avaliam-se a normalidade residual pelo teste de Shapiro-Wilk e por gráficos Q-Q Normal, a homoscedasticidade pelo teste de Fligner-Killeen e por gráficos de diagnóstico dos resíduos, e a independência a partir do protocolo de coleta experimental.
+
+### 6.1 Diagnóstico do Modelo Paramétrico (Normalidade, Homoscedasticidade e Independência)
+
+```{r diag_fatorial, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=5.2, fig.cap="\\label{fig:diag_fat}Gráficos diagnósticos dos resíduos do modelo linear da ANOVA Fatorial $3 \\times 5$ para $y_{ijk}$."}
+modelo_fat <- aov(Erro_Pct ~ Metodo * Circuito, data = dados_rf)
+
+par(mfrow = c(2, 2), mar = c(4, 4, 2.2, 1))
+plot(modelo_fat, pch = 20, las = 1)
+```
+
+```{r qq_fatorial, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.2, fig.cap="\\label{fig:qq_fat}Gráficos Q-Q Normal dos resíduos com envelope de confiança de 95\\%: modelo fatorial global ($N = 30$, esquerda) e subconjunto dos circuitos ressonantes em GHz ($N = 24$, direita)."}
+res_fat  <- residuals(modelo_fat)
+shapiro_global <- shapiro.test(res_fat)
+fligner_global <- fligner.test(Erro_Pct ~ interaction(Metodo, Circuito), data = dados_rf)
+
+# Ajuste complementar apenas para os circuitos em GHz (sem Linha de Transmissão)
+dados_ghz  <- subset(dados_rf, Unidade == "GHz")
+modelo_ghz <- aov(Erro_Pct ~ Metodo * Circuito, data = dados_ghz)
+res_ghz    <- residuals(modelo_ghz)
+shapiro_ghz <- shapiro.test(res_ghz)
+fligner_ghz <- fligner.test(Erro_Pct ~ interaction(Metodo, Circuito), data = dados_ghz)
+
+par(mfrow = c(1, 2), mar = c(4.2, 4.2, 2, 1))
+car::qqPlot(res_fat, pch = 20, id = FALSE,
+            main = "Q-Q Plot: Resíduos Globais (N = 30)",
+            ylab = "Quantis observados (Resíduos)",
+            xlab = "Quantis teóricos (Normal)")
+car::qqPlot(res_ghz, pch = 20, id = FALSE,
+            main = "Q-Q Plot: Resíduos em GHz (N = 24)",
+            ylab = "Quantis observados (Resíduos)",
+            xlab = "Quantis teóricos (Normal)")
+```
+
+```{r tabela_premissas_rf, echo=FALSE, message=FALSE, warning=FALSE}
+tabela_prem_rf <- data.frame(
+  Premissa = c("Normalidade dos resíduos --- Global ($N = 30$)",
+               "Homoscedasticidade --- Global ($N = 30$)",
+               "Normalidade dos resíduos --- Circuitos em GHz ($N = 24$)",
+               "Homoscedasticidade --- Circuitos em GHz ($N = 24$)"),
+  Teste = c("Shapiro-Wilk", "Fligner-Killeen", "Shapiro-Wilk", "Fligner-Killeen"),
+  Estatistica = c(sprintf("$W = %.4f$", shapiro_global$statistic),
+                  sprintf("$\\chi^2 = %.4f$", fligner_global$statistic),
+                  sprintf("$W = %.4f$", shapiro_ghz$statistic),
+                  sprintf("$\\chi^2 = %.4f$", fligner_ghz$statistic)),
+  p_valor = c(format.pval(shapiro_global$p.value, digits = 4, eps = 1e-6),
+              sprintf("%.4f", fligner_global$p.value),
+              format.pval(shapiro_ghz$p.value, digits = 4, eps = 1e-6),
+              sprintf("%.4f", fligner_ghz$p.value)),
+  Decisao = c(ifelse(shapiro_global$p.value < 0.05, "Rejeita $H_0$ (Não normal)", "Não rejeita $H_0$"),
+              ifelse(fligner_global$p.value < 0.05, "Rejeita $H_0$ (Heterocedástico)", "Não rejeita $H_0$"),
+              ifelse(shapiro_ghz$p.value < 0.05, "Rejeita $H_0$ (Não normal)", "Não rejeita $H_0$"),
+              ifelse(fligner_ghz$p.value < 0.05, "Rejeita $H_0$ (Heterocedástico)", "Não rejeita $H_0$")),
+  check.names = FALSE
+)
+
+knitr::kable(
+  tabela_prem_rf,
+  caption   = "\\label{tab:premissas_rf}Síntese dos testes formais de verificação das premissas ($\\alpha = 0{,}05$)",
+  col.names = c("Premissa Avaliada", "Teste Estatístico", "Estatística",
+                "Valor-$p$", "Conclusão ($\\alpha = 0{,}05$)"),
+  align     = c("l", "c", "c", "c", "c"),
+  booktabs  = TRUE,
+  escape    = FALSE
+)
+```
+
+
+
+## Declaração de uso de IA generativa e tecnologias assistidas por IA
+
+\qquad Durante a preparação deste trabalho, os autores utilizaram ferramentas de inteligência artificial generativa (Claude Opus 4.6, da Anthropic, Gemini, do Google, e ChatGPT, da OpenAI) com o objetivo de auxiliar na estruturação de código em R, formatação de tabelas em R Markdown e revisão técnica e textual do relatório. Após a utilização dessas ferramentas, os autores conferiram todos os cálculos, revisaram e editaram o conteúdo integralmente, assumindo total responsabilidade pela exatidão e integridade do material publicado.
+
+## Papéis e Contribuições da Equipe
+
+* **Beatriz S. Campagnaro:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Filipe C. Andrade:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+* **Izabela C. S. Barbosa:** Desenvolvimento dos scripts estatísticos em R, redação do manuscrito e revisão técnica.
+
+## Referências

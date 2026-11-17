@@ -1,0 +1,54 @@
+ 
+Ansys Electronics Desktop Version 2024.2.0, Build: 2024-05-23 02:23:50
+Location: C:\Program Files\AnsysEM\v242\Win64\ansysedt.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 11:38:56 PM  Nov 16, 2026
+Running as user : FILIPEANDRADE\filip
+Temp directory: C:\Users\filip\AppData\Local\Temp
+Project directory: C:\Users\filip\Documents\Ansoft
+The project 'Trabalho_Final_HFSS' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] GRPC server running on port: 60610. 
+        [info] The project 'Trabalho_Final_HFSS' has been edited and/or solved. Do you want to save the changes?
+      Trabalho_Final_HFSS (C:/Users/filip/Documents/Ansoft/)
+        Cavidade_3D_Eigenmode (Eigenmode)
+          [info] Normal completion of simulation on server: Local Machine. (11:41:31 PM  Nov 16, 2026)
+-- Message Window --
+Stopping Batch Run: 11:41:43 PM  Nov 16, 2026
+ 
+Ansys Electronics Desktop Version 2024.2.0, Build: 2024-05-23 02:23:50
+Location: C:\Program Files\AnsysEM\v242\Win64\ansysedt.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 11:42:02 PM  Nov 16, 2026
+Running as user : FILIPEANDRADE\filip
+Temp directory: C:\Users\filip\AppData\Local\Temp
+Project directory: C:\Users\filip\Documents\Ansoft
+The project 'Trabalho_Final_HFSS' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] GRPC server running on port: 65129. 
+        [info] The project 'Trabalho_Final_HFSS' has been edited and/or solved. Do you want to save the changes?
+      Trabalho_Final_HFSS (C:/Users/filip/Documents/Ansoft/)
+        Antena_Patch_3GHz (Modal Network)
+          [info] An interpolating frequency sweep with 1601 points has been started using HFSS - Solving Distributed. (11:46:26 PM  Nov 16, 2026)
+          [info] Interpolating frequency sweep complete. Converged. (11:46:26 PM  Nov 16, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (11:46:26 PM  Nov 16, 2026)
+          [warning] The variable  'Phase' doesn't have an associated sweep and is excluded from the definition of trace. (11:46:27 PM  Nov 16, 2026)
+        Branchline_3GHz (Modal Network)
+          [info] An interpolating frequency sweep with 1601 points has been started using HFSS - Solving Distributed. (11:48:17 PM  Nov 16, 2026)
+          [info] Interpolating frequency sweep complete. Converged. (11:48:17 PM  Nov 16, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (11:48:17 PM  Nov 16, 2026)
+          [warning] The variable  'Phase' doesn't have an associated sweep and is excluded from the definition of trace. (11:48:18 PM  Nov 16, 2026)
+        Linha_Microfita_50Ohms (Modal Network)
+          [info] An interpolating frequency sweep with 1601 points has been started using HFSS - Solving Distributed. (11:50:04 PM  Nov 16, 2026)
+          [info] Interpolating frequency sweep complete. Converged. (11:50:04 PM  Nov 16, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (11:50:04 PM  Nov 16, 2026)
+          [warning] The variable  'Phase' doesn't have an associated sweep and is excluded from the definition of trace. (11:50:05 PM  Nov 16, 2026)
+        Wilkinson_3GHz (Modal Network)
+          [info] An interpolating frequency sweep with 1601 points has been started using HFSS - Solving Distributed. (11:51:39 PM  Nov 16, 2026)
+          [info] Interpolating frequency sweep complete. Converged. (11:51:39 PM  Nov 16, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (11:51:39 PM  Nov 16, 2026)
+          [warning] The variable  'Phase' doesn't have an associated sweep and is excluded from the definition of trace. (11:51:42 PM  Nov 16, 2026)
+-- Message Window --
+Stopping Batch Run: 11:54:44 PM  Nov 16, 2026
