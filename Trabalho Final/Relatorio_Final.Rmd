@@ -226,8 +226,8 @@ calc_stats <- function(x) {
 hfss_all <- dados_rf$Erro_Pct[dados_rf$Metodo == "HFSS"]
 tidy_all <- dados_rf$Erro_Pct[dados_rf$Metodo == "Tidy3D"]
 ana_all  <- dados_rf$Erro_Pct[dados_rf$Metodo == "Analitico"]
-hfss_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "HFSS" & dados_rf$Unidade == "GHz"]
-tidy_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "Tidy3D" & dados_rf$Unidade == "GHz"]
+hfss_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "HFSS" & dados_rf$Circuito != "Linha Transmissao"]
+tidy_ghz <- dados_rf$Erro_Pct[dados_rf$Metodo == "Tidy3D" & dados_rf$Circuito != "Linha Transmissao"]
 
 stats_mat <- rbind(
   calc_stats(hfss_all),
@@ -259,27 +259,29 @@ knitr::kable(
 )
 ```
 
-```{r exploratoria_rf, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.4, fig.cap="\\label{fig:exploratoria_rf}Comparação das frequências de ressonância e do modo dominante $\\text{TE}_{101}$ (em GHz) obtidas pelos três métodos nas duas réplicas dielétricas."}
+```{r exploratoria_rf, echo=FALSE, fig.pos="H", fig.width=7.5, fig.height=3.6, fig.cap="\\label{fig:exploratoria_rf}Comparação das frequências de ressonância e modos elétricos (em GHz) obtidas pelos três métodos nas duas réplicas dielétricas."}
 df_long_freq <- dados_rf %>%
   filter(Unidade == "GHz") %>%
   mutate(
     Metodo = factor(Metodo, levels = c("HFSS", "Tidy3D", "Analitico"),
                     labels = c("HFSS", "Tidy3D", "Analítico")),
-    Circuito_Rep = paste0(Circuito, "\n[", sub("\\s*\\(.*", "", Dieletrico), "]")
+    Circuito_ord = factor(Circuito, levels = c("Branch-Line", "Cavidade", "Antena Patch", "Divisor Wilkinson", "Linha Transmissao")),
+    Circuito_Rep = factor(paste0(Circuito, "\n[", sub("\\s*\\(.*", "", Dieletrico), "]"),
+                          levels = unique(paste0(Circuito, "\n[", sub("\\s*\\(.*", "", Dieletrico), "]")[order(Circuito_ord, Replica)]))
   )
 
 ggplot(df_long_freq, aes(x = Circuito_Rep, y = Valor, fill = Metodo)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.7) +
-  coord_cartesian(ylim = c(2.85, 3.80)) +
+  scale_y_continuous(limits = c(0, 4.0), breaks = seq(0, 4, by = 0.5), expand = expansion(mult = c(0, 0.05))) +
   scale_fill_manual(values = c("HFSS" = "steelblue",
                                "Tidy3D" = "tomato",
                                "Analítico" = "gray45")) +
-  labs(title = "Frequências de Ressonância / Modo TE101 por Circuito e Réplica",
+  labs(title = "Frequências de Ressonância / Modos por Circuito e Réplica",
        x = "Fator B (Circuito de RF) e Réplica Dielétrica",
        y = "Frequência (GHz)",
        fill = "Fator A (Método)") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 20, hjust = 1, size = 8.5),
+  theme(axis.text.x = element_text(angle = 20, hjust = 1, size = 8),
         legend.position = "bottom",
         plot.title = element_text(hjust = 0.5, face = "bold", size = 10.5))
 ```
@@ -322,8 +324,8 @@ boxplot(Erro_Pct ~ Metodo_lbl, data = dados_rf,
         ylab = "Desvio Relativo y_ijk (%)")
 abline(h = 0, col = "red", lwd = 1.5, lty = 2)
 
-# Painel 2: Apenas circuitos ressonantes em GHz
-dados_ghz <- subset(dados_rf, Unidade == "GHz")
+# Painel 2: Apenas circuitos ressonantes em GHz (sem Linha de Transmissão)
+dados_ghz <- subset(dados_rf, Circuito != "Linha Transmissao")
 boxplot(Erro_Pct ~ Metodo_lbl, data = dados_ghz,
         col = c("steelblue", "tomato", "gray70"),
         main = "Apenas Ressonantes em GHz (N = 24)",
@@ -358,7 +360,7 @@ shapiro_global <- shapiro.test(res_fat)
 fligner_global <- fligner.test(Erro_Pct ~ interaction(Metodo, Circuito), data = dados_rf)
 
 # Ajuste complementar apenas para os circuitos em GHz (sem Linha de Transmissão)
-dados_ghz  <- subset(dados_rf, Unidade == "GHz")
+dados_ghz  <- subset(dados_rf, Circuito != "Linha Transmissao")
 modelo_ghz <- aov(Erro_Pct ~ Metodo * Circuito, data = dados_ghz)
 res_ghz    <- residuals(modelo_ghz)
 shapiro_ghz <- shapiro.test(res_ghz)

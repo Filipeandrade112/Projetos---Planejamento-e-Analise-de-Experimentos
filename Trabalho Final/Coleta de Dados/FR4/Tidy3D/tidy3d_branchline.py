@@ -70,9 +70,9 @@ W35_mm = round(
     w_35 * 1e3, 2
 )  # 5.10 mm (linhas de 35.36 Ohms: ramos horizontais)
 
-# Comprimentos centro-a-centro compensados para a interseção das quinas largas 3D
-Lx_mm = 15.05  # Comprimento centro-a-centro dos braços horizontais (X) em mm
-Ly_mm = 15.20  # Comprimento centro-a-centro dos braços verticais (Y) em mm
+# Comprimentos centro-a-centro idênticos ao modelo analítico (lambda_g / 4)
+Lx_mm = round(L_35_ana_mm, 2)  # 13.35 mm (braços horizontais série em X)
+Ly_mm = round(L_50_ana_mm, 2)  # 13.70 mm (braços verticais shunt em Y)
 L_feed_mm = 10.0  # Comprimento dos acessos externos de 50 Ohms em mm
 
 # Substrato dimensionado exatamente para as portas ficarem nas bordas XNeg e XPos
@@ -323,76 +323,16 @@ if np.mean(np.diff(np.unwrap(np.angle(s21_port)))) > 0:
 s21_db_raw = 20.0 * np.log10(np.clip(np.abs(s21_port), 1e-6, 1.0))
 s31_db_raw = 20.0 * np.log10(np.clip(np.abs(s31_port), 1e-6, 1.0))
 
-# 4.1 De-embedding das linhas de acesso de 50 Ohms (2 * L_feed) e das descontinuidades
-# de quina (interseções W35 x W50) para referenciar os parâmetros S diretamente nos
-# quatro nós internos do acoplador Branch-Line (idêntico ao HFSS):
+# 4.1 De-embedding físico puro das linhas de acesso de 50 Ohms (2 * L_feed)
 idx_f0 = int(np.argmin(np.abs(freqs_ghz - f0_ghz)))
 beta_feed = (2.0 * np.pi * f_hz / c0) * np.sqrt(eps_50)
 d_feed_m = L_feed_mm * 1e-3
 rot_feed = np.exp(2j * beta_feed * d_feed_m)
 
-gamma_e_junc = (s11_port + s41_port) * rot_feed
-gamma_o_junc = (s11_port - s41_port) * rot_feed
-trans_e_junc = (s21_port + s31_port) * rot_feed
-trans_o_junc = (s21_port - s31_port) * rot_feed
-
-theta_td = (np.pi / 2.0) * (freqs_ghz / f0_ghz)
-
-perda_total_f0_db = max(
-    0.0, -3.0103 - 0.5 * (s21_db_raw[idx_f0] + s31_db_raw[idx_f0])
-)
-frac_anel = L_35_ana_mm / (2.0 * L_feed_mm + L_35_ana_mm)
-atten_anel_lin = 10.0 ** (
-    -0.5 * (frac_anel * perda_total_f0_db * (freqs_ghz / f0_ghz)) / 20.0
-)
-
-# Matrizes ABCD intrínsecas nos planos dos nós internos do acoplador (Modo Par e Ímpar)
-y0_p = 1.0 / z0_p
-y0_s = 1.0 / z0_s
-cos_t = np.cos(theta_td)
-sin_t = np.sin(theta_td)
-tan_half = np.tan(theta_td / 2.0)
-
-b_ser = 1j * z0_s * sin_t
-c_ser = 1j * y0_s * sin_t
-
-ye_shunt = 1j * y0_p * tan_half
-yo_shunt = -1j * y0_p * tan_half
-
-a_e = cos_t + b_ser * ye_shunt
-b_e = b_ser
-c_e = 2.0 * ye_shunt * cos_t + (ye_shunt**2) * b_ser + c_ser
-d_e = a_e
-
-a_o = cos_t + b_ser * yo_shunt
-b_o = b_ser
-c_o = 2.0 * yo_shunt * cos_t + (yo_shunt**2) * b_ser + c_ser
-d_o = a_o
-
-den_e = a_e + (b_e / z0) + (c_e * z0) + d_e
-den_o = a_o + (b_o / z0) + (c_o * z0) + d_o
-
-gamma_e_int = (a_e + (b_e / z0) - (c_e * z0) - d_e) / den_e
-gamma_o_int = (a_o + (b_o / z0) - (c_o * z0) - d_o) / den_o
-
-trans_e_int = (2.0 / den_e) * atten_anel_lin
-trans_o_int = (2.0 / den_o) * atten_anel_lin
-
-# Remoção do adaptador parasita de porta e quina 3D
-err_ge = gamma_e_junc - gamma_e_int
-err_go = gamma_o_junc - gamma_o_int
-err_te = trans_e_junc - trans_e_int
-err_to = trans_o_junc - trans_o_int
-
-gamma_e_deemb = gamma_e_junc - err_ge
-gamma_o_deemb = gamma_o_junc - err_go
-trans_e_deemb = trans_e_junc - err_te
-trans_o_deemb = trans_o_junc - err_to
-
-s11_deemb = 0.5 * (gamma_e_deemb + gamma_o_deemb)
-s41_deemb = 0.5 * (gamma_e_deemb - gamma_o_deemb)
-s21_deemb = 0.5 * (trans_e_deemb + trans_o_deemb)
-s31_deemb = 0.5 * (trans_e_deemb - trans_o_deemb)
+s11_deemb = s11_port * rot_feed
+s21_deemb = s21_port * rot_feed
+s31_deemb = s31_port * rot_feed
+s41_deemb = s41_port * rot_feed
 
 s11_db = 20.0 * np.log10(np.clip(np.abs(s11_deemb), 1e-6, 1.0))
 s21_db = 20.0 * np.log10(np.clip(np.abs(s21_deemb), 1e-6, 1.0))

@@ -6,9 +6,13 @@ import pandas as pd
 try:
   from ansys.aedt.core import Hfss
   from ansys.aedt.core.generic.constants import Plane
+  from ansys.aedt.core.generic.settings import settings
+  settings.use_grpc_api = False
 except ImportError:
   from pyaedt import Hfss
   from pyaedt.generic.constants import Plane
+  from pyaedt.generic.settings import settings
+  settings.use_grpc_api = False
 
 # ==============================================================================
 # 1. DIMENSIONAMENTO ANALÍTICO E CALIBRAÇÃO 3D DO DIVISOR WILKINSON (3.0 GHz)
@@ -54,7 +58,7 @@ W50 = round(w_50 * 1e3, 2)  # 1.49 mm (linhas de acesso de 50 Ohms)
 W70 = round(w_70 * 1e3, 2)  # 0.65 mm (braços de quarto de onda de 70.71 Ohms)
 g_res = 0.60  # Gap direto entre os ramos de saída para o resistor de 100 Ohms (mm)
 W_res = 0.85  # Largura axial da folha resistiva de 100 Ohms (mm)
-Lx_arm = 8.85  # Extensão longitudinal dos braços de quarto de onda p/ lambda_g/4 = 9.85 mm (mm)
+Lx_arm = round(L_braco_ana_mm, 2)  # 9.85 mm (comprimento analítico lambda_g/4)
 L_taper = 1.95  # Extensão longitudinal das transições chanfradas (mm)
 Y_mid = 1.95  # Afastamento transversal médio dos braços para desacoplamento (mm)
 L_feed = 4.00  # Comprimento dos acessos externos de 50 Ohms até as bordas X (mm)
@@ -83,6 +87,7 @@ hfss = Hfss(
     design="Wilkinson_3GHz",
     solution_type="DrivenModal",
     remove_lock=True,
+    version="2024.2",
 )
 
 hfss.modeler.model_units = "mm"
@@ -111,14 +116,11 @@ for s_name in list(hfss.setup_names):
   except Exception:
     pass
 
-try:
-  hfss.odesign.GetModule("BoundarySetup").DeleteAllBoundaries()
-except Exception:
-  for b in list(hfss.boundaries):
-    try:
-      b.delete()
-    except Exception:
-      pass
+for b in list(hfss.boundaries):
+  try:
+    b.delete()
+  except Exception:
+    pass
 
 nomes_objetos = list(hfss.modeler.object_names)
 if nomes_objetos:
@@ -367,71 +369,26 @@ s11_port = np.asarray(re_s11, dtype=float) + 1j * np.asarray(im_s11, dtype=float
 s22_port = np.asarray(re_s22, dtype=float) + 1j * np.asarray(im_s22, dtype=float)
 s23_port = np.asarray(re_s23, dtype=float) + 1j * np.asarray(im_s23, dtype=float)
 
-# 5.1 De-embedding da fase e perda de inserção das linhas de acesso externas (2 * L_feed)
-fase21_unw = np.rad2deg(np.unwrap(np.deg2rad(fase21_raw)))
-fase31_unw = np.rad2deg(np.unwrap(np.deg2rad(fase31_raw)))
-delta_fase = (fase21_unw - fase31_unw + 180.0) % 360.0 - 180.0
-
+# 5.1 De-embedding físico puro da fase das linhas de acesso externas (2 * L_feed)
 idx_f0 = int(np.argmin(np.abs(freqs - f0_ghz)))
-atraso_acessos_deg = (fase21_unw[idx_f0] - (-90.0)) * (freqs / f0_ghz)
-fase_s21_deg = fase21_unw - atraso_acessos_deg
-fase_s31_deg = fase31_unw - atraso_acessos_deg
-
-# Compensação da perda ôhmica/dielétrica exclusiva dos acessos externos (2 * L_feed),
-# preservando a perda física intrínseca dos braços de lambda/4 do HFSS:
-frac_acessos = (2.0 * L_feed) / (2.0 * L_feed + L_braco_ana_mm)
-perda_excesso_f0 = max(0.0, -3.0103 - 0.5 * (s21_db_raw[idx_f0] + s31_db_raw[idx_f0]))
-comp_acessos_db = frac_acessos * perda_excesso_f0 * (freqs / f0_ghz)
-s21_db = s21_db_raw + comp_acessos_db
-s31_db = s31_db_raw + comp_acessos_db
-
-# 5.2 De-embedding modal ( Par / Ímpar ) para os planos internos dos nós 1, 2 e 3:
-# Utiliza o comprimento elétrico dispersivo extraído do HFSS (-Fase_S21) e remove
-# a reatância parasita de porta/junção 3D nos planos terminais do divisor Wilkinson:
-theta_hfss = np.deg2rad(-0.5 * (fase_s21_deg + fase_s31_deg))
 beta_feed = (2.0 * np.pi * (freqs * 1e9) / c0) * np.sqrt(eps_50)
 d_feed_m = L_feed * 1e-3
+rot_feed = np.exp(2j * beta_feed * d_feed_m)
 
-# Impedâncias e reflexões nos planos das portas externas (HFSS)
-gamma1_junc = s11_port * np.exp(2j * beta_feed * d_feed_m)
-gamma2e_junc = (s22_port + s23_port) * np.exp(2j * beta_feed * d_feed_m)
-gamma2o_junc = (s22_port - s23_port) * np.exp(2j * beta_feed * d_feed_m)
+s11_deemb = s11_port * rot_feed
+s22_deemb = s22_port * rot_feed
+s23_deemb = s23_port * rot_feed
 
-# Resposta intrínseca dos ramos de quarto de onda nos planos dos nós 1, 2 e 3
-zin_ramo = (
-    z_braco
-    * (z0 + 1j * z_braco * np.tan(theta_hfss))
-    / (z_braco + 1j * z0 * np.tan(theta_hfss))
-)
-zin_porta1_int = zin_ramo / 2.0
-gamma1_int = (zin_porta1_int - z0) / (zin_porta1_int + z0)
-
-zin2_even_int = (
-    z_braco
-    * (2.0 * z0 + 1j * z_braco * np.tan(theta_hfss))
-    / (z_braco + 1j * 2.0 * z0 * np.tan(theta_hfss))
-)
-gamma2e_int = (zin2_even_int - z0) / (zin2_even_int + z0)
-
-z_stub_odd = 1j * z_braco * np.tan(theta_hfss)
-zin2_odd_int = (z0 * z_stub_odd) / (z0 + z_stub_odd)
-gamma2o_int = (zin2_odd_int - z0) / (zin2_odd_int + z0)
-
-# Subtração do adaptador parasita de porta/junção (calibrado a partir dos dados HFSS)
-err_1 = gamma1_junc - gamma1_int
-err_2e = gamma2e_junc - gamma2e_int
-err_2o = gamma2o_junc - gamma2o_int
-
-s11_deemb = gamma1_junc - err_1
-gamma2e_deemb = gamma2e_junc - err_2e
-gamma2o_deemb = gamma2o_junc - err_2o
-
-s22_deemb = 0.5 * (gamma2e_deemb + gamma2o_deemb)
-s23_deemb = 0.5 * (gamma2e_deemb - gamma2o_deemb)
-
+s21_db = s21_db_raw
+s31_db = s31_db_raw
 s11_db = 20.0 * np.log10(np.clip(np.abs(s11_deemb), 1e-6, 1.0))
 s22_db = 20.0 * np.log10(np.clip(np.abs(s22_deemb), 1e-6, 1.0))
 s23_db = 20.0 * np.log10(np.clip(np.abs(s23_deemb), 1e-6, 1.0))
+
+atraso_feed_deg = np.rad2deg(2.0 * beta_feed * d_feed_m)
+fase_s21_deg = ((fase21_raw + atraso_feed_deg + 180.0) % 360.0) - 180.0
+fase_s31_deg = ((fase31_raw + atraso_feed_deg + 180.0) % 360.0) - 180.0
+delta_fase = ((fase_s21_deg - fase_s31_deg + 180.0) % 360.0) - 180.0
 
 df_wilkinson_hfss = pd.DataFrame({
     "Freq_GHz": freqs,

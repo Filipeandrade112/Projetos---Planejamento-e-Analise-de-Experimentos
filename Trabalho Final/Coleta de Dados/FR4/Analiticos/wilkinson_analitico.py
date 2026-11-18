@@ -71,7 +71,7 @@ print("=" * 65)
 # ==============================================================================
 # 3. CÁLCULO ANALÍTICO DOS PARÂMETROS S (2.0 GHz a 4.0 GHz)
 # ==============================================================================
-freqs_ghz = np.linspace(2.0, 4.0, 1601)  # Varredura ajustada: 2 a 4 GHz
+freqs_ghz = np.linspace(2.0, 4.0, 16001)  # Varredura ajustada: 2 a 4 GHz
 freqs_hz = freqs_ghz * 1e9
 
 # Comprimento elétrico dos braços theta = beta * L = (pi / 2) * (f / f0)

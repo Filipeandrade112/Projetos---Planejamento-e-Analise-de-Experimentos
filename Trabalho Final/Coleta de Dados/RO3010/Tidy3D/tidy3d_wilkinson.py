@@ -69,7 +69,7 @@ g_res_mm = (
     0.60  # Gap direto entre os ramos de saída para o resistor de 100 Ohms (mm)
 )
 W_res_mm = 0.85  # Largura axial da folha resistiva de 100 Ohms (mm)
-Lx_arm_mm = 8.85  # Extensão longitudinal dos braços de quarto de onda p/ lambda_g/4 = 9.85 mm (mm)
+Lx_arm_mm = round(L_braco_ana_mm, 2)  # 9.85 mm (comprimento analítico lambda_g/4)
 L_taper_mm = 1.95  # Extensão longitudinal das transições chanfradas (mm)
 Y_mid_mm = (
     1.95  # Afastamento transversal médio dos braços para desacoplamento (mm)
@@ -356,67 +356,27 @@ if np.mean(np.diff(np.unwrap(np.angle(s21_port)))) > 0:
 s21_db_raw = 20.0 * np.log10(np.clip(np.abs(s21_port), 1e-6, 1.0))
 s31_db_raw = 20.0 * np.log10(np.clip(np.abs(s31_port), 1e-6, 1.0))
 
-# 4.1 De-embedding da fase e perda de inserção das linhas de acesso externas (2 * L_feed)
-fase21_unw = np.rad2deg(np.unwrap(np.angle(s21_port)))
-fase31_unw = np.rad2deg(np.unwrap(np.angle(s31_port)))
-delta_fase = (fase21_unw - fase31_unw + 180.0) % 360.0 - 180.0
-
+# 4.1 De-embedding físico puro da fase das linhas de acesso externas (2 * L_feed)
 idx_f0 = int(np.argmin(np.abs(freqs_ghz - f0_ghz)))
-atraso_acessos_deg = (fase21_unw[idx_f0] - (-90.0)) * (freqs_ghz / f0_ghz)
-fase_s21_deg = fase21_unw - atraso_acessos_deg
-fase_s31_deg = fase31_unw - atraso_acessos_deg
-
-frac_acessos = (2.0 * L_feed_mm) / (2.0 * L_feed_mm + L_braco_ana_mm)
-perda_excesso_f0 = max(
-    0.0, -3.0103 - 0.5 * (s21_db_raw[idx_f0] + s31_db_raw[idx_f0])
-)
-comp_acessos_db = frac_acessos * perda_excesso_f0 * (freqs_ghz / f0_ghz)
-s21_db = s21_db_raw + comp_acessos_db
-s31_db = s31_db_raw + comp_acessos_db
-
-# 4.2 De-embedding modal (Par / Ímpar) para os planos internos dos nós 1, 2 e 3
-# (idêntico ao realizado no HFSS):
-theta_td = np.deg2rad(-0.5 * (fase_s21_deg + fase_s31_deg))
 beta_feed = (2.0 * np.pi * f_hz / c0) * np.sqrt(eps_50)
 d_feed_m = L_feed_mm * 1e-3
+rot_feed = np.exp(2j * beta_feed * d_feed_m)
 
-gamma1_junc = s11_port * np.exp(2j * beta_feed * d_feed_m)
-gamma2e_junc = (s22_port + s23_port) * np.exp(2j * beta_feed * d_feed_m)
-gamma2o_junc = (s22_port - s23_port) * np.exp(2j * beta_feed * d_feed_m)
+s11_deemb = s11_port * rot_feed
+s21_deemb = s21_port * rot_feed
+s31_deemb = s31_port * rot_feed
+s22_deemb = s22_port * rot_feed
+s23_deemb = s23_port * rot_feed
 
-zin_ramo = (
-    z_braco
-    * (z0 + 1j * z_braco * np.tan(theta_td))
-    / (z_braco + 1j * z0 * np.tan(theta_td))
-)
-zin_porta1_int = zin_ramo / 2.0
-gamma1_int = (zin_porta1_int - z0) / (zin_porta1_int + z0)
-
-zin2_even_int = (
-    z_braco
-    * (2.0 * z0 + 1j * z_braco * np.tan(theta_td))
-    / (z_braco + 1j * 2.0 * z0 * np.tan(theta_td))
-)
-gamma2e_int = (zin2_even_int - z0) / (zin2_even_int + z0)
-
-z_stub_odd = 1j * z_braco * np.tan(theta_td)
-zin2_odd_int = (z0 * z_stub_odd) / (z0 + z_stub_odd)
-gamma2o_int = (zin2_odd_int - z0) / (zin2_odd_int + z0)
-
-err_1 = gamma1_junc - gamma1_int
-err_2e = gamma2e_junc - gamma2e_int
-err_2o = gamma2o_junc - gamma2o_int
-
-s11_deemb = gamma1_junc - err_1
-gamma2e_deemb = gamma2e_junc - err_2e
-gamma2o_deemb = gamma2o_junc - err_2o
-
-s22_deemb = 0.5 * (gamma2e_deemb + gamma2o_deemb)
-s23_deemb = 0.5 * (gamma2e_deemb - gamma2o_deemb)
-
+s21_db = s21_db_raw
+s31_db = s31_db_raw
 s11_db = 20.0 * np.log10(np.clip(np.abs(s11_deemb), 1e-6, 1.0))
 s22_db = 20.0 * np.log10(np.clip(np.abs(s22_deemb), 1e-6, 1.0))
 s23_db = 20.0 * np.log10(np.clip(np.abs(s23_deemb), 1e-6, 1.0))
+
+fase_s21_deg = np.angle(s21_deemb, deg=True)
+fase_s31_deg = np.angle(s31_deemb, deg=True)
+delta_fase = ((fase_s21_deg - fase_s31_deg + 180.0) % 360.0) - 180.0
 
 df_wilkinson_tidy3d = pd.DataFrame({
     "Freq_GHz": freqs_ghz,

@@ -26,7 +26,7 @@ Z0_p = 50.0  # Ramos shunt
 Z0_s = Z0 / np.sqrt(2.0)  # Ramos série (~35.355 Ohms)
 
 # Faixa de análise: 2.0 GHz a 4.0 GHz com 1601 pontos
-num_points = 1601
+num_points = 16001
 freqs = np.linspace(2.0e9, 4.0e9, num_points)
 freqs_ghz = freqs / 1e9
 

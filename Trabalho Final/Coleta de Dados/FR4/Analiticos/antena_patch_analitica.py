@@ -68,7 +68,7 @@ print("=" * 65)
 # ==============================================================================
 # 3. CURVA DE RESPOSTA EM FREQUÊNCIA S11 E IMPEDÂNCIA ZIN (2.7 GHz a 3.3 GHz)
 # ==============================================================================
-freqs_ghz = np.linspace(2.7, 3.3, 1601)
+freqs_ghz = np.linspace(2.7, 3.3, 16001)
 freqs_hz = freqs_ghz * 1e9
 
 # Modelagem por circuito ressonante RLC paralelo equivalente

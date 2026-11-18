@@ -31,6 +31,7 @@ hfss = Hfss(
     design="Cavidade_3D_Eigenmode",
     solution_type="Eigenmode",
     remove_lock=True,
+    version="2024.2",
 )
 
 hfss.modeler.model_units = "mm"

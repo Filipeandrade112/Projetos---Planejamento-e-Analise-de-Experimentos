@@ -6,9 +6,13 @@ import pandas as pd
 try:
   from ansys.aedt.core import Hfss
   from ansys.aedt.core.generic.constants import Plane
+  from ansys.aedt.core.generic.settings import settings
+  settings.use_grpc_api = False
 except ImportError:
   from pyaedt import Hfss
   from pyaedt.generic.constants import Plane
+  from pyaedt.generic.settings import settings
+  settings.use_grpc_api = False
 
 # ==============================================================================
 # 1. PARÂMETROS CALIBRADOS PARA CONCORDÂNCIA COM O MODELO ANALÍTICO (3.000 GHz)
@@ -35,12 +39,22 @@ delta_L = (
     / ((eps_eff_patch - 0.258) * (W_ana / h + 0.8))
 )
 delta_L_mm = delta_L * 1e3
+L_eff = c0 / (2.0 * f0 * np.sqrt(eps_eff_patch))
+L_ana = L_eff - 2.0 * delta_L
 
-# Dimensões físicas calibradas para Rogers RO3010 (er = 10.2, 3.0 GHz) compensando o efeito 3D
-# dos recortes (notches) e espraiamento no HFSS, cravando f0 = 3.000 GHz e Zin = 50 Ohms:
-W_patch = 21.11  # Largura analítica exata em RO3010 (21.11 mm)
-L_patch = 14.98  # Comprimento calibrado p/ ressonância 3D exata em 3.000 GHz (analítico: 15.37 mm)
-y0_inset = 6.29  # Profundidade do inset calibrada para Rin(y0) = 50 Ohms em 3.000 GHz
+k0 = 2.0 * np.pi * f0 / c0
+X = k0 * W_ana
+G1 = (1.0 / (120.0 * np.pi**2)) * (X * np.sin(X) + np.cos(X) - 1.0)
+if G1 <= 0:
+  G1 = (W_ana / (120.0 * np.pi * (c0 / f0))) * (1.0 - (k0 * h) ** 2 / 24.0)
+Rin_0 = 1.0 / (2.0 * G1)
+termo_cos = np.clip(np.sqrt(z0_linha / Rin_0), 0.0, 1.0)
+y0_ana = (L_ana / np.pi) * np.arccos(termo_cos)
+
+# Dimensões físicas idênticas ao modelo analítico para Rogers RO3010 (er = 10.2, 3.0 GHz):
+W_patch = round(W_ana * 1e3, 2)  # 21.11 mm
+L_patch = round(L_ana * 1e3, 2)  # 15.37 mm
+y0_inset = round(y0_ana * 1e3, 2)  # 6.64 mm
 W_feed = 1.49  # Largura da microfita de 50 Ohms em RO3010 (h = 1.6 mm)
 g_notch = 0.75  # Fresta lateral do inset feed (mm)
 L_feed = 10.0  # Extensão externa da linha de alimentação até a borda (mm)
@@ -65,6 +79,7 @@ hfss = Hfss(
     design="Antena_Patch_3GHz",
     solution_type="DrivenModal",
     remove_lock=True,
+    version="2024.2",
 )
 
 hfss.modeler.model_units = "mm"
@@ -91,14 +106,11 @@ for s_name in list(hfss.setup_names):
   except Exception:
     pass
 
-try:
-  hfss.odesign.GetModule("BoundarySetup").DeleteAllBoundaries()
-except Exception:
-  for b in list(hfss.boundaries):
-    try:
-      b.delete()
-    except Exception:
-      pass
+for b in list(hfss.boundaries):
+  try:
+    b.delete()
+  except Exception:
+    pass
 
 nomes_objetos = list(hfss.modeler.object_names)
 if nomes_objetos:
@@ -253,24 +265,8 @@ d_deembed_m = (L_feed + y0_inset + delta_L_mm) * 1e-3
 z_port = re_z_port + 1j * im_z_port
 gamma_port = (z_port - z0_linha) / (z_port + z0_linha)
 beta_feed = (2.0 * np.pi * (freqs * 1e9) / c0) * np.sqrt(eps_eff_feed)
-gamma_patch_raw = gamma_port * np.exp(2j * beta_feed * d_deembed_m)
-z_patch_raw = z0_linha * (1.0 + gamma_patch_raw) / (1.0 - gamma_patch_raw)
-
-# Compensação de descontinuidade de fenda/malha para referenciar no plano intrínseco do Patch
-idx_raw_min = int(np.argmin(np.abs(gamma_port)))
-f_raw_res = freqs[idx_raw_min]
-if abs(f_raw_res - f0_ghz) > 0.005:
-  Q_hfss = 35.0
-  delta_f_norm = ((freqs * 1e9) - f0) / f0
-  z_int = (z0_linha * 0.98) / (1.0 + 2j * Q_hfss * delta_f_norm)
-  gamma_int = (z_int - z0_linha) / (z_int + z0_linha)
-  err_gamma = gamma_patch_raw - gamma_int
-  gamma_patch = gamma_patch_raw - err_gamma
-  z_patch = z0_linha * (1.0 + gamma_patch) / (1.0 - gamma_patch)
-  s11_db = 20.0 * np.log10(np.clip(np.abs(gamma_patch), 1e-6, 1.0))
-else:
-  gamma_patch = gamma_patch_raw
-  z_patch = z_patch_raw
+gamma_patch = gamma_port * np.exp(2j * beta_feed * d_deembed_m)
+z_patch = z0_linha * (1.0 + gamma_patch) / (1.0 - gamma_patch)
 
 re_z = np.real(z_patch)
 im_z = np.imag(z_patch)

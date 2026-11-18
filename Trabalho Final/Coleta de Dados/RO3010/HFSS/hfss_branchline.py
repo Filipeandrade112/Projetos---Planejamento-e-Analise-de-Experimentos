@@ -6,9 +6,13 @@ import pandas as pd
 try:
   from ansys.aedt.core import Hfss
   from ansys.aedt.core.generic.constants import Plane
+  from ansys.aedt.core.generic.settings import settings
+  settings.use_grpc_api = False
 except ImportError:
   from pyaedt import Hfss
   from pyaedt.generic.constants import Plane
+  from pyaedt.generic.settings import settings
+  settings.use_grpc_api = False
 
 # ==============================================================================
 # 1. DIMENSIONAMENTO ANALÍTICO E COMPENSAÇÃO 3D DO BRANCH-LINE (3.0 GHz)
@@ -53,9 +57,9 @@ L_35_ana_mm = (c0 / (4.0 * f0 * np.sqrt(eps_35))) * 1e3  # 13.35 mm
 W50 = round(w_50 * 1e3, 2)  # 1.49 mm (linhas de 50 Ohms: ramos verticais e acessos)
 W35 = round(w_35 * 1e3, 2)  # 2.66 mm (linhas de 35.36 Ohms: ramos horizontais)
 
-# Comprimentos centro-a-centro compensados para as quinas 3D em RO3010 (3.0 GHz)
-Lx = round(L_35_ana_mm + 0.55 * W50, 2)  # 10.03 mm (braços horizontais série em X)
-Ly = round(L_50_ana_mm + 0.30 * W35, 2)  # 10.36 mm (braços verticais shunt em Y)
+# Comprimentos centro-a-centro idênticos ao modelo analítico em RO3010 (lambda_g / 4)
+Lx = round(L_35_ana_mm, 2)  # 9.21 mm (braços horizontais série em X)
+Ly = round(L_50_ana_mm, 2)  # 9.48 mm (braços verticais shunt em Y)
 L_feed = 8.0  # Comprimento dos acessos externos de 50 Ohms em mm
 
 # Substrato dimensionado exatamente para as portas ficarem nas bordas XNeg e XPos
@@ -81,6 +85,7 @@ hfss = Hfss(
     design="Branchline_3GHz",
     solution_type="DrivenModal",
     remove_lock=True,
+    version="2024.2",
 )
 
 hfss.modeler.model_units = "mm"
@@ -106,14 +111,11 @@ for s_name in list(hfss.setup_names):
   except Exception:
     pass
 
-try:
-  hfss.odesign.GetModule("BoundarySetup").DeleteAllBoundaries()
-except Exception:
-  for b in list(hfss.boundaries):
-    try:
-      b.delete()
-    except Exception:
-      pass
+for b in list(hfss.boundaries):
+  try:
+    b.delete()
+  except Exception:
+    pass
 
 nomes_objetos = list(hfss.modeler.object_names)
 if nomes_objetos:
@@ -351,80 +353,16 @@ s21_port = np.asarray(re_s21, dtype=float) + 1j * np.asarray(im_s21, dtype=float
 s31_port = np.asarray(re_s31, dtype=float) + 1j * np.asarray(im_s31, dtype=float)
 s41_port = np.asarray(re_s41, dtype=float) + 1j * np.asarray(im_s41, dtype=float)
 
-# 5.1 De-embedding das linhas de acesso de 50 Ohms (2 * L_feed) e das descontinuidades
-# de quina (interseções W35 x W50) para referenciar os parâmetros S diretamente nos
-# quatro nós internos do acoplador Branch-Line (mesma referência do modelo analítico):
+# 5.1 De-embedding físico puro das linhas de acesso de 50 Ohms (2 * L_feed)
 idx_f0 = int(np.argmin(np.abs(freqs - f0_ghz)))
 beta_feed = (2.0 * np.pi * (freqs * 1e9) / c0) * np.sqrt(eps_50)
 d_feed_m = L_feed * 1e-3
 rot_feed = np.exp(2j * beta_feed * d_feed_m)
 
-# Reflexões e transmissões de modo par e ímpar nas junções (dados HFSS)
-gamma_e_junc = (s11_port + s41_port) * rot_feed
-gamma_o_junc = (s11_port - s41_port) * rot_feed
-trans_e_junc = (s21_port + s31_port) * rot_feed
-trans_o_junc = (s21_port - s31_port) * rot_feed
-
-# Comprimento elétrico dispersivo dos braços de quarto de onda extraído do HFSS
-fase21_unw = np.rad2deg(np.unwrap(np.deg2rad(fase21_raw)))
-atraso_acessos_deg = (fase21_unw[idx_f0] - (-90.0)) * (freqs / f0_ghz)
-fase21_ref_deg = fase21_unw - atraso_acessos_deg
-theta_hfss = (np.pi / 2.0) * (freqs / f0_ghz)
-
-# Fator de perda intrínseca de inserção nos ramos do acoplador medido pelo HFSS
-perda_total_f0_db = max(
-    0.0, -3.0103 - 0.5 * (s21_db_raw[idx_f0] + s31_db_raw[idx_f0])
-)
-frac_anel = L_35_ana_mm / (2.0 * L_feed + L_35_ana_mm)
-atten_anel_lin = 10.0 ** (-0.5 * (frac_anel * perda_total_f0_db * (freqs / f0_ghz)) / 20.0)
-
-# Matrizes ABCD intrínsecas nos planos dos nós internos do acoplador (Modo Par e Ímpar)
-y0_p = 1.0 / z0_p
-y0_s = 1.0 / z0_s
-cos_t = np.cos(theta_hfss)
-sin_t = np.sin(theta_hfss)
-tan_half = np.tan(theta_hfss / 2.0)
-
-b_ser = 1j * z0_s * sin_t
-c_ser = 1j * y0_s * sin_t
-
-ye_shunt = 1j * y0_p * tan_half
-yo_shunt = -1j * y0_p * tan_half
-
-a_e = cos_t + b_ser * ye_shunt
-b_e = b_ser
-c_e = 2.0 * ye_shunt * cos_t + (ye_shunt**2) * b_ser + c_ser
-d_e = a_e
-
-a_o = cos_t + b_ser * yo_shunt
-b_o = b_ser
-c_o = 2.0 * yo_shunt * cos_t + (yo_shunt**2) * b_ser + c_ser
-d_o = a_o
-
-den_e = a_e + (b_e / z0) + (c_e * z0) + d_e
-den_o = a_o + (b_o / z0) + (c_o * z0) + d_o
-
-gamma_e_int = (a_e + (b_e / z0) - (c_e * z0) - d_e) / den_e
-gamma_o_int = (a_o + (b_o / z0) - (c_o * z0) - d_o) / den_o
-
-trans_e_int = (2.0 / den_e) * atten_anel_lin
-trans_o_int = (2.0 / den_o) * atten_anel_lin
-
-# Remoção do adaptador parasita de porta e quina 3D
-err_ge = gamma_e_junc - gamma_e_int
-err_go = gamma_o_junc - gamma_o_int
-err_te = trans_e_junc - trans_e_int
-err_to = trans_o_junc - trans_o_int
-
-gamma_e_deemb = gamma_e_junc - err_ge
-gamma_o_deemb = gamma_o_junc - err_go
-trans_e_deemb = trans_e_junc - err_te
-trans_o_deemb = trans_o_junc - err_to
-
-s11_deemb = 0.5 * (gamma_e_deemb + gamma_o_deemb)
-s41_deemb = 0.5 * (gamma_e_deemb - gamma_o_deemb)
-s21_deemb = 0.5 * (trans_e_deemb + trans_o_deemb)
-s31_deemb = 0.5 * (trans_e_deemb - trans_o_deemb)
+s11_deemb = s11_port * rot_feed
+s21_deemb = s21_port * rot_feed
+s31_deemb = s31_port * rot_feed
+s41_deemb = s41_port * rot_feed
 
 s11_db = 20.0 * np.log10(np.clip(np.abs(s11_deemb), 1e-6, 1.0))
 s21_db = 20.0 * np.log10(np.clip(np.abs(s21_deemb), 1e-6, 1.0))

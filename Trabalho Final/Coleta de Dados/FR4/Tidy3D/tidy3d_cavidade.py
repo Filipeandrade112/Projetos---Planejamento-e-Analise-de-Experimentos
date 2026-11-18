@@ -274,18 +274,14 @@ for _, row in df_ana.iterrows():
   arg_sin = np.clip(c0 * dt_m * np.sqrt(s_x**2 + s_y**2 + s_z**2), 0.0, 1.0)
   f_yee_ghz = (np.arcsin(arg_sin) / (np.pi * dt_m)) / 1e9
 
-  # Se o Harminv encontrou um pico dentro de 0.35% da frequência da malha de Yee,
-  # refina com o autovalor medido no sinal temporal; caso contrário (ex: modos degenerados
-  # TE/TM sobrepostos), utiliza o autovalor numérico exato da malha FDTD.
+  # Extração direta do pico medido pelo ResonanceFinder (Harminv) no sinal FDTD:
   f_td_val = f_yee_ghz
   q_td_val = 0.0
   if len(freqs_harminv_ghz) > 0:
-    idx_h = int(np.argmin(np.abs(freqs_harminv_ghz - f_yee_ghz)))
-    if abs(freqs_harminv_ghz[idx_h] - f_yee_ghz) / f_ana_i < 0.0035:
-      # ponderação suave entre autovalor da malha de Yee e pico Harminv
-      f_td_val = 0.5 * (f_yee_ghz + freqs_harminv_ghz[idx_h])
-      if len(qs_harminv) > idx_h:
-        q_td_val = float(qs_harminv[idx_h])
+    idx_h = int(np.argmin(np.abs(freqs_harminv_ghz - f_ana_i)))
+    f_td_val = float(freqs_harminv_ghz[idx_h])
+    if len(qs_harminv) > idx_h:
+      q_td_val = float(qs_harminv[idx_h])
 
   freqs_tidy3d.append(f_td_val)
   q_factors_tidy3d.append(q_td_val)

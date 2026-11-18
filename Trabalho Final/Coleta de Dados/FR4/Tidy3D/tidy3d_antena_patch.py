@@ -46,11 +46,22 @@ delta_L = (
     / ((eps_eff_patch - 0.258) * (W_ana / h_si + 0.8))
 )
 delta_L_mm = delta_L * 1e3
+L_eff = c0 / (2.0 * f0 * np.sqrt(eps_eff_patch))
+L_ana = L_eff - 2.0 * delta_L
 
-# Dimensões físicas da antena patch (mm)
-W_patch_mm = 30.41  # Largura do patch (30.41 mm)
-L_patch_mm = 23.36  # Comprimento do patch para ressonância 3D em 3.000 GHz
-y0_inset_mm = 7.38  # Profundidade do inset feed para casamento em 50 Ohms
+k0 = 2.0 * np.pi * f0 / c0
+X = k0 * W_ana
+G1 = (1.0 / (120.0 * np.pi**2)) * (X * np.sin(X) + np.cos(X) - 1.0)
+if G1 <= 0:
+  G1 = (W_ana / (120.0 * np.pi * (c0 / f0))) * (1.0 - (k0 * h_si) ** 2 / 24.0)
+Rin_0 = 1.0 / (2.0 * G1)
+termo_cos = np.clip(np.sqrt(z0_linha / Rin_0), 0.0, 1.0)
+y0_ana = (L_ana / np.pi) * np.arccos(termo_cos)
+
+# Dimensões físicas da antena patch idênticas ao modelo analítico (mm)
+W_patch_mm = round(W_ana * 1e3, 2)  # 30.41 mm
+L_patch_mm = round(L_ana * 1e3, 2)  # 23.41 mm
+y0_inset_mm = round(y0_ana * 1e3, 2)  # 8.20 mm
 W_feed_mm = 3.08  # Largura da linha de microfita de 50 Ohms
 g_notch_mm = 1.0  # Fresta lateral do inset feed (mm)
 L_feed_mm = 15.0  # Extensão externa da linha de alimentação até a borda (mm)

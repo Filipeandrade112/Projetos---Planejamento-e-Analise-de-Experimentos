@@ -6,9 +6,13 @@ import pandas as pd
 try:
   from ansys.aedt.core import Hfss
   from ansys.aedt.core.generic.constants import Plane
+  from ansys.aedt.core.generic.settings import settings
+  settings.use_grpc_api = False
 except ImportError:
   from pyaedt import Hfss
   from pyaedt.generic.constants import Plane
+  from pyaedt.generic.settings import settings
+  settings.use_grpc_api = False
 
 # ==============================================================================
 # 1. PARÂMETROS DA LINHA DE MICROFITA (IDÊNTICOS AO MODELO ANALÍTICO)
@@ -84,6 +88,7 @@ hfss = Hfss(
     design="Linha_Microfita_50Ohms",
     solution_type="DrivenModal",
     remove_lock=True,
+    version="2024.2",
 )
 
 hfss.modeler.model_units = "mm"
@@ -105,14 +110,11 @@ for s_name in list(hfss.setup_names):
   except Exception:
     pass
 
-try:
-  hfss.odesign.GetModule("BoundarySetup").DeleteAllBoundaries()
-except Exception:
-  for b in list(hfss.boundaries):
-    try:
-      b.delete()
-    except Exception:
-      pass
+for b in list(hfss.boundaries):
+  try:
+    b.delete()
+  except Exception:
+    pass
 
 for obj_nome in [
     "Substrate",
